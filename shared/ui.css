@@ -12,6 +12,22 @@
   --radius: 24px;
   --tap-min: 64px;
   --font: "Hiragino Maru Gothic ProN", "Meiryo", "Yu Gothic", "Noto Sans JP", sans-serif;
+  /* 画面の高さ1%。スマホのアドレスバーで高さが変わるので、使える端末では dvh を使う */
+  --vh: 1vh;
+  /* 端末の切り欠き・角丸（viewport-fit=cover のとき）の安全領域 */
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+}
+@supports (height: 1dvh) {
+  :root { --vh: 1dvh; }
+}
+
+/* スマホ横向き（高さが低い）だけは、タップ領域の下限を 56px まで下げる。
+   タブレット（高さ 600px 以上）は 64px のまま。 */
+@media (orientation: landscape) and (max-height: 520px) {
+  :root { --tap-min: 56px; }
 }
 
 * { box-sizing: border-box; }
@@ -30,7 +46,8 @@ html, body {
 /* 画面全体。横向き優先で、はみ出さない。 */
 .screen {
   min-height: 100vh;
-  padding: 16px 24px;
+  min-height: 100dvh;
+  padding: calc(16px + var(--safe-t)) calc(24px + var(--safe-r)) calc(16px + var(--safe-b)) calc(24px + var(--safe-l));
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -93,6 +110,37 @@ html, body {
 }
 
 .hidden { display: none !important; }
+
+/* おとなゲート（gate.js が出す）：画面の実際の高さ（アドレスバー分を除く）に収め、
+   安全領域を避ける。gate.js の style より後に効くよう html を付けて強くする。 */
+html #chiid-gate {
+  padding: calc(8px + var(--safe-t)) calc(8px + var(--safe-r)) calc(8px + var(--safe-b)) calc(8px + var(--safe-l));
+}
+html #chiid-gate .g-box { max-height: 100%; max-width: 100%; }
+@media (orientation: landscape) and (max-height: 520px) {
+  html #chiid-gate .g-box { padding: 10px 16px; gap: 8px 20px; }
+  html #chiid-gate .g-info { gap: 4px; }
+  html #chiid-gate .g-q { font-size: 32px; }
+  html #chiid-gate .g-in { min-height: 56px; line-height: 56px; font-size: 32px; }
+  html #chiid-gate .g-pad { grid-template-columns: repeat(3, 60px); gap: 8px; }
+  html #chiid-gate .g-key { width: 60px; height: 60px; min-width: 56px; min-height: 56px; font-size: 28px; }
+  html #chiid-gate .g-key.g-del, html #chiid-gate .g-key.g-ok { font-size: 18px; }
+  html #chiid-gate .g-cancel { min-height: 56px; }
+}
+/* スマホ縦向き：情報とキーが縦に並ぶので、キーを 64px にして高さに収める */
+@media (orientation: portrait) and (max-width: 520px) {
+  html #chiid-gate .g-box { padding: 12px 16px; gap: 12px; }
+  html #chiid-gate .g-info { gap: 6px; min-width: 0; }
+  html #chiid-gate .g-title { font-size: 17px; text-align: center; }
+  html #chiid-gate .g-q { font-size: 34px; }
+  html #chiid-gate .g-pad { grid-template-columns: repeat(3, 64px); gap: 8px; }
+  html #chiid-gate .g-key { width: 64px; height: 64px; }
+}
+@media (orientation: landscape) and (max-height: 340px) {
+  html #chiid-gate .g-pad { grid-template-columns: repeat(3, 56px); gap: 6px; }
+  html #chiid-gate .g-key { width: 56px; height: 56px; }
+  html #chiid-gate .g-title { font-size: 16px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .reward-star { animation: none; }

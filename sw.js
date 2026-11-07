@@ -1,11 +1,14 @@
 /* Service Worker：キャッシュ優先。外部への通信はしない。 */
 'use strict';
-var CACHE_NAME = 'chiid-v2'; // ファイルを変えたら番号を上げる
+var CACHE_NAME = 'chiid-v3'; // ファイルを変えたら番号を上げる
 var PRECACHE = [
   './',
   'index.html',
   'manifest.json',
   'icons/icon.svg',
+  'icons/icon-192.png',
+  'icons/icon-512.png',
+  'icons/icon-maskable-512.png',
   'shared/ui.css',
   'shared/core.js',
   'shared/storage.js',

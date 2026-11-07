@@ -11,6 +11,11 @@
   var bgmPlaying = false;
   var bgmTimer = null;
   var bgmStep = 0;
+  var ducked = false;       // 読み上げ中は BGM を下げる
+  var sfxBus = null, bgmBus = null, comp = null;
+  var BGM_VOL = 0.18;       // 旧0.05の約3.6倍
+  var SFX_BUS_GAIN = 1.2;   // 効果音は少しだけ上げる
+  var DUCK_RATIO = 0.5;
 
   function getCtx() {
     if (disabled) return null;
@@ -19,6 +24,7 @@
         var AC = window.AudioContext || window.webkitAudioContext;
         if (!AC) return null;
         ctx = new AC();
+        buildGraph(ctx);
       }
       if (ctx.state === 'suspended' && ctx.resume) {
         var p = ctx.resume();
@@ -30,8 +36,33 @@
     }
   }
 
+  function bgmGainTarget() { return ducked ? DUCK_RATIO : 1; }
+
+  // 音の通り道：効果音/BGM -> コンプレッサー（音割れ防止）-> スピーカー
+  function buildGraph(ac) {
+    try {
+      comp = ac.createDynamicsCompressor ? ac.createDynamicsCompressor() : null;
+      sfxBus = ac.createGain();
+      bgmBus = ac.createGain();
+      sfxBus.gain.value = SFX_BUS_GAIN;
+      bgmBus.gain.value = bgmGainTarget();
+      sfxBus.connect(comp || ac.destination);
+      bgmBus.connect(comp || ac.destination);
+      if (comp) comp.connect(ac.destination);
+    } catch (e) { sfxBus = null; bgmBus = null; comp = null; }
+  }
+
+  function applyDuck(ac) {
+    if (!ac || !bgmBus) return;
+    try {
+      var t = ac.currentTime;
+      bgmBus.gain.cancelScheduledValues(t);
+      bgmBus.gain.setTargetAtTime(bgmGainTarget(), t, 0.08);
+    } catch (e) { /* 無視 */ }
+  }
+
   // 1音を鳴らす：周波数Hz、開始までの秒、長さ秒、音量、波形
-  function tone(ac, freq, start, dur, vol, type) {
+  function tone(ac, freq, start, dur, vol, type, bus) {
     var t0 = ac.currentTime + start;
     var osc = ac.createOscillator();
     var g = ac.createGain();
@@ -41,7 +72,7 @@
     g.gain.exponentialRampToValueAtTime(vol, t0 + 0.02);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
     osc.connect(g);
-    g.connect(ac.destination);
+    g.connect(bus || sfxBus || ac.destination);
     osc.start(t0);
     osc.stop(t0 + dur + 0.05);
   }
@@ -62,7 +93,7 @@
       if (!def) return;
       var ac = getCtx();
       if (!ac) return;
-      def.forEach(function (n) { tone(ac, n[0], n[1], n[2], n[3], n[4]); });
+      def.forEach(function (n) { tone(ac, n[0], n[1], n[2], n[3], n[4], sfxBus); });
     } catch (e) { /* 音が出なくても遊びは止めない */ }
   }
 
@@ -77,7 +108,7 @@
       if (!ac) return;
       var f = MELODY[bgmStep % MELODY.length];
       bgmStep++;
-      if (f) tone(ac, f, 0, 0.35, 0.05, 'sine');
+      if (f) tone(ac, f, 0, 0.35, BGM_VOL, 'sine', bgmBus);
     } catch (e) { /* 無視 */ }
   }
 
@@ -101,6 +132,10 @@
     play: play,
     startBgm: startBgm,
     stopBgm: stopBgm,
+    duck: function (on) {
+      ducked = !!on;
+      applyDuck(ctx);
+    },
     setSfxOn: function (b) { sfxOn = !!b; },
     setBgmOn: function (b) {
       bgmOn = !!b;
@@ -110,12 +145,16 @@
     isBgmOn: function () { return bgmOn; },
     isBgmPlaying: function () { return bgmPlaying; },
     // ---- テスト用 ----
+    _bgmGainTarget: bgmGainTarget,
+    _isDucked: function () { return ducked; },
     _ctxCreated: function () { return ctx !== null; },
     _disable: function () { disabled = true; },
     _reset: function () {
       stopBgm();
       if (ctx && ctx.close) { try { ctx.close(); } catch (e) {} }
       ctx = null;
+      sfxBus = null; bgmBus = null; comp = null;
+      ducked = false;
       disabled = false;
       sfxOn = true;
       bgmOn = true;

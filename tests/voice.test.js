@@ -48,4 +48,47 @@
       V._enable();
     }, function (e) { V._enable(); throw e; });
   });
+
+  C.test('voice: _pickVoice は localService=false を選ばない', function () {
+    var r = C.voice._pickVoice([
+      { name: 'Google 日本語', lang: 'ja-JP', localService: false },
+      { name: 'English', lang: 'en-US', localService: true }
+    ]);
+    C.assertEq(r, null);
+  });
+
+  C.test('voice: _pickVoice は自然そうな名前を優先する', function () {
+    var plain = { name: 'ja-JP-default', lang: 'ja-JP', localService: true };
+    var nice = { name: 'Kyoko (Enhanced)', lang: 'ja_JP', localService: true };
+    C.assertEq(C.voice._pickVoice([plain, nice]), nice);
+    C.assertEq(C.voice._pickVoice([plain]), plain);
+  });
+
+  C.test('voice: _pickVoice は候補なし/空で null', function () {
+    C.assertEq(C.voice._pickVoice([]), null);
+    C.assertEq(C.voice._pickVoice(null), null);
+  });
+
+  C.test('voice: speak で duck(true)->終了で duck(false)、pitch1.1、声名を取得できる', function () {
+    var V = C.voice;
+    var calls = [];
+    var orig = C.sfx.duck;
+    C.sfx.duck = function (on) { calls.push(on); };
+    var voiceObj = { name: 'Otoya', lang: 'ja-JP', localService: true };
+    var spoken = [];
+    V._setSynth({
+      getVoices: function () { return [voiceObj]; },
+      speak: function (u) { spoken.push(u); setTimeout(function () { u.onend(); }, 10); },
+      cancel: function () {}
+    }, function (t) { return { text: t }; });
+    function restore() { C.sfx.duck = orig; V._enable(); }
+    return V.speak('あ').then(function () {
+      C.assertEq(calls[0], true);
+      C.assertEq(calls[calls.length - 1], false);
+      C.assertEq(spoken[0].pitch, 1.1);
+      C.assertEq(spoken[0].voice, voiceObj);
+      C.assertEq(V.currentVoiceName(), 'Otoya');
+      restore();
+    }, function (e) { restore(); throw e; });
+  });
 })();

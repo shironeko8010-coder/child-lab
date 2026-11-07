@@ -5,7 +5,7 @@
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  padding: 12px 20px 20px;
+  padding: calc(12px + var(--safe-t)) calc(20px + var(--safe-r)) calc(20px + var(--safe-b)) calc(20px + var(--safe-l));
   overflow-x: hidden;
   background:
     radial-gradient(circle at 12% 88%, #ffe9c9 0 120px, transparent 121px),
@@ -294,6 +294,167 @@
   .q-chara .chara { width: 96px; height: 96px; }
   .pick-card { min-height: 200px; width: 200px; }
   .pc-pic { font-size: 88px; }
+}
+
+/* ===== スマホ横向き（高さ 520px 以下）=====
+   画面の高さ（--vh = 1dvh）に合わせて、絵・文字・ボタンを縮める。
+   タップ領域は 56px まで（--tap-min は ui.css で 56px になる）。 */
+@media (orientation: landscape) and (max-height: 520px) {
+  .app { padding: calc(6px + var(--safe-t)) calc(16px + var(--safe-r)) calc(8px + var(--safe-b)) calc(16px + var(--safe-l)); }
+  .topbar { min-height: 56px; }
+  .icon-btn { width: 56px; height: 56px; }
+  .icon-btn .ico svg { width: 32px; height: 32px; }
+  .btn-big { padding: 6px 24px; font-size: 24px; }
+  .btn-big .ico svg { width: 28px; height: 28px; }
+  .bubble { font-size: clamp(18px, calc(var(--vh) * 5.6), 26px); padding: 8px 16px; border-radius: 20px; }
+
+  /* プロフィール */
+  .profile-box { gap: 8px; padding: 10px 24px; }
+  .profile-box .chara { width: calc(var(--vh) * 24); height: calc(var(--vh) * 24); }
+  .p-title { font-size: clamp(22px, calc(var(--vh) * 8), 34px); }
+  .p-form { flex-wrap: nowrap; gap: 12px; }
+  .p-input { flex: 1 1 200px; min-width: 0; min-height: 60px; font-size: 28px; }
+  .p-msg { min-height: 26px; font-size: 20px; }
+
+  /* ホーム */
+  .home-body { flex-wrap: nowrap; gap: 24px; }
+  .home-chara .chara { width: min(30vw, calc(var(--vh) * 52)); height: min(30vw, calc(var(--vh) * 52)); }
+  .home-main { gap: 10px; }
+  .home-hello { font-size: clamp(18px, calc(var(--vh) * 5.5), 26px); }
+  .home-title { font-size: clamp(24px, calc(var(--vh) * 8), 36px); }
+  .btn-play { font-size: clamp(28px, calc(var(--vh) * 9), 40px); padding: 8px 40px; min-height: clamp(64px, calc(var(--vh) * 21), 96px); }
+  .btn-play .ico svg { width: 40px; height: 40px; }
+
+  /* えらぶ */
+  .q-head { gap: 12px; margin: 0 0 8px; flex-wrap: nowrap; }
+  .q-chara .chara { width: calc(var(--vh) * 18); height: calc(var(--vh) * 18); }
+  .q-letter { width: calc(var(--vh) * 22); height: calc(var(--vh) * 22); font-size: calc(var(--vh) * 15); border-width: 4px; box-shadow: 0 4px 0 var(--c-soft); }
+  .no-voice .q-text { font-size: clamp(22px, calc(var(--vh) * 8), 34px); padding: 8px 18px; border-width: 4px; }
+  .cards { gap: 16px; }
+  .pick-card, .cards.n4 .pick-card {
+    width: min(170px, 21vw);
+    min-height: calc(var(--vh) * 44);
+    border-radius: 24px;
+    padding: 8px;
+    gap: 4px;
+  }
+  .cards.n4 .pick-card { width: min(150px, 20vw); }
+  .pc-pic { font-size: calc(var(--vh) * 16); }
+  .pc-word { font-size: clamp(20px, calc(var(--vh) * 7), 32px); }
+  .burst .reward-star { width: 40px; height: 40px; }
+
+  /* なぞる */
+  .trace-wrap { gap: 16px; }
+  .trace-area { min-height: 0; }
+  .trace-side { flex: 0 0 clamp(200px, 32vw, 280px); gap: 8px; }
+  .q-chara.small .chara { width: calc(var(--vh) * 15); height: calc(var(--vh) * 15); }
+  .trace-side .bubble { font-size: clamp(18px, calc(var(--vh) * 5.2), 24px); }
+  .trace-btns { gap: 10px; }
+  .trace-btns .btn-big { min-height: clamp(56px, calc(var(--vh) * 16), 72px); font-size: 24px; }
+
+  /* ごほうび */
+  .reward-body { gap: 6px; }
+  .stars { gap: 12px; }
+  .stars .reward-star { width: calc(var(--vh) * 14); height: calc(var(--vh) * 14); }
+  .reward-row { flex-wrap: nowrap; gap: 24px; }
+  .reward-row .chara { width: calc(var(--vh) * 34); height: calc(var(--vh) * 34); }
+  .reward-info { gap: 6px; }
+  .reward-msg { font-size: calc(var(--vh) * 11); line-height: 1.15; }
+  .reward-word { font-size: clamp(20px, calc(var(--vh) * 6.5), 32px); }
+  .rw-pic { font-size: calc(var(--vh) * 9); }
+  .btn-next { font-size: 26px; min-height: clamp(56px, calc(var(--vh) * 17), 80px); padding: 6px 36px; }
+
+  /* おやすみ */
+  .rest-body { gap: 10px; }
+  .rest-body .chara { width: calc(var(--vh) * 38); height: calc(var(--vh) * 38); }
+  .rest-msg { font-size: clamp(22px, calc(var(--vh) * 8), 36px); }
+
+  /* 親画面 */
+  .parent-head { padding: 0 8px; }
+}
+
+/* さらに低い横向き（アドレスバーが出ていて、高さが 340px 以下）：
+   なぞる画面のキャラを隠して、ボタンと文字を優先する */
+@media (orientation: landscape) and (max-height: 340px) {
+  .topbar { min-height: 56px; }
+  .trace-side .q-chara { display: none; }
+  .q-head { margin-bottom: 4px; }
+  .reward-body { gap: 2px; }
+}
+
+/* ===== スマホ縦向き（幅 520px 以下）=====
+   タップ領域は 64px 以上のまま。横幅と高さに合わせて絵と文字を縮める。 */
+@media (orientation: portrait) and (max-width: 520px) {
+  .app { padding: calc(8px + var(--safe-t)) calc(12px + var(--safe-r)) calc(12px + var(--safe-b)) calc(12px + var(--safe-l)); }
+  .topbar { min-height: 64px; }
+  .icon-btn { width: 64px; height: 64px; }
+  .icon-btn .ico svg { width: 36px; height: 36px; }
+  .btn-big { padding: 10px 24px; }
+  .bubble { font-size: clamp(20px, 6.2vw, 28px); padding: 10px 18px; border-radius: 22px; }
+
+  /* プロフィール */
+  .profile-box { padding: 20px 16px; }
+  .profile-box .chara { width: min(30vw, 140px); height: min(30vw, 140px); }
+  .p-title { font-size: clamp(24px, 8vw, 36px); }
+  .p-input { flex-basis: 100%; min-width: 0; font-size: 30px; }
+
+  /* ホーム */
+  .home-chara .chara { width: min(50vw, calc(var(--vh) * 30), 300px); height: min(50vw, calc(var(--vh) * 30), 300px); }
+  .home-hello { font-size: clamp(20px, 6.4vw, 30px); }
+  .home-title { font-size: clamp(24px, 8vw, 44px); }
+  .btn-play { font-size: clamp(32px, 11vw, 48px); padding: 14px 44px; min-height: 100px; }
+
+  /* えらぶ */
+  .q-head { gap: 8px 14px; margin: 0 0 12px; }
+  .q-chara .chara { width: min(22vw, calc(var(--vh) * 12)); height: min(22vw, calc(var(--vh) * 12)); }
+  .q-letter { width: min(26vw, calc(var(--vh) * 14)); height: min(26vw, calc(var(--vh) * 14)); font-size: min(18vw, calc(var(--vh) * 10)); border-width: 5px; }
+  .q-talk { flex-basis: 100%; justify-content: center; }
+  .no-voice .q-text { font-size: clamp(22px, min(9vw, calc(var(--vh) * 4.2)), 40px); padding: 8px 18px; }
+  .cards, .cards.n4 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 220px));
+    justify-content: center;
+    align-content: center;
+    gap: 16px;
+  }
+  .pick-card, .cards.n4 .pick-card {
+    width: 100%;
+    min-height: clamp(120px, calc(var(--vh) * 21), 250px);
+    border-radius: 24px;
+    padding: 10px;
+  }
+  /* 3まいのときは、3まいめを まんなかに */
+  .cards.n3 .pick-card:last-child { grid-column: 1 / -1; justify-self: center; width: calc(50% - 8px); }
+  .pc-pic { font-size: clamp(52px, min(17vw, calc(var(--vh) * 9)), 110px); }
+  .pc-word { font-size: clamp(24px, 8vw, 40px); }
+
+  /* なぞる */
+  .trace-area { min-height: 0; }
+  .trace-side { flex-wrap: wrap; gap: 10px 12px; }
+  .trace-side .q-chara { flex: 0 0 auto; }
+  .trace-side .bubble { flex: 1 1 0; min-width: 0; font-size: clamp(18px, 5.6vw, 26px); }
+  .trace-side .q-chara.small .chara { width: min(20vw, 90px); height: min(20vw, 90px); }
+  .trace-btns { gap: 12px; }
+  .trace-btns .btn-big { min-height: 80px; font-size: clamp(22px, 6.6vw, 28px); padding: 8px 10px; gap: 6px; white-space: nowrap; }
+  .trace-btns .btn-big .ico svg { width: 28px; height: 28px; }
+
+  /* ごほうび */
+  .stars { gap: 12px; }
+  .stars .reward-star { width: min(24vw, 120px); height: min(24vw, 120px); }
+  .reward-row { gap: 16px; }
+  .reward-row .chara { width: min(40vw, calc(var(--vh) * 22), 200px); height: min(40vw, calc(var(--vh) * 22), 200px); }
+  .reward-msg { font-size: clamp(44px, 15vw, 72px); }
+  .reward-word { font-size: clamp(28px, 9vw, 44px); }
+  .rw-pic { font-size: clamp(48px, 14vw, 72px); }
+  .btn-next { font-size: 34px; min-height: 88px; padding: 12px 44px; }
+
+  /* おやすみ */
+  .rest-body .chara { width: min(56vw, 240px); height: min(56vw, 240px); }
+  .rest-msg { font-size: clamp(26px, 8.4vw, 44px); }
+
+  /* 親画面：左右の余白を減らす（parent.js の .parent-view より強く） */
+  .parent-head { padding: 0 4px; }
+  .scr-parent .parent-view { padding: 12px 4px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

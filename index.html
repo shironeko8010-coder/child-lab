@@ -21,6 +21,21 @@
   .app-card svg { width: 140px; height: 140px; }
   .app-card.soon { opacity: .55; }
   .app-card .soon-label { font-size: 26px; color: #8a7a64; }
+  /* スマホ横向き（高さが低い）：カードを画面の高さに合わせて縮める */
+  @media (orientation: landscape) and (max-height: 520px) {
+    .entry { gap: 12px 24px; padding-top: calc(8px + var(--safe-t)); padding-bottom: calc(8px + var(--safe-b)); }
+    .entry h1 { font-size: clamp(24px, calc(var(--vh) * 8), 40px); }
+    .app-card { width: min(260px, 40vw); min-height: calc(var(--vh) * 62); padding: 12px; gap: 4px; font-size: clamp(24px, calc(var(--vh) * 8), 40px); border-radius: 28px; }
+    .app-card svg { width: calc(var(--vh) * 30); height: calc(var(--vh) * 30); }
+    .app-card .soon-label { font-size: 18px; }
+  }
+  /* スマホ縦向き（幅が狭い）：カードを縦に並べ、高さに合わせて縮める */
+  @media (orientation: portrait) and (max-width: 520px) {
+    .entry { gap: 20px; }
+    .entry h1 { font-size: clamp(28px, 9vw, 44px); }
+    .app-card { width: min(300px, 80vw); min-height: min(280px, calc(var(--vh) * 34)); padding: 16px; }
+    .app-card svg { width: min(140px, calc(var(--vh) * 16)); height: min(140px, calc(var(--vh) * 16)); }
+  }
 </style>
 </head>
 <body>

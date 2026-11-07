@@ -46,4 +46,26 @@
     C.assertEq(C.sfx._ctxCreated(), false);
     C.sfx._reset();
   });
+
+  C.test('sfx: duck(true)でBGMゲインの目標が約半分、duck(false)で元に戻る', function () {
+    C.sfx._reset();
+    C.assertEq(C.sfx._bgmGainTarget(), 1);
+    C.sfx.duck(true);
+    C.assertEq(C.sfx._bgmGainTarget(), 0.5);
+    C.assertEq(C.sfx._isDucked(), true);
+    C.sfx.duck(false);
+    C.assertEq(C.sfx._bgmGainTarget(), 1);
+    C.sfx._reset();
+  });
+
+  C.test('sfx: BGM鳴動中にduckしても例外が出ず、_resetでduck解除', function () {
+    C.sfx._reset();
+    C.sfx.setBgmOn(true);
+    C.sfx.startBgm();
+    C.sfx.duck(true);
+    C.sfx.duck(false);
+    C.sfx.duck(true);
+    C.sfx._reset();
+    C.assertEq(C.sfx._isDucked(), false);
+  });
 })();

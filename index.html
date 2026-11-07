@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>がくしゅう</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="shared/ui.css">
+<style>
+  .entry { min-height: 100vh; min-height: 100dvh; align-content: center; gap: 40px; }
+  .entry h1 { width: 100%; text-align: center; margin: 0; font-size: 44px; color: var(--c-primary-dark); }
+  .app-card {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    width: 300px; min-height: 280px; padding: 24px;
+    border-radius: 36px; background: var(--c-surface); color: var(--c-text);
+    text-decoration: none; font-size: 40px; font-weight: bold;
+    box-shadow: 0 8px 0 #ecd3b4, 0 8px 18px rgba(0,0,0,.08);
+  }
+  a.app-card:active { transform: translateY(5px); box-shadow: 0 3px 0 #ecd3b4; }
+  .app-card svg { width: 140px; height: 140px; }
+  .app-card.soon { opacity: .55; }
+  .app-card .soon-label { font-size: 26px; color: #8a7a64; }
+</style>
+</head>
+<body>
+<div class="screen entry">
+  <h1>どれで あそぶ？</h1>
+  <a class="app-card" href="app-chiiku/index.html">
+    <svg viewBox="0 0 120 120" aria-hidden="true">
+      <ellipse cx="60" cy="62" rx="44" ry="46" fill="#ffd84d"/>
+      <ellipse cx="60" cy="74" rx="28" ry="26" fill="#fff0b3"/>
+      <circle cx="44" cy="50" r="6" fill="#3a3a3a"/><circle cx="76" cy="50" r="6" fill="#3a3a3a"/>
+      <ellipse cx="32" cy="64" rx="7" ry="4.5" fill="#ff9fb0"/><ellipse cx="88" cy="64" rx="7" ry="4.5" fill="#ff9fb0"/>
+      <path d="M53 62 L67 62 L60 71 Z" fill="#ff8a3d"/>
+    </svg>
+    <span>ちいく</span>
+  </a>
+  <div class="app-card soon" aria-disabled="true">
+    <svg viewBox="0 0 120 120" aria-hidden="true">
+      <rect x="18" y="26" width="84" height="70" rx="10" fill="#cfe3f5"/>
+      <path d="M60 30 V92" stroke="#7aa6c9" stroke-width="4"/>
+      <path d="M28 44 H52 M28 58 H52 M68 44 H92 M68 58 H92" stroke="#7aa6c9" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+    <span>べんきょう</span>
+    <span class="soon-label">じゅんびちゅう</span>
+  </div>
+</div>
+<script>
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  try { navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {}
+}
+</script>
+</body>
+</html>

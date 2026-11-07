@@ -1,0 +1,15 @@
+{
+  "name": "がくしゅう",
+  "short_name": "がくしゅう",
+  "description": "こどもむけの がくしゅう あぷり",
+  "lang": "ja",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#fff4e0",
+  "theme_color": "#ffd84d",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>親画面 目視確認</title>
+<link rel="stylesheet" href="../shared/ui.css">
+</head>
+<body>
+<div id="root"></div>
+<script src="../shared/core.js"></script>
+<script src="../shared/storage.js"></script>
+<script src="../shared/sfx.js"></script>
+<script src="../shared/gate.js"></script>
+<script src="../shared/parent.js"></script>
+<script>
+// ダミーデータ（このページは目視確認用。実データは使わない）
+(function () {
+  var S = Chiid.storage;
+  S._forceMemory(true); // localStorageを汚さない
+  S.init().then(function () {
+    var id = S.addProfile('たろう', 'chiiku');
+    S.addProfile('はなこ', 'chiiku');
+    S.setActive(id);
+    var items = ['あ', 'い', 'う', 'か', 'か', 'あ', 'け'];
+    var chain = Promise.resolve();
+    // あ:正解1/不正解1, か:不正解2 など
+    [['あ', true], ['あ', false], ['い', true], ['う', true], ['か', false], ['か', false], ['け', false], ['き', true]]
+      .forEach(function (a) {
+        chain = chain.then(function () {
+          return S.logAnswer({ profileId: id, area: 'hiragana', itemId: a[0], correct: a[1], level: 1 });
+        });
+      });
+    S.addPlaySeconds(id, '2026-11-03', 600);
+    S.addPlaySeconds(id, '2026-11-04', 900);
+    S.addPlaySeconds(id, '2026-11-05', 90);
+    chain.then(function () { Chiid.parent.render(document.getElementById('root')); });
+  });
+})();
+</script>
+</body>
+</html>

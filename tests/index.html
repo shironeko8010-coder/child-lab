@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>chiid-lab tests</title>
+<style>
+  body { font-family: sans-serif; padding: 16px; }
+  #summary { font-size: 28px; font-weight: bold; }
+  #failures { white-space: pre-wrap; color: #b00020; }
+</style>
+</head>
+<body>
+<h1>テスト結果</h1>
+<div id="summary">実行中...</div>
+<pre id="failures"></pre>
+<script>
+(function () {
+  // 本体→テストの順に、順序を守って読み込む。まだ無いファイルは404でも無視する。
+  // runner.js と core.js を先に。続いて本体、そのあとテスト。
+  var files = ['runner.js', '../shared/core.js']
+    .concat(['storage', 'sfx', 'voice', 'gate', 'timer', 'adaptive', 'parent'].map(function (n) { return '../shared/' + n + '.js'; }))
+    .concat(['data', 'trace'].map(function (n) { return '../app-chiiku/' + n + '.js'; }))
+    .concat(['storage', 'sfx', 'voice', 'gate', 'timer', 'adaptive', 'trace', 'parent', 'precache'].map(function (n) { return n + '.test.js'; }));
+  var left = files.length;
+  function done() {
+    if (--left === 0) {
+      window.Chiid.runTests();
+    }
+  }
+  files.forEach(function (src) {
+    var s = document.createElement('script');
+    s.src = src;
+    s.async = false; // 追加順に実行される
+    s.onload = done;
+    s.onerror = done; // 無いファイルは無視
+    document.body.appendChild(s);
+  });
+})();
+</script>
+</body>
+</html>

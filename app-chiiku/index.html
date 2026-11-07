@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ちいく</title>
+<link rel="manifest" href="../manifest.json">
+<link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../shared/ui.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<main id="app" class="app" aria-live="polite"></main>
+<script src="../shared/core.js"></script>
+<script src="../shared/storage.js"></script>
+<script src="../shared/sfx.js"></script>
+<script src="../shared/voice.js"></script>
+<script src="../shared/gate.js"></script>
+<script src="../shared/timer.js"></script>
+<script src="../shared/adaptive.js"></script>
+<script src="../shared/parent.js"></script>
+<script src="data.js"></script>
+<script src="trace.js"></script>
+<script src="game.js"></script>
+<script>
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  try { navigator.serviceWorker.register('../sw.js').catch(function () {}); } catch (e) {}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+/* 効果音・BGM（WebAudioで合成）。外部の音声ファイルは使わない。
+   AudioContext は最初に音を鳴らすとき（＝タップの中）に作る。 */
+(function () {
+  'use strict';
+  var C = (window.Chiid = window.Chiid || {});
+
+  var ctx = null;
+  var disabled = false;     // テスト用：AudioContext を使えない状態にする
+  var sfxOn = true;
+  var bgmOn = true;
+  var bgmPlaying = false;
+  var bgmTimer = null;
+  var bgmStep = 0;
+
+  function getCtx() {
+    if (disabled) return null;
+    try {
+      if (!ctx) {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        ctx = new AC();
+      }
+      if (ctx.state === 'suspended' && ctx.resume) {
+        var p = ctx.resume();
+        if (p && p.catch) p.catch(function () {});
+      }
+      return ctx;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // 1音を鳴らす：周波数Hz、開始までの秒、長さ秒、音量、波形
+  function tone(ac, freq, start, dur, vol, type) {
+    var t0 = ac.currentTime + start;
+    var osc = ac.createOscillator();
+    var g = ac.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(g);
+    g.connect(ac.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.05);
+  }
+
+  // 効果音の定義：[周波数, 開始, 長さ, 音量, 波形]
+  var SOUNDS = {
+    tap: [[660, 0, 0.08, 0.15, 'sine']],
+    correct: [[523, 0, 0.15, 0.2, 'triangle'], [659, 0.12, 0.15, 0.2, 'triangle'], [784, 0.24, 0.3, 0.2, 'triangle']],
+    // やわらかい2音（低く叱る音にしない）
+    oops: [[440, 0, 0.2, 0.15, 'sine'], [392, 0.2, 0.3, 0.15, 'sine']],
+    star: [[880, 0, 0.1, 0.15, 'sine'], [1175, 0.08, 0.1, 0.15, 'sine'], [1568, 0.16, 0.25, 0.15, 'sine']]
+  };
+
+  function play(name) {
+    try {
+      if (!sfxOn) return;
+      var def = SOUNDS[name];
+      if (!def) return;
+      var ac = getCtx();
+      if (!ac) return;
+      def.forEach(function (n) { tone(ac, n[0], n[1], n[2], n[3], n[4]); });
+    } catch (e) { /* 音が出なくても遊びは止めない */ }
+  }
+
+  // BGM：短い旋律（ドレミ系）を一定間隔でくり返す
+  var MELODY = [523, 587, 659, 784, 659, 587, 523, 0, 587, 659, 784, 880, 784, 659, 587, 0];
+  var STEP_MS = 450;
+
+  function bgmTick() {
+    try {
+      if (!bgmPlaying || !bgmOn) return;
+      var ac = getCtx();
+      if (!ac) return;
+      var f = MELODY[bgmStep % MELODY.length];
+      bgmStep++;
+      if (f) tone(ac, f, 0, 0.35, 0.05, 'sine');
+    } catch (e) { /* 無視 */ }
+  }
+
+  function startBgm() {
+    try {
+      if (!bgmOn || bgmPlaying) return;
+      if (disabled) return;
+      bgmPlaying = true;
+      bgmStep = 0;
+      bgmTick();
+      bgmTimer = setInterval(bgmTick, STEP_MS);
+    } catch (e) { bgmPlaying = false; }
+  }
+
+  function stopBgm() {
+    bgmPlaying = false;
+    if (bgmTimer) { clearInterval(bgmTimer); bgmTimer = null; }
+  }
+
+  C.sfx = {
+    play: play,
+    startBgm: startBgm,
+    stopBgm: stopBgm,
+    setSfxOn: function (b) { sfxOn = !!b; },
+    setBgmOn: function (b) {
+      bgmOn = !!b;
+      if (!bgmOn) stopBgm();
+    },
+    isSfxOn: function () { return sfxOn; },
+    isBgmOn: function () { return bgmOn; },
+    isBgmPlaying: function () { return bgmPlaying; },
+    // ---- テスト用 ----
+    _ctxCreated: function () { return ctx !== null; },
+    _disable: function () { disabled = true; },
+    _reset: function () {
+      stopBgm();
+      if (ctx && ctx.close) { try { ctx.close(); } catch (e) {} }
+      ctx = null;
+      disabled = false;
+      sfxOn = true;
+      bgmOn = true;
+    }
+  };
+})();

@@ -300,7 +300,17 @@
    画面の高さ（--vh = 1dvh）に合わせて、絵・文字・ボタンを縮める。
    タップ領域は 56px まで（--tap-min は ui.css で 56px になる）。 */
 @media (orientation: landscape) and (max-height: 520px) {
-  .app { padding: calc(6px + var(--safe-t)) calc(16px + var(--safe-r)) calc(8px + var(--safe-b)) calc(16px + var(--safe-l)); }
+  /* 縦の予算：画面の高さ（100dvh）ちょうどに固定し、
+     上の帯（56px、とても低い画面は 48px）を引いた残りを、各画面の本体が flex:1 で受け取る。
+     本体の中身（カード・なぞり板）は、その残りの高さから大きさを決める。 */
+  .app {
+    height: calc(var(--vh) * 100);
+    min-height: 0;
+    padding: calc(6px + var(--safe-t)) calc(16px + var(--safe-r)) calc(8px + var(--safe-b)) calc(16px + var(--safe-l));
+  }
+  .app.scr-parent { height: auto; min-height: calc(var(--vh) * 100); }   /* 親画面は縦スクロールでよい */
+  .topbar { flex: 0 0 auto; }
+  .home-body, .trace-wrap, .reward-body, .rest-body { min-height: 0; }
   .topbar { min-height: 56px; }
   .icon-btn { width: 56px; height: 56px; }
   .icon-btn .ico svg { width: 32px; height: 32px; }
@@ -330,16 +340,29 @@
   .q-chara .chara { width: calc(var(--vh) * 18); height: calc(var(--vh) * 18); }
   .q-letter { width: calc(var(--vh) * 22); height: calc(var(--vh) * 22); font-size: calc(var(--vh) * 15); border-width: 4px; box-shadow: 0 4px 0 var(--c-soft); }
   .no-voice .q-text { font-size: clamp(22px, calc(var(--vh) * 8), 34px); padding: 8px 18px; border-width: 4px; }
-  .cards { gap: 16px; }
+  .q-head { flex: 0 0 auto; }
+  /* カードの段は「残りの高さ」いっぱい（下に影の分 10px）。カードは段の高さにそろえる */
+  .cards {
+    flex: 1 1 0;
+    min-height: 0;
+    gap: 16px;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    align-content: stretch;
+    padding-bottom: 10px;
+  }
   .pick-card, .cards.n4 .pick-card {
     width: min(170px, 21vw);
-    min-height: calc(var(--vh) * 44);
+    min-height: 0;
+    max-height: calc(var(--vh) * 60);
     border-radius: 24px;
     padding: 8px;
     gap: 4px;
+    align-self: center;
+    height: 100%;
   }
   .cards.n4 .pick-card { width: min(150px, 20vw); }
-  .pc-pic { font-size: calc(var(--vh) * 16); }
+  .pc-pic { font-size: calc(var(--vh) * 18); }
   .pc-word { font-size: clamp(20px, calc(var(--vh) * 7), 32px); }
   .burst .reward-star { width: 40px; height: 40px; }
 
@@ -376,7 +399,13 @@
 /* さらに低い横向き（アドレスバーが出ていて、高さが 340px 以下）：
    なぞる画面のキャラを隠して、ボタンと文字を優先する */
 @media (orientation: landscape) and (max-height: 340px) {
-  .topbar { min-height: 56px; }
+  /* 上の帯とボタンを 48px にして、本体（なぞり板・カード）に高さを回す */
+  .topbar { min-height: 48px; }
+  .icon-btn { width: 48px; height: 48px; }
+  .icon-btn .ico svg { width: 28px; height: 28px; }
+  .trace-btns { gap: 8px; }
+  .trace-btns .btn-big { min-height: clamp(48px, calc(var(--vh) * 16), 64px); }
+  .btn-next { min-height: clamp(48px, calc(var(--vh) * 17), 64px); }
   .trace-side .q-chara { display: none; }
   .q-head { margin-bottom: 4px; }
   .reward-body { gap: 2px; }

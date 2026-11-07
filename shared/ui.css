@@ -29,6 +29,10 @@
 @media (orientation: landscape) and (max-height: 520px) {
   :root { --tap-min: 56px; }
 }
+/* さらに低い横向き（高さ 340px 以下）だけ、48px まで下げる */
+@media (orientation: landscape) and (max-height: 340px) {
+  :root { --tap-min: 48px; }
+}
 
 * { box-sizing: border-box; }
 
@@ -40,6 +44,9 @@ html, body {
   font-family: var(--font);
   font-size: 24px;
   -webkit-tap-highlight-color: transparent;
+  /* スマホの横向きで、ブラウザが文字だけを勝手に大きくしない（枠からはみ出すのを防ぐ） */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   touch-action: manipulation;
 }
 
@@ -118,8 +125,12 @@ html #chiid-gate {
 }
 html #chiid-gate .g-box { max-height: 100%; max-width: 100%; }
 @media (orientation: landscape) and (max-height: 520px) {
-  html #chiid-gate .g-box { padding: 10px 16px; gap: 8px 20px; }
-  html #chiid-gate .g-info { gap: 4px; }
+  /* 横向きスマホ：情報とキーは必ず横に並べる（折り返すと高さが足りない） */
+  html #chiid-gate .g-box { padding: 10px 16px; gap: 8px 20px; flex-wrap: nowrap; }
+  html #chiid-gate .g-info { gap: 4px; min-width: 0; flex: 1 1 auto; }
+  html #chiid-gate .g-title { text-align: center; }
+  html #chiid-gate .g-in { min-width: 0; width: 100%; max-width: 220px; }
+  html #chiid-gate .g-pad { flex: 0 0 auto; }
   html #chiid-gate .g-q { font-size: 32px; }
   html #chiid-gate .g-in { min-height: 56px; line-height: 56px; font-size: 32px; }
   html #chiid-gate .g-pad { grid-template-columns: repeat(3, 60px); gap: 8px; }

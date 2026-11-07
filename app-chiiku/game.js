@@ -459,7 +459,12 @@
       strokes = []; cur = null; activeId = null;
       if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
       var w = area.clientWidth, h = area.clientHeight;
-      size = Math.max(200, Math.min(640, Math.floor(Math.min(w, h)) - 8));
+      // 念のため：場所が画面の下にはみ出しているときは、画面に見えている高さを上限にする
+      // （dvh が使えない古いブラウザで、アドレスバーの分だけ高く計算される場合など）
+      var r = area.getBoundingClientRect();
+      var vh = window.innerHeight || 0;
+      if (vh && r.bottom > vh) h = Math.min(h, vh - r.top - 8);
+      size = Math.max(160, Math.min(640, Math.floor(Math.min(w, h)) - 8));
       dpr = Math.min(3, window.devicePixelRatio || 1);
       canvas = el('canvas', 'trace-canvas');
       canvas.width = Math.round(size * dpr);

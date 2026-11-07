@@ -13,7 +13,7 @@
   var bgmStep = 0;
   var ducked = false;       // 読み上げ中は BGM を下げる
   var sfxBus = null, bgmBus = null, comp = null;
-  var BGM_VOL = 0.18;       // 旧0.05の約3.6倍
+  var BGM_VOL = 0.30;       // 最初0.05→0.18→実機の声を受けて0.30（約6倍）。コンプレッサーで音割れを抑える
   var SFX_BUS_GAIN = 1.2;   // 効果音は少しだけ上げる
   var DUCK_RATIO = 0.5;
 

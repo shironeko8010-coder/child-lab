@@ -1,6 +1,6 @@
 /* Service Worker：キャッシュ優先。外部への通信はしない。 */
 'use strict';
-var CACHE_NAME = 'chiid-v3'; // ファイルを変えたら番号を上げる
+var CACHE_NAME = 'chiid-v4'; // ファイルを変えたら番号を上げる
 var PRECACHE = [
   './',
   'index.html',

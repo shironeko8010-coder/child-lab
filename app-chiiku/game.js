@@ -381,10 +381,15 @@
       var card = button('pick-card', function () { choose(it, card); });
       card.setAttribute('aria-label', it.word);
       card.appendChild(el('span', 'pc-pic', it.pic));
-      var w = el('span', 'pc-word');
-      // 先頭の文字だけ目立たせる
-      w.appendChild(el('b', null, it.word.charAt(0)));
-      w.appendChild(document.createTextNode(it.word.slice(1)));
+      var len = it.word.length;
+      var w = el('span', 'pc-word' + (len >= 5 ? ' len5' : len === 4 ? ' len4' : ''));
+      var wi = el('span', 'pw-in');
+      // その字だけ目立たせる（ふつうは先頭。「を」「ん」は言葉の途中・最後）
+      var at = Math.max(0, it.word.indexOf(it.ch));
+      if (at) wi.appendChild(document.createTextNode(it.word.slice(0, at)));
+      wi.appendChild(el('b', null, it.word.charAt(at)));
+      wi.appendChild(document.createTextNode(it.word.slice(at + 1)));
+      w.appendChild(wi);
       card.appendChild(w);
       grid.appendChild(card);
     });

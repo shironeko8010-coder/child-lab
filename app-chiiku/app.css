@@ -190,6 +190,11 @@
 .pc-pic { font-size: 110px; line-height: 1.1; }
 .pc-word { font-size: 40px; font-weight: bold; }
 .pc-word b { color: var(--c-primary-dark); }
+/* 長い言葉は、途中で折り返さずに 字を小さくする（4字・5字以上） */
+.pc-word { white-space: nowrap; }
+.pc-word .pw-in { display: inline-block; }
+.pc-word.len4 .pw-in { font-size: .8em; }
+.pc-word.len5 .pw-in { font-size: .66em; }
 .pick-card.tried { opacity: .75; }
 .pick-card.wiggle { animation: wiggle .5s ease; }
 .pick-card.right { box-shadow: 0 8px 0 #3e9b4b, 0 0 0 8px var(--c-good); transform: scale(1.06); opacity: 1; }

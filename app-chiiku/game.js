@@ -285,18 +285,26 @@
     left.appendChild(chara('normal'));
     var right = el('div', 'home-main');
     right.appendChild(el('p', 'home-hello', 'こんにちは、' + p.nickname + '！'));
-    right.appendChild(el('h1', 'home-title', 'おとを きいて、なぞろう'));
-    var go = button('btn-big btn-play', function () {
-      if (go.disabled) return;
-      go.disabled = true;
-      play('tap');
-      if (audioReady && C.storage.getSettings().bgmOn) C.sfx.startBgm();
-      C.game.start(p.id);
-    });
-    go.setAttribute('aria-label', 'あそぶ');
-    go.appendChild(svg(ICO.play));
-    go.appendChild(el('span', null, 'あそぶ'));
-    right.appendChild(go);
+    right.appendChild(el("h1", "home-title", "なにで あそぶ？"));
+    var btns = el("div", "home-btns");
+    var all = [];
+    function playBtn(label, run) {
+      var go = button("btn-big btn-play", function () {
+        if (go.disabled) return;
+        all.forEach(function (b) { b.disabled = true; });
+        play("tap");
+        if (audioReady && C.storage.getSettings().bgmOn) C.sfx.startBgm();
+        run();
+      });
+      go.setAttribute("aria-label", label);
+      go.appendChild(svg(ICO.play));
+      go.appendChild(el("span", null, label));
+      all.push(go);
+      btns.appendChild(go);
+    }
+    playBtn("ひらがな", function () { C.game.start(p.id); });
+    playBtn("かず", function () { C.kazu.start(p.id); });
+    right.appendChild(btns);
     body.appendChild(left);
     body.appendChild(right);
     app.appendChild(body);
@@ -699,6 +707,13 @@
 
   C.game = { start: start };
   C.chiikuPickProfile = pickProfile;   // テスト用に公開
+  // かずゲーム（kazu.js）が使う画面の部品
+  C.chiikuUi = {
+    el: el, svg: svg, button: button, later: later, bubble: bubble,
+    newScreen: newScreen, chara: chara, topBar: topBar,
+    play: play, speak: speak, ICO: ICO, STAR: STAR,
+    showHome: showHome, showRest: showRest
+  };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

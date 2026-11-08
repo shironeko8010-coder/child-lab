@@ -4,6 +4,7 @@
   var C = (window.Chiid = window.Chiid || {});
 
   var AREA = 'kuku';
+  var AREA_BLANK = 'kukuB';   // A×□=C（Bを答える）の記録用
   var MAX_LEVEL = 8;
   var ROUND_SIZE = 10;
   var STAR_EVERY = 5;
@@ -53,14 +54,25 @@
     return { kind: attempt.tries >= 2 ? 'reveal' : 'retry' };
   }
 
-  function speakText(item) {
+  // モード：'mul' = A×B=□（こたえは積）、'blank' = A×□=C（こたえは B）
+  function areaOf(mode) { return mode === 'blank' ? AREA_BLANK : AREA; }
+  function digitsOf(mode) { return mode === 'blank' ? 1 : 2; }
+  // 式（ITEMS の1件）を、そのモードの問題にする。judge/submit は q.ans を見る
+  function question(item, mode) {
+    var m = mode === 'blank' ? 'blank' : 'mul';
+    return { id: item.id, a: item.a, b: item.b, prod: item.ans, ans: m === 'blank' ? item.b : item.ans, mode: m };
+  }
+
+  function speakText(item, mode) {
+    if (mode === 'blank') return YOMI[item.a] + ' かける いくつで ' + item.prod + ' になる？';
     return YOMI[item.a] + ' かける ' + YOMI[item.b] + ' は？';
   }
 
   // 記録から、レベル・直近の正誤・苦手を組み立てる（app-chiiku/game.js の loadProgress と同じ考え方）
-  function progressFromLogs(logs) {
+  function progressFromLogs(logs, mode) {
+    var area = areaOf(mode);
     var res = { level: 1, recent: [], missCounts: {} };
-    var mine = (logs || []).filter(function (e) { return e && e.area === AREA; });
+    var mine = (logs || []).filter(function (e) { return e && e.area === area; });
     mine.forEach(function (e) {
       if (!e.correct) res.missCounts[e.itemId] = (res.missCounts[e.itemId] || 0) + 1;
     });
@@ -79,7 +91,8 @@
   }
 
   C.kuku = {
-    AREA: AREA, MAX_LEVEL: MAX_LEVEL, ROUND_SIZE: ROUND_SIZE, STAR_EVERY: STAR_EVERY,
+    AREA: AREA, AREA_BLANK: AREA_BLANK, MAX_LEVEL: MAX_LEVEL, ROUND_SIZE: ROUND_SIZE, STAR_EVERY: STAR_EVERY,
+    areaOf: areaOf, digitsOf: digitsOf, question: question,
     ITEMS: ITEMS, poolIds: poolIds, pickItem: pickItem, judge: judge,
     newAttempt: newAttempt, submit: submit, speakText: speakText, progressFromLogs: progressFromLogs
   };

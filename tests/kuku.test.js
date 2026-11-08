@@ -122,4 +122,27 @@
     // dan 付きだけなら、最初の状態
     C.assertEq(K.progressFromLogs(logs.slice(2)).level, 1);
   });
+  C.test("kuku: question(blank) は B が答え、judge できる", function () {
+    var q = K.question(find("3×4"), "blank");
+    C.assertEq(q.ans, 4); C.assertEq(q.prod, 12); C.assertEq(q.a, 3); C.assertEq(q.mode, "blank");
+    C.assertEq(K.judge(q, "4"), "correct");
+    C.assertEq(K.judge(q, "12"), "wrong");
+    C.assertEq(K.judge(q, ""), "empty");
+    var m = K.question(find("3×4"), "mul");
+    C.assertEq(m.ans, 12); C.assertEq(m.mode, "mul");
+    C.assertEq(K.question(find("3×4")).ans, 12);   // 省略は mul
+  });
+  C.test("kuku: areaOf と digitsOf と speakText（□モード）", function () {
+    C.assertEq(K.areaOf("blank"), "kukuB"); C.assertEq(K.areaOf("mul"), "kuku"); C.assertEq(K.areaOf(), "kuku");
+    C.assertEq(K.digitsOf("blank"), 1); C.assertEq(K.digitsOf("mul"), 2);
+    C.assertEq(K.speakText(K.question(find("3×4"), "blank"), "blank"), "さん かける いくつで 12 になる？");
+    C.assertEq(K.speakText(find("3×4")), "さん かける よん は？");
+  });
+  C.test("kuku: progressFromLogs は mode ごとの area だけを見る", function () {
+    var lb = { area: "kukuB", itemId: "2×2", correct: false, level: 3 };
+    var lm = { area: "kuku", itemId: "2×3", correct: true, level: 1 };
+    C.assertEq(K.progressFromLogs([lb, lm], "blank").missCounts, { "2×2": 1 });
+    C.assertEq(K.progressFromLogs([lb, lm]).missCounts, {});
+    C.assertEq(K.progressFromLogs([lm], "blank").level, 1);
+  });
 })();

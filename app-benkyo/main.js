@@ -11,7 +11,8 @@
 
   // 教科の一覧。教科を足すときは、ここに1行と subjects/ に1ファイル
   var SUBJECTS = [
-    { id: 'kuku', name: '九九', yomi: 'くく', enabled: true },
+    { id: "kuku", name: "九九", yomi: "くく", sub: "だんの れんしゅう", enabled: true },
+    { id: "kukuB", name: "九九", yomi: "くく", sub: "□を こたえる", enabled: true, kuku: "blank" },
     { id: 'keisan', name: 'けいさん', enabled: false },
     { id: 'kanji', name: 'かんじ', enabled: false },
     { id: 'eigo', name: 'えいご', enabled: false }
@@ -121,6 +122,7 @@
   // 教科カードの絵（文字は使わず、記号を線でかく）
   var SUBJECT_ICO = {
     kuku: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#e3eefa"/><path d="M14 14l20 20M34 14L14 34" stroke="#2f6fb0" stroke-width="5" stroke-linecap="round"/></svg>',
+    kukuB: "<svg viewBox=\"0 0 48 48\" aria-hidden=\"true\"><rect x=\"3\" y=\"3\" width=\"42\" height=\"42\" rx=\"10\" fill=\"#e3eefa\"/><path d=\"M9 17l10 10M19 17L9 27\" stroke=\"#2f6fb0\" stroke-width=\"4\" stroke-linecap=\"round\"/><rect x=\"25\" y=\"14\" width=\"15\" height=\"15\" rx=\"3\" fill=\"#fff\" stroke=\"#2f6fb0\" stroke-width=\"3\" stroke-dasharray=\"4 3\"/><path d=\"M10 37h28\" stroke=\"#2f6fb0\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>",
     keisan: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#e6f3ee"/><path d="M14 17h12M20 11v12M24 33h12" stroke="#3f8f74" stroke-width="4.5" stroke-linecap="round"/></svg>',
     kanji: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#f6ece4"/><rect x="11" y="11" width="26" height="26" rx="3" fill="#fff" stroke="#a0673d" stroke-width="3"/><path d="M24 13v22M13 24h22" stroke="#d2b49c" stroke-width="2" stroke-dasharray="3 3"/><path d="M17 19q7 1 14 -1M23 15q2 12 -6 18" stroke="#a0673d" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg>',
     eigo: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#efe9f6"/><path d="M11 36l8-24 8 24M14 28h10M31 12v24h6a6 6 0 0 0 0-12h-6" stroke="#6d55a3" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
@@ -288,6 +290,7 @@
       if (s.yomi) nm.appendChild(ruby(s.name, s.yomi));
       else nm.textContent = s.name;
       card.appendChild(nm);
+      if (s.sub) card.appendChild(el("span", "sc-sub", s.sub));
       if (!s.enabled) card.appendChild(el('span', 'sc-soon', 'じゅんびちゅう'));
       grid.appendChild(card);
     });
@@ -308,9 +311,9 @@
     if (!s || !s.enabled) { showHome(); return; }
     if (checkRest()) return;
     var B = C.benkyo;
-    if (id === 'kuku' && B.kukuScreen && typeof B.kukuScreen.show === 'function') {
+    if ((id === "kuku" || id === "kukuB") && B.kukuScreen && typeof B.kukuScreen.show === 'function') {
       try {
-        var r = B.kukuScreen.show({ profileId: st.profileId });
+        var r = B.kukuScreen.show({ profileId: st.profileId, mode: s.kuku });
         if (r && r.catch) r.catch(function () { showSoon(s); });
       } catch (e) { showSoon(s); }
       return;

@@ -141,8 +141,8 @@ ruby rt { font-size: .42em; font-weight: bold; }
 
 .subjects {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 190px));
-  gap: 20px;
+  grid-template-columns: repeat(5, minmax(0, 170px));
+  gap: 16px;
   justify-content: center;
 }
 .subject-card {
@@ -168,6 +168,7 @@ ruby rt { font-size: .42em; font-weight: bold; }
 .sc-ico svg { width: 96px; height: 96px; display: block; }
 .sc-name { font-size: 40px; font-weight: bold; line-height: 1.25; white-space: nowrap; }
 .subject-card:not(.soon) .sc-name { color: var(--c-primary-dark); }
+.sc-sub { font-size: 18px; font-weight: bold; color: var(--c-primary-dark); white-space: nowrap; }
 .sc-soon {
   font-size: 18px;
   font-weight: bold;
@@ -238,7 +239,8 @@ ruby rt { font-size: .42em; font-weight: bold; }
   .home-main { gap: 8px; flex: 1 1 auto; }
   .home-hello { font-size: clamp(18px, calc(var(--vh) * 5.5), 26px); }
   .home-title { font-size: clamp(22px, calc(var(--vh) * 7.5), 34px); }
-  .subjects { gap: 12px; grid-template-columns: repeat(4, minmax(0, 160px)); }
+  .home-chara { display: none; }   /* 5まいのカードを横一列に並べるため、キャラは隠す */
+  .subjects { gap: 8px; grid-template-columns: repeat(5, minmax(0, 1fr)); width: 100%; }
   .subject-card {
     min-height: 0;
     height: clamp(110px, calc(var(--vh) * 46), 200px);
@@ -251,6 +253,7 @@ ruby rt { font-size: .42em; font-weight: bold; }
   .sc-ico svg { width: calc(var(--vh) * 17); height: calc(var(--vh) * 17); }
   .sc-name { font-size: clamp(20px, calc(var(--vh) * 8), 34px); }
   .sc-soon { font-size: clamp(12px, calc(var(--vh) * 4.2), 16px); padding: 1px 8px; }
+  .sc-sub { font-size: clamp(11px, calc(var(--vh) * 3.8), 14px); }
 
   /* おやすみ・じゅんびちゅう */
   .rest-body { gap: 10px; }

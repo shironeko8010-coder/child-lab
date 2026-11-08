@@ -10,11 +10,11 @@
   }
   function done() { C.storage._forceMemory(false); }
 
-  C.test('benkyo.SUBJECTS: 4件で、有効なのは kuku だけ', function () {
+  C.test('benkyo.SUBJECTS: 5件で、有効なのは kuku と kukuB', function () {
     var list = C.benkyo.SUBJECTS;
-    C.assertEq(list.length, 4);
-    C.assertEq(list.map(function (s) { return s.id; }), ['kuku', 'keisan', 'kanji', 'eigo']);
-    C.assertEq(list.filter(function (s) { return s.enabled; }).map(function (s) { return s.id; }), ['kuku']);
+    C.assertEq(list.length, 5);
+    C.assertEq(list.map(function (s) { return s.id; }), ['kuku', 'kukuB', 'keisan', 'kanji', 'eigo']);
+    C.assertEq(list.filter(function (s) { return s.enabled; }).map(function (s) { return s.id; }), ['kuku', 'kukuB']);
     list.forEach(function (s) { if (!s.name) throw new Error('名前がない: ' + s.id); });
   });
 
@@ -313,5 +313,77 @@
       C.assertEq(K()._state().level, 1);          // 以前は 2 になっていた
       C.assertEq(K()._state().dan, null);
     });
+  });
+
+  kt("□モード：A×□=C を出し、B を入れて正解。記録は area=kukuB", function () {
+    var pid;
+    return fresh().then(function () {
+      pid = C.storage.addProfile("たろう", "benkyo");
+      C.storage.setActive(pid);
+      return K().show({ profileId: pid, mode: "blank" });
+    }).then(function () {
+      var s = K()._state();
+      C.assertEq(s.mode, "blank");
+      C.assertEq(s.expr, s.a + " × ? = " + (s.a * s.b));
+      C.assertEq(s.ans, s.b);
+      if (s.a > 2) throw new Error("レベル1なのに " + s.a + "のだん");
+      K()._press("1"); K()._press("2");           // 1桁で止まる
+      C.assertEq(K()._state().input.length, 1);
+      K()._press("del");
+      answer(true);
+      s = K()._state();
+      C.assertEq(s.phase, "feedback");
+      C.assertEq(s.message, "せいかい！");
+      return C.storage.getLogs(pid);
+    }).then(function (logs) {
+      C.assertEq(logs.length, 1);
+      C.assertEq(logs[0].area, "kukuB");
+      C.assertEq(logs[0].correct, true);
+    });
+  });
+
+  kt("□モード：2回まちがえるとBが表示され、苦手に数える", function () {
+    var pid;
+    return fresh().then(function () {
+      pid = C.storage.addProfile("たろう", "benkyo");
+      C.storage.setActive(pid);
+      return K().show({ profileId: pid, mode: "blank" });
+    }).then(function () {
+      var b = K()._state().b;
+      answer(false);
+      C.assertEq(K()._state().phase, "question");
+      C.assertEq(K()._state().message, "もういっかい やってみよう！");
+      answer(false);
+      var s = K()._state();
+      C.assertEq(s.phase, "feedback");
+      C.assertEq(s.input, String(b));
+      return C.storage.getLogs(pid);
+    }).then(function (logs) {
+      C.assertEq(logs.length, 1);
+      C.assertEq(logs[0].correct, false);
+      C.assertEq(logs[0].area, "kukuB");
+    });
+  });
+
+  kt("□モードの記録は、ふつうの九九のレベルに混ざらない", function () {
+    var pid;
+    return fresh().then(function () {
+      pid = C.storage.addProfile("たろう", "benkyo");
+      C.storage.setActive(pid);
+      for (var i = 0; i < 5; i++) C.storage.logAnswer({ profileId: pid, area: "kukuB", itemId: "2×2", correct: true, level: 1 });
+      return K().show({ profileId: pid });
+    }).then(function () {
+      C.assertEq(K()._state().level, 1);
+      C.assertEq(K()._state().mode, "mul");
+      return K().show({ profileId: pid, mode: "blank" });
+    }).then(function () {
+      C.assertEq(K()._state().level, 2);           // 5問正解で □ 側のレベルだけ上がる
+    });
+  });
+
+  C.test("benkyo: SUBJECTS に kukuB（□を こたえる）がある", function () {
+    var s = C.benkyo.SUBJECTS.filter(function (x) { return x.id === "kukuB"; })[0];
+    C.assertEq(!!s && s.enabled, true);
+    C.assertEq(s.kuku, "blank");
   });
 })();

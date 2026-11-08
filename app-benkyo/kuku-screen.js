@@ -29,6 +29,7 @@
     var pid = ctx.profileId || (B.ui && B.ui.profileId && B.ui.profileId());
     var run = st = {
       profileId: pid, level: 1, recent: [], missCounts: {},
+      mode: (ctx.mode === "blank" ? "blank" : "mul"),   // "mul"=A×B=□ / "blank"=A×□=C
       dan: null,              // null=じどう、1〜9=そのだんだけ（保存しない）
       item: null, attempt: null, input: '', revealed: false, lastId: null,
       solved: 0, stars: 0, phase: 'loading', message: '', mood: 'normal',
@@ -41,7 +42,7 @@
       .then(function (logs) { return logs || []; }, function () { return []; })
       .then(function (logs) {
         if (st !== run) return;            // あいだに別の画面で開き直した
-        var p = K().progressFromLogs(logs);
+        var p = K().progressFromLogs(logs, st.mode);
         st.level = p.level;
         st.recent = p.recent;
         st.missCounts = p.missCounts;
@@ -59,7 +60,7 @@
 
   function nextQuestion() {
     var item = K().pickItem({ level: st.level, onlyDan: st.dan, missCounts: st.missCounts, lastId: st.lastId }, st.rng);
-    st.item = item;
+    st.item = K().question(item, st.mode);
     st.lastId = item.id;
     st.attempt = K().newAttempt();
     st.input = '';
@@ -68,14 +69,14 @@
     st.message = '';
     st.mood = 'normal';
     paint();
-    speak(K().speakText(item));
+    speak(K().speakText(st.item, st.mode));
   }
 
   /* ---------- 数字ボタン ---------- */
   function press(key) {
     if (!st || st.phase !== 'question') return;
     if (/^[0-9]$/.test(key)) {
-      if (st.input.length >= MAX_DIGITS) return;   // 2桁で止める
+      if (st.input.length >= K().digitsOf(st.mode)) return;   // こたえの桁数で止める
       st.input += key;
       play('tap');
       paint();
@@ -122,7 +123,7 @@
   function finish(correct) {
     var item = st.item;
     try {
-      var p = C.storage.logAnswer({ profileId: st.profileId, area: K().AREA, itemId: item.id, correct: correct, level: st.level, dan: st.dan });
+      var p = C.storage.logAnswer({ profileId: st.profileId, area: K().areaOf(st.mode), itemId: item.id, correct: correct, level: st.level, dan: st.dan });
       if (p && p.catch) p.catch(function () {});
     } catch (e) { /* 保存できなくても続ける */ }
     if (!correct) st.missCounts[item.id] = (st.missCounts[item.id] || 0) + 1;
@@ -244,7 +245,7 @@
     var right = bar.querySelector('.tb-right');
     if (hasVoice) {
       var sp = ui.button('icon-btn kk-speak', function () {
-        if (st && st.item) { ui.play('tap'); ui.speak(K().speakText(st.item)); }
+        if (st && st.item) { ui.play('tap'); ui.speak(K().speakText(st.item, st.mode)); }
       });
       sp.setAttribute('aria-label', 'もういちど きく');
       sp.appendChild(ui.svg(ui.ICO.speaker));
@@ -350,12 +351,16 @@
   function paint() {
     if (!view || !st || !st.item || !drawing()) return;
     var ui = U(), v = view, it = st.item;
+    var blank = st.mode === "blank";
+    var shown = st.input !== "" ? st.input : "?";
+    var slotCls = "kk-ans" + (st.input === "" ? " empty" : "") +
+      (st.revealed ? " reveal" : "") + (st.phase === "feedback" && !st.revealed ? " right" : "");
+    // 答えを入れる場所：九九はあと（A×B=□）、□はB（A×□=C）
     v.a.textContent = it.a;
-    v.b.textContent = it.b;
-    var shown = st.input !== '' ? st.input : '?';
-    v.ans.textContent = shown;
-    v.ans.className = 'kk-ans' + (st.input === '' ? ' empty' : '') +
-      (st.revealed ? ' reveal' : '') + (st.phase === 'feedback' && !st.revealed ? ' right' : '');
+    v.b.textContent = blank ? shown : it.b;
+    v.ans.textContent = blank ? it.prod : shown;
+    v.b.className = blank ? slotCls : "kk-num";
+    v.ans.className = blank ? "kk-num" : slotCls;
     v.bubble.textContent = st.message || 'すうじを おして こたえてね';
     v.bubble.classList.toggle('good', st.mood === 'happy');
     if (v.mood !== st.mood) {
@@ -388,7 +393,10 @@
     return {
       phase: st.phase,
       id: it ? it.id : null, a: it ? it.a : null, b: it ? it.b : null, ans: it ? it.ans : null,
-      expr: it ? it.a + ' × ' + it.b + ' = ' + (st.revealed ? it.ans : '?') : '',
+      mode: st.mode,
+      expr: !it ? '' : st.mode === 'blank'
+        ? it.a + ' × ' + (st.revealed ? it.ans : '?') + ' = ' + it.prod
+        : it.a + ' × ' + it.b + ' = ' + (st.revealed ? it.ans : '?'),
       input: st.input, tries: st.attempt ? st.attempt.tries : 0, message: st.message,
       dan: st.dan, solved: st.solved, stars: st.stars, level: st.level
     };

@@ -1,6 +1,6 @@
 /* Service Worker：ネットワーク優先＋オフライン用の保存。外部への通信はしない。 */
 'use strict';
-var CACHE_NAME = 'chiid-v8'; // ファイルを変えたら番号を上げる
+var CACHE_NAME = 'chiid-v9'; // ファイルを変えたら番号を上げる
 var PRECACHE = [
   './',
   'index.html',
@@ -28,7 +28,9 @@ var PRECACHE = [
   'app-benkyo/app.css',
   'app-benkyo/main.js',
   'app-benkyo/kuku-screen.js',
-  'app-benkyo/subjects/kuku.js'
+  'app-benkyo/subjects/kuku.js',
+  'app-benkyo/keisan-screen.js',
+  'app-benkyo/subjects/keisan.js'
 ];
 
 self.addEventListener('install', function (e) {

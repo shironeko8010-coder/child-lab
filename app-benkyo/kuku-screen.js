@@ -173,12 +173,29 @@
     if (!st) return;
     n = n == null || n === '' ? null : Number(n);
     if (n !== null && !(n >= 1 && n <= 9)) return;
+    // 1回まちがえた式を取りかえるときは、まちがいとして記録する（苦手に数える）。進み具合・レベルは変えない
+    if (st.phase === "question" && st.attempt && st.attempt.tries > 0) logMissOnly();
     st.dan = n;
     if (st.phase === 'question') {
       st.lastId = null;
       nextQuestion();                 // いまの式を、えらんだ段の式に取りかえる（記録しない）
     } else {
       paint();                        // 正解/こたえの表示中なら、次の式から
+    }
+  }
+
+  function logMissOnly() {
+    var item = st.item;
+    try {
+      var p = C.storage.logAnswer({ profileId: st.profileId, area: K().areaOf(st.mode), itemId: item.id, correct: false, level: st.level, dan: st.dan });
+      if (p && p.catch) p.catch(function () {});
+    } catch (e) { /* 保存できなくても続ける */ }
+    st.missCounts[item.id] = (st.missCounts[item.id] || 0) + 1;
+    // じどうの記録はレベル計算に使われるので、開き直したときと同じになるよう画面内でも数える
+    if (st.dan === null) {
+      st.recent.push(false);
+      var nl = C.adaptive.nextLevel(st.recent, st.level, K().MAX_LEVEL);
+      if (nl !== st.level) { st.level = nl; st.recent = []; }
     }
   }
 

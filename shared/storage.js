@@ -16,7 +16,7 @@
   var initPromise = null;
 
   function freshState() {
-    return { settings: {}, profiles: [], active: null, play: {} };
+    return { settings: {}, profiles: [], active: null, play: {}, lastByKind: {} };
   }
 
   function lsGet(key) {
@@ -46,12 +46,14 @@
     state.profiles = parse(lsGet('profiles'), []);
     state.active = parse(lsGet('active'), null);
     state.play = parse(lsGet('play'), {});
+    state.lastByKind = parse(lsGet("lastByKind"), {});
   }
   function persist() {
     lsSet('settings', JSON.stringify(state.settings));
     lsSet('profiles', JSON.stringify(state.profiles));
     lsSet('active', JSON.stringify(state.active));
     lsSet('play', JSON.stringify(state.play));
+    lsSet("lastByKind", JSON.stringify(state.lastByKind));
   }
 
   function useIdb() { return !forceMemory && db !== null; }
@@ -126,7 +128,23 @@
     listProfiles: function () {
       return state.profiles.map(function (p) { return { id: p.id, nickname: p.nickname, kind: p.kind }; });
     },
-    setActive: function (id) { state.active = id; persist(); },
+    setActive: function (id) {
+      state.active = id;
+      // アプリの種類（知育/勉強）ごとに、最後に使った子を覚える
+      for (var i = 0; i < state.profiles.length; i++) {
+        var p = state.profiles[i];
+        if (p.id === id && p.kind) state.lastByKind[p.kind] = id;
+      }
+      persist();
+    },
+    // その種類で最後に使った子（いなければ null）
+    lastOfKind: function (kind) {
+      var id = state.lastByKind[kind];
+      for (var i = 0; i < state.profiles.length; i++) {
+        if (state.profiles[i].id === id && state.profiles[i].kind === kind) return state.profiles[i];
+      }
+      return null;
+    },
     getActive: function () {
       for (var i = 0; i < state.profiles.length; i++) {
         if (state.profiles[i].id === state.active) return state.profiles[i];

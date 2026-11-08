@@ -386,4 +386,46 @@
     C.assertEq(!!s && s.enabled, true);
     C.assertEq(s.kuku, "blank");
   });
+
+  kt("1回まちがえた式の途中で段を切り替えると、まちがいとして記録する（進み具合は変えない）", function () {
+    var pid, id;
+    return openKuku().then(function (p) {
+      pid = p;
+      id = K()._state().id;
+      answer(false);
+      K()._selectDan(5);
+      var s = K()._state();
+      C.assertEq(s.solved, 0);
+      C.assertEq(s.dan, 5);
+      C.assertEq(s.a, 5);
+      return kukuLogs(pid);
+    }).then(function (logs) {
+      C.assertEq(logs.length, 1);
+      C.assertEq(logs[0].itemId, id);
+      C.assertEq(logs[0].correct, false);
+      C.assertEq(logs[0].dan, undefined);
+    });
+  });
+
+  kt("まちがえる前に段を切り替えたときは、記録しない", function () {
+    return openKuku().then(function (pid) {
+      K()._selectDan(3);
+      return kukuLogs(pid);
+    }).then(function (logs) { C.assertEq(logs.length, 0); });
+  });
+
+  C.test("storage.lastOfKind: アプリごとに、最後に使った子へ戻る", function () {
+    return fresh().then(function () {
+      var S = C.storage;
+      var b1 = S.addProfile("たろう", "benkyo"), b2 = S.addProfile("じろう", "benkyo");
+      var c1 = S.addProfile("はな", "chiiku");
+      S.setActive(b2);
+      S.setActive(c1);                              // 知育アプリへ
+      C.assertEq(C.benkyo.pickProfile().id, b2);   // 戻ると じろう（最初の たろう ではない）
+      C.assertEq(S.lastOfKind("chiiku").id, c1);
+      C.assertEq(S.lastOfKind("eigo"), null);
+      C.assertEq(b1 !== b2, true);
+      done();
+    }, function (e) { done(); throw e; });
+  });
 })();

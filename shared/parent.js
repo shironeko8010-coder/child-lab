@@ -46,7 +46,7 @@
       '.parent-view .p-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;}' +
       '.parent-view .p-btn{min-width:64px;min-height:64px;padding:8px 20px;border:0;border-radius:16px;background:var(--c-soft,#ffe3c2);color:var(--c-text,#3a3a3a);font-family:inherit;font-size:20px;font-weight:bold;cursor:pointer;box-shadow:0 4px 0 #e0b98a;}' +
       '.parent-view .p-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #e0b98a;}' +
-      '.parent-view .p-btn.on{background:var(--c-primary,#ff8a3d);color:#fff;box-shadow:0 4px 0 #e06f20;}' +
+      '.parent-view .p-btn.on{background:var(--c-primary,#ff8a3d);color:#fff;box-shadow:0 4px 0 var(--c-primary-dark,#e06f20);}' +
       '.parent-view .p-btn.danger{background:#e57373;color:#fff;box-shadow:0 4px 0 #b24b4b;}' +
       '.parent-view .p-stat{font-size:32px;font-weight:bold;}' +
       '.parent-view table{border-collapse:collapse;width:100%;}' +
@@ -135,7 +135,9 @@
     var rp = el('div', 'p-row');
     if (!profiles.length) rp.appendChild(el('p', 'p-note', 'まだプロフィールがありません。'));
     profiles.forEach(function (p) {
-      rp.appendChild(button(p.nickname, p.id === pid ? 'on' : '', function () {
+      var KIND_NAMES = { chiiku: "知育", benkyo: "勉強" };
+      var label = p.nickname + (KIND_NAMES[p.kind] ? "（" + KIND_NAMES[p.kind] + "）" : "");
+      rp.appendChild(button(label, p.id === pid ? 'on' : '', function () {
         S.setActive(p.id); render(container);
       }));
     });

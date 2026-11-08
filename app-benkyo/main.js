@@ -200,6 +200,9 @@
   function pickProfile() {
     var a = C.storage.getActive();
     if (a && a.kind === KIND) return a;
+    // 前に使っていた勉強の子（知育アプリから戻ったとき、最初の子に戻らないように）
+    var last = C.storage.lastOfKind ? C.storage.lastOfKind(KIND) : null;
+    if (last) { C.storage.setActive(last.id); return last; }
     var list = C.storage.listProfiles();
     for (var i = 0; i < list.length; i++) {
       if (list[i].kind === KIND) { C.storage.setActive(list[i].id); return list[i]; }

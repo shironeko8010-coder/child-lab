@@ -545,3 +545,53 @@
 @media (prefers-reduced-motion: reduce) {
   .chara svg, .chara .c-wing-l, .chara .c-wing-r, .pick-card.wiggle, .trace-area.pulse .trace-canvas { animation: none !important; }
 }
+
+/* ---------- とけい（tokei.js）：左に時計、右に問題とカード ---------- */
+.tk-wrap { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; gap: 32px; }
+.tk-clock { flex: 0 0 auto; width: min(44vw, calc(var(--vh) * 100 - 140px), 560px); aspect-ratio: 1; }
+.tk-clock svg { display: block; width: 100%; height: 100%; }
+.tk-face { fill: var(--c-surface); stroke: var(--c-primary); stroke-width: 6; }
+.tk-tick { stroke: #c9b8a3; stroke-width: 1.5; }
+.tk-tick5 { stroke: var(--c-text); stroke-width: 3; stroke-linecap: round; }
+.tk-num { font-size: 22px; font-weight: bold; fill: var(--c-text); font-family: inherit; }
+.tk-hour { stroke: #e2483d; stroke-width: 11; stroke-linecap: round; }   /* みじかい はり */
+.tk-min { stroke: #2f7fd6; stroke-width: 6; stroke-linecap: round; }    /* ながい はり */
+.tk-pin { fill: var(--c-text); }
+.tk-side { flex: 0 1 560px; min-width: 0; align-self: stretch; display: flex; flex-direction: column; }
+.tk-head { flex: 0 0 auto; flex-wrap: nowrap; }
+.tk-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.tk-cards .pick-card, .tk-cards.n4 .pick-card { width: 100%; min-height: 150px; }
+.tk-cards.n3 .pick-card:last-child { grid-column: 1 / -1; justify-self: center; width: calc(50% - 10px); }
+.tk-label { white-space: nowrap; font-weight: bold; font-size: 44px; line-height: 1; }
+.tk-label b { font-size: 1.9em; color: var(--c-primary-dark); }
+
+@media (orientation: landscape) and (max-height: 700px) {
+  .tk-cards .pick-card, .tk-cards.n4 .pick-card { min-height: 120px; }
+  .tk-label { font-size: 36px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .home-chara .chara { width: min(24vw, calc(var(--vh) * 46)); height: min(24vw, calc(var(--vh) * 46)); }
+  .home-btns .btn-play { font-size: clamp(22px, calc(var(--vh) * 7.5), 32px); padding: 6px 16px; }
+  .home-btns .btn-play .ico svg { width: 28px; height: 28px; }
+  .tk-wrap { gap: 16px; }
+  .tk-clock { width: min(40vw, calc(var(--vh) * 100 - 80px)); }
+  .tk-cards, .tk-cards.n4 { display: grid; gap: 10px; padding-bottom: 8px; }
+  .tk-cards .pick-card, .tk-cards.n4 .pick-card { width: 100%; height: auto; max-height: none; min-height: 56px; align-self: stretch; }
+  .tk-label { font-size: clamp(20px, calc(var(--vh) * 7), 32px); }
+}
+@media (orientation: portrait) {
+  .tk-wrap { flex-direction: column; gap: 16px; }
+  .tk-clock { width: min(80vw, calc(var(--vh) * 40), 520px); }
+  .tk-side { flex: 1 1 auto; align-self: stretch; }
+  .tk-head .q-talk { flex-basis: auto; }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .home-chara .chara { width: min(44vw, calc(var(--vh) * 22), 300px); height: min(44vw, calc(var(--vh) * 22), 300px); }
+  .home-btns .btn-play { min-height: 76px; padding: 8px 40px; }
+  .tk-wrap { gap: 10px; }
+  .tk-clock { width: min(76vw, calc(var(--vh) * 36)); }
+  .tk-cards, .tk-cards.n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .tk-cards .pick-card, .tk-cards.n4 .pick-card { min-height: clamp(72px, calc(var(--vh) * 11), 150px); }
+  .tk-cards.n3 .pick-card:last-child { width: calc(50% - 6px); }
+  .tk-label { font-size: clamp(22px, 7vw, 36px); }
+}

@@ -13,7 +13,7 @@
   var SUBJECTS = [
     { id: "kuku", name: "九九", yomi: "くく", sub: "だんの れんしゅう", enabled: true },
     { id: "kukuB", name: "九九", yomi: "くく", sub: "□を こたえる", enabled: true, kuku: "blank" },
-    { id: 'keisan', name: 'けいさん', enabled: false },
+    { id: 'keisan', name: 'けいさん', sub: 'たしざん・ひきざん', enabled: true },
     { id: 'kanji', name: 'かんじ', enabled: false },
     { id: 'eigo', name: 'えいご', enabled: false }
   ];
@@ -318,6 +318,13 @@
       try {
         var r = B.kukuScreen.show({ profileId: st.profileId, mode: s.kuku });
         if (r && r.catch) r.catch(function () { showSoon(s); });
+      } catch (e) { showSoon(s); }
+      return;
+    }
+    if (id === 'keisan' && B.keisanScreen && typeof B.keisanScreen.show === 'function') {
+      try {
+        var rk = B.keisanScreen.show({ profileId: st.profileId });
+        if (rk && rk.catch) rk.catch(function () { showSoon(s); });
       } catch (e) { showSoon(s); }
       return;
     }

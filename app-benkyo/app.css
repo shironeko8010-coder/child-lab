@@ -531,3 +531,12 @@ ruby rt { font-size: .42em; font-weight: bold; }
   .subject-card { transition: none; }
   .kk-star.pop, .kk-r-star { animation: none; }
 }
+
+/* けいさん：式が3桁まであるので、九九より字を小さめに（数字ボタンと重ならないように） */
+.ks-expr { font-size: clamp(36px, 5.2vw, 72px); }
+@media (orientation: landscape) and (max-height: 520px) {
+  .ks-expr { font-size: clamp(26px, min(calc(var(--vh) * 13), 5.6vw), 60px); }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .ks-expr { font-size: clamp(30px, 11vw, 52px); }
+}

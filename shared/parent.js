@@ -5,7 +5,7 @@
   'use strict';
   var C = (window.Chiid = window.Chiid || {});
 
-  var AREA_NAMES = { hiragana: 'ひらがな' };
+  var AREA_NAMES = { hiragana: 'ひらがな', kuku: 'くく' };
   var LIMIT_CHOICES = [0, 15, 30, 45, 60];
 
   function summarize(logs, days) {
@@ -52,6 +52,7 @@
       '.parent-view table{border-collapse:collapse;width:100%;}' +
       '.parent-view th,.parent-view td{text-align:left;padding:8px 12px;border-bottom:1px solid #eee;}' +
       '.parent-view .p-note{font-size:16px;color:#777;margin:0;}' +
+      '.parent-view .p-item{white-space:nowrap;}' +
       '#chiid-parent-confirm{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:12px;font-family:var(--font,sans-serif);}' +
       '#chiid-parent-confirm .c-box{background:#fff;color:#3a3a3a;border-radius:24px;padding:24px;max-width:560px;display:flex;flex-direction:column;gap:16px;}' +
       '#chiid-parent-confirm p{margin:0;font-size:20px;}';
@@ -180,7 +181,7 @@
         t2.appendChild(h2);
         sum.weak.forEach(function (w) {
           var tr = el('tr');
-          tr.appendChild(el('td', null, w.itemId));
+          tr.appendChild(el('td', 'p-item', w.itemId));   // '3×4' のような式も1行で
           tr.appendChild(el('td', null, w.misses + '回'));
           t2.appendChild(tr);
         });

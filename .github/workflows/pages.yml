@@ -26,7 +26,7 @@ jobs:
       - name: 公開するファイルだけを集める
         run: |
           mkdir _site
-          cp -r index.html manifest.json sw.js icons app-chiiku shared _site/
+          cp -r index.html manifest.json sw.js icons app-chiiku app-benkyo shared _site/
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:

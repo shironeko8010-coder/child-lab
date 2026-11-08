@@ -31,7 +31,7 @@
     return loadPrecache().then(function (list) {
       var set = {};
       list.forEach(function (u) { set[norm(u)] = true; });
-      var pages = ['index.html', 'app-chiiku/index.html'];
+      var pages = ['index.html', 'app-chiiku/index.html', 'app-benkyo/index.html'];
       return Promise.all(pages.map(function (p) {
         var pageUrl = new URL(p, root);
         return fetch(pageUrl).then(function (r) { return r.text(); }).then(function (html) {

@@ -188,9 +188,10 @@
   }
 
   /* ---------- プロフィール ---------- */
+  // 「いま使っているプロフィール」は勉強アプリと共有。知育（kind:'chiiku'）のものだけを使う
   function pickProfile() {
     var a = C.storage.getActive();
-    if (a) return a;
+    if (a && a.kind === 'chiiku') return a;
     var list = C.storage.listProfiles();
     for (var i = 0; i < list.length; i++) {
       if (list[i].kind === 'chiiku') { C.storage.setActive(list[i].id); return list[i]; }
@@ -690,6 +691,7 @@
   }
 
   C.game = { start: start };
+  C.chiikuPickProfile = pickProfile;   // テスト用に公開
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

@@ -1,0 +1,530 @@
+/* 勉強アプリ（小2）の見た目。共通の色・ボタンは shared/ui.css。
+   知育より彩度を下げた、落ち着いた青系。タップ領域と文字は大きいまま。 */
+:root {
+  --c-bg: #f3f6fa;
+  --c-primary: #3f84c8;
+  --c-primary-dark: #2c67a3;
+  --c-accent: #4f9f86;
+  --c-accent-dark: #387a66;
+  --c-soft: #dce7f2;
+  --c-line: #d5dfea;
+}
+
+.app {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: calc(12px + var(--safe-t)) calc(20px + var(--safe-r)) calc(20px + var(--safe-b)) calc(20px + var(--safe-l));
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 10% 90%, #e4edf6 0 120px, transparent 121px),
+    radial-gradient(circle at 93% 16%, #e6f1ec 0 90px, transparent 91px),
+    var(--c-bg);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.btn-big.secondary { background: var(--c-accent); box-shadow: 0 6px 0 var(--c-accent-dark); }
+.btn-big.secondary:active { box-shadow: 0 1px 0 var(--c-accent-dark); }
+
+/* ---------- 上の帯 ---------- */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 72px;
+}
+.tb-left, .tb-right { display: flex; gap: 12px; align-items: center; }
+.icon-btn {
+  width: 72px;
+  height: 72px;
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  border: 0;
+  border-radius: 50%;
+  background: var(--c-surface);
+  color: var(--c-primary);
+  box-shadow: 0 4px 0 var(--c-line);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.icon-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--c-line); }
+.icon-btn .ico svg { width: 40px; height: 40px; display: block; }
+.icon-btn.off { color: #a3afbd; }
+.gear-btn { color: #7d8794; }
+
+.ico { display: inline-flex; }
+.btn-big .ico svg { width: 36px; height: 36px; display: block; }
+.btn-big { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+
+ruby rt { font-size: .42em; font-weight: bold; }
+
+/* ---------- キャラクター ---------- */
+.chara { display: inline-block; line-height: 0; }
+.chara svg { width: 100%; height: 100%; overflow: visible; }
+.chara .c-line { fill: none; stroke: #3a3a3a; stroke-width: 4; stroke-linecap: round; }
+.chara .c-z { fill: none; stroke: #7aa6c9; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.chara .c-z.small { stroke-width: 2.4; }
+.chara-normal svg, .chara-think svg { animation: bob 2.4s ease-in-out infinite; }
+.chara-happy svg { animation: hop 0.6s ease-in-out infinite alternate; }
+.chara-sleep svg { animation: breathe 3s ease-in-out infinite; }
+.chara-happy .c-wing-l { transform-origin: 20px 70px; animation: flap 0.3s ease-in-out infinite alternate; }
+.chara-happy .c-wing-r { transform-origin: 100px 70px; animation: flap-r 0.3s ease-in-out infinite alternate; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes hop { from { transform: translateY(0) scale(1, 1); } to { transform: translateY(-14px) scale(1.03, .97); } }
+@keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03, .98); } }
+@keyframes flap { from { transform: rotate(0); } to { transform: rotate(-25deg); } }
+@keyframes flap-r { from { transform: rotate(0); } to { transform: rotate(25deg); } }
+
+/* ふきだし */
+.bubble {
+  position: relative;
+  background: var(--c-surface);
+  border-radius: 28px;
+  padding: 14px 24px;
+  font-size: 30px;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
+  line-height: 1.4;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- プロフィール ---------- */
+.scr-profile { align-items: center; justify-content: center; }
+.profile-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 32px;
+  max-width: 640px;
+  width: 100%;
+}
+.profile-box .chara { width: 140px; height: 140px; }
+.p-title { margin: 0; font-size: 36px; }
+.p-form { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; width: 100%; }
+.p-input {
+  flex: 1 1 260px;
+  min-height: 72px;
+  padding: 0 20px;
+  border: 4px solid var(--c-soft);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 36px;
+  text-align: center;
+  background: #fbfdff;
+  color: var(--c-text);
+  user-select: text;
+  -webkit-user-select: text;
+}
+.p-input:focus { outline: none; border-color: var(--c-primary); }
+.p-msg { margin: 0; min-height: 34px; font-size: 26px; color: var(--c-primary-dark); }
+
+/* ---------- トップ ---------- */
+.home-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+}
+.home-chara .chara { width: min(24vw, 240px); height: min(24vw, 240px); }
+.home-main { display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center; min-width: 0; }
+.home-hello { margin: 0; font-size: 30px; }
+.home-title { margin: 0; font-size: 40px; color: var(--c-primary-dark); }
+
+.subjects {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 190px));
+  gap: 20px;
+  justify-content: center;
+}
+.subject-card {
+  position: relative;
+  min-height: 220px;
+  border: 0;
+  border-radius: 28px;
+  background: var(--c-surface);
+  box-shadow: 0 7px 0 var(--c-line), 0 7px 16px rgba(0, 0, 0, .06);
+  font-family: inherit;
+  color: var(--c-text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 10px;
+  transition: transform .1s ease;
+}
+.subject-card:not(.soon):active { transform: translateY(5px); box-shadow: 0 2px 0 var(--c-line); }
+.subject-card:not(.soon) { border: 4px solid var(--c-primary); }
+.sc-ico svg { width: 96px; height: 96px; display: block; }
+.sc-name { font-size: 40px; font-weight: bold; line-height: 1.25; white-space: nowrap; }
+.subject-card:not(.soon) .sc-name { color: var(--c-primary-dark); }
+.sc-soon {
+  font-size: 18px;
+  font-weight: bold;
+  color: #6b7480;
+  background: #eceff3;
+  border-radius: 999px;
+  padding: 2px 12px;
+  white-space: nowrap;
+}
+.subject-card.soon { cursor: default; opacity: .62; box-shadow: 0 4px 0 var(--c-line); }
+.subject-card.soon .sc-ico { filter: grayscale(.7); }
+.subject-card:disabled { color: var(--c-text); }   /* ブラウザの灰色を使わない */
+
+/* ---------- おやすみ・じゅんびちゅう ---------- */
+.scr-rest { background: linear-gradient(#d6e4f2, #ece8f6); }
+.rest-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; text-align: center; }
+.rest-body .chara { width: 220px; height: 220px; }
+.rest-msg { margin: 0; font-size: 40px; font-weight: bold; line-height: 1.6; max-width: 820px; word-break: keep-all; }
+.rest-msg span { display: block; }
+
+/* ---------- 親画面（大人向け） ---------- */
+.scr-parent { user-select: text; -webkit-user-select: text; background: #f5f6f8; }
+.parent-head { max-width: 960px; width: 100%; margin: 0 auto; padding: 0 24px; }
+.parent-head .btn-big { font-size: 22px; }
+
+/* ---------- 縦向き ---------- */
+@media (orientation: portrait) {
+  .home-body { flex-direction: column; gap: 24px; }
+  .home-chara .chara { width: min(40vw, 240px); height: min(40vw, 240px); }
+  .subjects { grid-template-columns: repeat(2, minmax(0, 220px)); }
+}
+
+/* 低い横向きタブレット：カードを少し詰める */
+@media (orientation: landscape) and (max-height: 700px) {
+  .subject-card { min-height: 190px; }
+  .sc-ico svg { width: 80px; height: 80px; }
+}
+
+/* ===== スマホ横向き（高さ 520px 以下）=====
+   app-chiiku/app.css と同じ考え方：画面の高さちょうどに固定し、
+   上の帯の残りを本体が受け取る。タップ領域は 56px（340px 以下は 48px）まで。 */
+@media (orientation: landscape) and (max-height: 520px) {
+  .app {
+    height: calc(var(--vh) * 100);
+    min-height: 0;
+    padding: calc(6px + var(--safe-t)) calc(16px + var(--safe-r)) calc(8px + var(--safe-b)) calc(16px + var(--safe-l));
+  }
+  .app.scr-parent { height: auto; min-height: calc(var(--vh) * 100); }   /* 親画面は縦スクロールでよい */
+  .topbar { flex: 0 0 auto; min-height: 56px; }
+  .home-body, .rest-body { min-height: 0; }
+  .icon-btn { width: 56px; height: 56px; }
+  .icon-btn .ico svg { width: 32px; height: 32px; }
+  .btn-big { padding: 6px 24px; font-size: 24px; }
+  .btn-big .ico svg { width: 28px; height: 28px; }
+  .bubble { font-size: clamp(18px, calc(var(--vh) * 5.6), 26px); padding: 8px 16px; border-radius: 20px; }
+
+  /* プロフィール */
+  .profile-box { gap: 8px; padding: 10px 24px; }
+  .profile-box .chara { width: calc(var(--vh) * 24); height: calc(var(--vh) * 24); }
+  .p-title { font-size: clamp(22px, calc(var(--vh) * 8), 34px); }
+  .p-form { flex-wrap: nowrap; gap: 12px; }
+  .p-input { flex: 1 1 200px; min-width: 0; min-height: 60px; font-size: 28px; }
+  .p-msg { min-height: 26px; font-size: 20px; }
+
+  /* トップ */
+  .home-body { gap: 16px; }
+  .home-chara .chara { width: min(18vw, calc(var(--vh) * 34)); height: min(18vw, calc(var(--vh) * 34)); }
+  .home-main { gap: 8px; flex: 1 1 auto; }
+  .home-hello { font-size: clamp(18px, calc(var(--vh) * 5.5), 26px); }
+  .home-title { font-size: clamp(22px, calc(var(--vh) * 7.5), 34px); }
+  .subjects { gap: 12px; grid-template-columns: repeat(4, minmax(0, 160px)); }
+  .subject-card {
+    min-height: 0;
+    height: clamp(110px, calc(var(--vh) * 46), 200px);
+    border-radius: 20px;
+    padding: 8px 6px;
+    gap: 4px;
+    box-shadow: 0 5px 0 var(--c-line);
+  }
+  .subject-card:not(.soon) { border-width: 3px; }
+  .sc-ico svg { width: calc(var(--vh) * 17); height: calc(var(--vh) * 17); }
+  .sc-name { font-size: clamp(20px, calc(var(--vh) * 8), 34px); }
+  .sc-soon { font-size: clamp(12px, calc(var(--vh) * 4.2), 16px); padding: 1px 8px; }
+
+  /* おやすみ・じゅんびちゅう */
+  .rest-body { gap: 10px; }
+  .rest-body .chara { width: calc(var(--vh) * 34); height: calc(var(--vh) * 34); }
+  .scr-soon .rest-body .chara { width: calc(var(--vh) * 26); height: calc(var(--vh) * 26); }
+  .rest-msg { font-size: clamp(22px, calc(var(--vh) * 7.5), 34px); line-height: 1.5; }
+
+  /* 親画面 */
+  .parent-head { padding: 0 8px; }
+}
+
+/* さらに低い横向き（高さ 340px 以下） */
+@media (orientation: landscape) and (max-height: 340px) {
+  .topbar { min-height: 48px; }
+  .icon-btn { width: 48px; height: 48px; }
+  .icon-btn .ico svg { width: 28px; height: 28px; }
+  .btn-big { min-height: 48px; }
+}
+
+/* ===== スマホ縦向き（幅 520px 以下）===== */
+@media (orientation: portrait) and (max-width: 520px) {
+  .app { padding: calc(8px + var(--safe-t)) calc(12px + var(--safe-r)) calc(12px + var(--safe-b)) calc(12px + var(--safe-l)); }
+  .topbar { min-height: 64px; }
+  .icon-btn { width: 64px; height: 64px; }
+  .icon-btn .ico svg { width: 36px; height: 36px; }
+  .btn-big { padding: 10px 24px; }
+
+  .profile-box { padding: 20px 16px; }
+  .profile-box .chara { width: min(30vw, 140px); height: min(30vw, 140px); }
+  .p-title { font-size: clamp(24px, 8vw, 36px); }
+  .p-input { flex-basis: 100%; min-width: 0; font-size: 30px; }
+
+  .home-chara .chara { width: min(36vw, calc(var(--vh) * 20), 200px); height: min(36vw, calc(var(--vh) * 20), 200px); }
+  .home-hello { font-size: clamp(20px, 6.4vw, 30px); }
+  .home-title { font-size: clamp(24px, 8vw, 40px); }
+  .subjects { gap: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+  .subject-card { min-height: clamp(130px, calc(var(--vh) * 22), 220px); border-radius: 22px; }
+  .sc-ico svg { width: min(18vw, 80px); height: min(18vw, 80px); }
+  .sc-name { font-size: clamp(24px, 8vw, 38px); }
+
+  .rest-body .chara { width: min(50vw, 220px); height: min(50vw, 220px); }
+  .rest-msg { font-size: clamp(24px, 7.6vw, 40px); }
+
+  .parent-head { padding: 0 4px; }
+  .scr-parent .parent-view { padding: 12px 4px; }
+}
+
+/* ==================== 九九の画面（kuku-screen.js） ==================== */
+.tb-left, .tb-right { flex: 0 0 auto; }
+.kk-mid { flex: 1 1 auto; min-width: 0; display: flex; justify-content: center; padding: 0 12px; }
+.kk-dan-toggle { display: none; }
+.kk-dan-back { display: none; }
+.kk-dans { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.kk-dan {
+  flex: 0 1 64px;
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  height: 64px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--c-surface);
+  color: var(--c-primary-dark);
+  box-shadow: 0 4px 0 var(--c-line);
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+.kk-dan b { font-size: 28px; }
+.kk-dan small { font-size: 12px; font-weight: bold; margin-top: 3px; }
+.kk-dan.auto { flex: 0 0 auto; padding: 0 14px; font-size: 20px; font-weight: bold; }
+.kk-dan.on { background: var(--c-primary); color: #fff; box-shadow: 0 4px 0 var(--c-primary-dark); }
+.kk-dan:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--c-line); }
+
+.kk-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+  padding-top: 12px;
+}
+/* 左の列は幅を固定ぎみにして、文が長くなっても数字ボタンが動かないように */
+.kk-q { flex: 1 1 0; max-width: 640px; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 22px; }
+.kk-expr {
+  display: flex;
+  align-items: center;
+  gap: .22em;
+  font-size: clamp(56px, 8.5vw, 96px);
+  font-weight: bold;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+.kk-op { color: var(--c-primary); }
+.kk-ans {
+  min-width: 2.1em;
+  padding: 0 .12em;
+  text-align: center;
+  border: 6px solid var(--c-primary);
+  border-radius: 24px;
+  background: #fff;
+}
+.kk-ans.empty { color: #b7c3d0; }
+.kk-ans.right { border-color: var(--c-good); color: #2f8a3c; background: #eef9ef; }
+.kk-ans.reveal { border-color: #e0a440; color: #a8701c; background: #fff6e6; }
+.kk-talk { display: flex; align-items: center; gap: 12px; min-height: 120px; }
+.kk-who .chara { width: 120px; height: 120px; }
+.kk-msg { font-size: 28px; max-width: 470px; }
+.kk-msg.good { color: #2f8a3c; }
+.kk-prog { display: flex; align-items: center; gap: 16px; min-height: 40px; }
+.kk-dots { display: flex; gap: 8px; }
+.kk-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--c-line); }
+.kk-dot.on { background: var(--c-primary); }
+.kk-stars { display: flex; gap: 4px; }
+.kk-star { display: inline-block; width: 36px; height: 36px; }
+.kk-star svg, .kk-r-star svg { width: 100%; height: 100%; display: block; }
+.kk-star.pop, .kk-r-star { animation: kk-pop .6s ease-out both; }
+@keyframes kk-pop {
+  0% { transform: scale(0) rotate(-30deg); }
+  70% { transform: scale(1.25) rotate(8deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+.kk-pad {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 112px);
+  grid-auto-rows: 96px;
+  gap: 12px;
+}
+.kk-key {
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  box-shadow: 0 5px 0 var(--c-line);
+  font-family: inherit;
+  font-size: 44px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.kk-key:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--c-line); }
+.kk-key.del { background: #e8ecf1; color: #56616d; font-size: 24px; }
+.kk-key.ok { background: var(--c-primary); color: #fff; box-shadow: 0 5px 0 var(--c-primary-dark); font-size: 24px; }
+.kk-key.ok:active { box-shadow: 0 1px 0 var(--c-primary-dark); }
+.kk-body.is-wait .kk-key:not(.ok) { opacity: .45; }
+
+/* 九九のごほうび（10問の区切り） */
+.kk-reward { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+.kk-r-stars { display: flex; gap: 20px; }
+.kk-r-star { width: 110px; height: 110px; }
+.kk-r-star.s1 { animation-delay: .25s; }
+.kk-r-row { display: flex; align-items: center; justify-content: center; gap: 32px; flex-wrap: wrap; }
+.kk-r-row .chara { width: 200px; height: 200px; }
+.kk-r-info { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.kk-r-msg { margin: 0; font-size: 60px; font-weight: bold; color: var(--c-primary-dark); }
+.kk-r-sub { margin: 0; font-size: 32px; font-weight: bold; }
+.kk-r-btns { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+
+/* 縦向き：段選択は上の帯の下に5つずつ、問題の下に数字ボタン */
+@media (orientation: portrait) {
+  .scr-kuku .topbar { flex-wrap: wrap; }
+  .kk-mid { order: 3; flex: 1 1 100%; padding: 10px 0 0; }
+  .kk-dans { display: grid; grid-template-columns: repeat(5, minmax(0, 72px)); gap: 8px; }
+  .kk-dan, .kk-dan.auto { width: auto; padding: 0; font-size: 18px; }
+  .kk-body { flex-direction: column; gap: 24px; justify-content: flex-start; padding-top: 20px; }
+  .kk-q { flex: 0 0 auto; width: 100%; max-width: none; }
+}
+
+/* 低い横向き（スマホ）：段選択は「だん」ボタンで開く。画面の高さに合わせて縮める */
+@media (orientation: landscape) and (max-height: 520px) {
+  .kk-mid { padding: 0 8px; }
+  .kk-dans { display: none; }
+  .kk-dan-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--tap-min);
+    padding: 0 18px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--c-surface);
+    color: var(--c-primary-dark);
+    box-shadow: 0 4px 0 var(--c-line);
+    font-family: inherit;
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .kk-dt-caret { font-size: 14px; }
+  .dan-open .kk-dan-back { display: block; position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, .35); }
+  .dan-open .kk-dans {
+    display: grid;
+    grid-template-columns: repeat(5, 64px);
+    gap: 10px;
+    position: fixed;
+    z-index: 50;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    padding: 16px;
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+  }
+  .dan-open .kk-dan, .dan-open .kk-dan.auto { width: 64px; height: 64px; padding: 0; font-size: 17px; }
+
+  .kk-body { gap: 4vw; padding-top: 4px; align-items: stretch; }
+  .kk-q { justify-content: center; gap: calc(var(--vh) * 2.5); max-width: none; }
+  .kk-expr { font-size: clamp(34px, calc(var(--vh) * 16), 72px); }
+  .kk-ans { border-width: 4px; border-radius: 16px; }
+  .kk-talk { min-height: calc(var(--vh) * 20); gap: 8px; }
+  .kk-who .chara { width: calc(var(--vh) * 20); height: calc(var(--vh) * 20); }
+  .kk-msg { font-size: clamp(16px, calc(var(--vh) * 5.4), 24px); max-width: 40vw; padding: 6px 14px; }
+  .kk-prog { gap: 10px; min-height: 0; }
+  .kk-dots { gap: 5px; }
+  .kk-dot { width: 10px; height: 10px; }
+  .kk-star { width: calc(var(--vh) * 8); height: calc(var(--vh) * 8); }
+  .kk-pad {
+    grid-template-columns: repeat(3, clamp(64px, 11vw, 100px));
+    grid-template-rows: repeat(4, minmax(var(--tap-min), 1fr));
+    grid-auto-rows: auto;
+    gap: 6px;
+  }
+  .kk-key { font-size: clamp(22px, calc(var(--vh) * 9), 38px); border-radius: 14px; box-shadow: 0 4px 0 var(--c-line); }
+  .kk-key.ok { box-shadow: 0 4px 0 var(--c-primary-dark); }
+  .kk-key.del, .kk-key.ok { font-size: 18px; }
+
+  .kk-reward { gap: 6px; }
+  .kk-r-stars { gap: 12px; }
+  .kk-r-star { width: calc(var(--vh) * 16); height: calc(var(--vh) * 16); }
+  .kk-r-row { flex-wrap: nowrap; gap: 24px; }
+  .kk-r-row .chara { width: calc(var(--vh) * 36); height: calc(var(--vh) * 36); }
+  .kk-r-info { gap: 6px; }
+  .kk-r-msg { font-size: clamp(26px, calc(var(--vh) * 10), 48px); }
+  .kk-r-sub { font-size: clamp(18px, calc(var(--vh) * 6), 28px); }
+  .kk-r-btns { flex-wrap: nowrap; gap: 12px; }
+}
+
+/* スマホ縦向き */
+@media (orientation: portrait) and (max-width: 520px) {
+  .kk-dans { width: 100%; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .kk-dan { height: 56px; }
+  .kk-dan b { font-size: 24px; }
+  .kk-dan small { font-size: 11px; }
+  .kk-body { gap: 14px; padding-top: 12px; }
+  .kk-q { gap: 10px; }
+  .kk-expr { font-size: clamp(40px, 15vw, 64px); }
+  .kk-ans { border-width: 4px; border-radius: 16px; }
+  .kk-talk { min-height: 0; }
+  .kk-who .chara { width: min(20vw, 76px); height: min(20vw, 76px); }
+  .kk-msg { font-size: clamp(18px, 5.6vw, 24px); max-width: 70vw; padding: 8px 14px; }
+  .kk-prog { min-height: 0; }
+  .kk-dot { width: 12px; height: 12px; }
+  .kk-star { width: 28px; height: 28px; }
+  .kk-pad { width: 100%; max-width: 360px; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: clamp(56px, calc(var(--vh) * 8), 76px); gap: 10px; }
+  .kk-key { font-size: 34px; }
+  .kk-key.del, .kk-key.ok { font-size: 20px; }
+  .kk-r-msg { font-size: clamp(32px, 10vw, 60px); }
+  .kk-r-row .chara { width: min(40vw, 180px); height: min(40vw, 180px); }
+  .kk-r-star { width: min(24vw, 110px); height: min(24vw, 110px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chara svg, .chara .c-wing-l, .chara .c-wing-r { animation: none !important; }
+  .subject-card { transition: none; }
+  .kk-star.pop, .kk-r-star { animation: none; }
+}

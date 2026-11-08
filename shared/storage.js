@@ -139,6 +139,7 @@
         profileId: o.profileId, area: o.area, itemId: o.itemId,
         correct: !!o.correct, level: o.level, ts: Date.now()
       };
+      if (o.dan != null) entry.dan = o.dan;   // 九九の「○のだんだけ」の練習（レベル計算に使わない印）
       if (useIdb()) {
         return idbRequest('readwrite', function (os) { os.add(entry); }).catch(function () {
           memLogs.push(entry); // 書けなければメモリへ
@@ -155,8 +156,10 @@
         r.onsuccess = function () { set(r.result); };
       }).then(function (rows) {
         return (rows || []).concat(fromMem).map(function (e) {
-          return { profileId: e.profileId, area: e.area, itemId: e.itemId,
+          var o = { profileId: e.profileId, area: e.area, itemId: e.itemId,
                    correct: e.correct, level: e.level, ts: e.ts };
+          if (e.dan != null) o.dan = e.dan;
+          return o;
         }).sort(function (a, b) { return a.ts - b.ts; });
       }, function () { return fromMem; });
     },

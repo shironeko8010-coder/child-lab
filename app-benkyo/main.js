@@ -112,6 +112,7 @@
     note: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 3v11.3A3.5 3.5 0 1 0 11 17V8h7V3z"/></svg>',
     noteOff: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 3v11.3A3.5 3.5 0 1 0 11 17V8h7V3z" opacity=".45"/><path d="M3 3l18 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
     home: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3l9 8h-3v9h-4.5v-6h-3v6H6v-9H3z"/></svg>',
+    entry: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 4h7v7H4zm9 0h7v7h-7zM4 13h7v7H4zm9 0h7v7h-7z"/></svg>',
     speaker: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
     play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 4.5v15l12.5-7.5z"/></svg>',
     check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11" stroke="currentColor" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -137,6 +138,12 @@
     var bar = el('div', 'topbar');
     var left = el('div', 'tb-left');
     var right = el('div', 'tb-right');
+    if (opts.entry) {
+      var en = button('icon-btn', function () { play('tap'); location.href = '../index.html'; });
+      en.setAttribute('aria-label', 'アプリを えらびなおす');
+      en.appendChild(svg(ICO.entry));
+      left.appendChild(en);
+    }
     if (opts.home) {
       var h = button('icon-btn', function () { play('tap'); showHome(); });
       h.setAttribute('aria-label', 'トップに もどる');
@@ -252,7 +259,7 @@
     }
     newScreen('home');
     st.resting = false;
-    app.appendChild(topBar({ gear: true }));
+    app.appendChild(topBar({ gear: true, entry: true }));
     var body = el('div', 'home-body');
     var left = el('div', 'home-chara');
     left.appendChild(chara('normal'));

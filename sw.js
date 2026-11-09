@@ -26,6 +26,7 @@ var PRECACHE = [
   'app-chiiku/game.js',
   'app-chiiku/kazu.js',
   'app-chiiku/tokei.js',
+  'app-chiiku/iro.js',
   'app-benkyo/index.html',
   'app-benkyo/app.css',
   'app-benkyo/main.js',

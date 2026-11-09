@@ -19,10 +19,10 @@
   // runner.js と core.js を先に。続いて本体、そのあとテスト。
   var files = ['runner.js', '../shared/core.js']
     .concat(['storage', 'sfx', 'voice', 'gate', 'timer', 'adaptive', 'parent'].map(function (n) { return '../shared/' + n + '.js'; }))
-    .concat(['data', 'glyphs', 'trace', 'game', 'kazu', 'tokei'].map(function (n) { return '../app-chiiku/' + n + '.js'; }))
+    .concat(['data', 'glyphs', 'trace', 'game', 'kazu', 'tokei', 'iro'].map(function (n) { return '../app-chiiku/' + n + '.js'; }))
     // main.js は読み込んでも起動しない（起動は app-benkyo/index.html から Chiid.benkyo.start()）
     .concat(['../app-benkyo/subjects/kuku.js', '../app-benkyo/main.js', '../app-benkyo/kuku-screen.js', '../app-benkyo/subjects/keisan.js', '../app-benkyo/keisan-screen.js'])
-    .concat(['storage', 'sfx', 'voice', 'gate', 'timer', 'adaptive', 'trace', 'parent', 'precache', 'glyphs', 'kuku', 'benkyo', 'kazu', 'tokei', 'keisan'].map(function (n) { return n + '.test.js'; }));
+    .concat(['storage', 'sfx', 'voice', 'gate', 'timer', 'adaptive', 'trace', 'parent', 'precache', 'glyphs', 'kuku', 'benkyo', 'kazu', 'tokei', 'iro', 'keisan'].map(function (n) { return n + '.test.js'; }));
   var left = files.length;
   function done() {
     if (--left === 0) {

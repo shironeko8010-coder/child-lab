@@ -66,6 +66,12 @@
   function speak(text) {
     try { return C.voice.speak(text); } catch (e) { return Promise.resolve(); }
   }
+  // 手書きの形で見せたい字（き・さ・ふ・り）は、線のデータで描く（glyphs.js）
+  function hira(node, text) {
+    node.textContent = "";
+    if (C.glyphs) C.glyphs.fill(node, text); else node.textContent = text;
+    return node;
+  }
   function play(name) { try { C.sfx.play(name); } catch (e) { /* 音なしでも続ける */ } }
 
   function newScreen(name) {
@@ -380,9 +386,9 @@
     var who = el('div', 'q-chara');
     var ch = chara('normal');
     who.appendChild(ch);
-    var letter = el('div', 'q-letter', q.ch);
+    var letter = hira(el("div", "q-letter"), q.ch);
     var talk = el('div', 'q-talk');
-    var bub = bubble(questionText(q.ch));
+    var bub = hira(bubble(''), questionText(q.ch));
     bub.classList.add('q-text');
     talk.appendChild(bub);
     if (hasVoice) {
@@ -406,9 +412,9 @@
       var wi = el('span', 'pw-in');
       // その字だけ目立たせる（ふつうは先頭。「を」「ん」は言葉の途中・最後）
       var at = Math.max(0, it.word.indexOf(it.ch));
-      if (at) wi.appendChild(document.createTextNode(it.word.slice(0, at)));
-      wi.appendChild(el('b', null, it.word.charAt(at)));
-      wi.appendChild(document.createTextNode(it.word.slice(at + 1)));
+      if (at) hira(wi.appendChild(el('span')), it.word.slice(0, at));
+      hira(wi.appendChild(el('b')), it.word.charAt(at));
+      hira(wi.appendChild(el('span')), it.word.slice(at + 1));
       w.appendChild(wi);
       card.appendChild(w);
       grid.appendChild(card);
@@ -455,7 +461,7 @@
     var who = el('div', 'q-chara small');
     var ch = chara('normal');
     who.appendChild(ch);
-    var bub = bubble('ゆびで 「' + q.ch + '」を なぞってみよう');
+    var bub = hira(bubble(""), "ゆびで 「" + q.ch + "」を なぞってみよう");
     side.appendChild(who);
     side.appendChild(bub);
     var area = el('div', 'trace-area');
@@ -560,11 +566,14 @@
       ctx.stroke();
       ctx.setLineDash([]);
       // 薄い お手本（判定用マスクと同じ字形）
-      ctx.fillStyle = 'rgba(255,138,61,.22)';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.font = 'bold ' + Math.round(size * 0.8) + 'px ' + GLYPH_FONT;
-      ctx.fillText(q.ch, size / 2, size / 2);
+      // き・さ・ふ・り は、手書きの形（glyphs.js）で。ほかはフォントで
+      if (!(C.glyphs && C.glyphs.draw(ctx, q.ch, size, 'rgba(255,138,61,.22)'))) {
+        ctx.fillStyle = 'rgba(255,138,61,.22)';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold ' + Math.round(size * 0.8) + 'px ' + GLYPH_FONT;
+        ctx.fillText(q.ch, size / 2, size / 2);
+      }
       // なぞった線
       ctx.strokeStyle = 'rgba(76,184,196,.9)';
       strokePaths(ctx, size);
@@ -654,7 +663,7 @@
     info.appendChild(el('p', 'reward-msg', 'すごい！'));
     var w = el('p', 'reward-word');
     w.appendChild(el('span', 'rw-pic', q.item ? q.item.pic : ''));
-    w.appendChild(el('span', null, q.item ? q.item.word : q.ch));
+    w.appendChild(hira(el("span"), q.item ? q.item.word : q.ch));
     info.appendChild(w);
     var next = button('btn-big btn-next', function () {
       if (next.disabled) return;

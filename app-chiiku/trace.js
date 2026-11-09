@@ -23,11 +23,16 @@
     var ctx = cv.getContext('2d');
     var out = new Uint8Array(size * size);
     if (!ctx) return out;
+    // き・さ・ふ・り は、お手本と同じ手書きの形（glyphs.js）で判定する
+    if (C.glyphs && C.glyphs.draw(ctx, ch, size, '#000')) return toMask(ctx, size, out);
     ctx.fillStyle = '#000';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = 'bold ' + Math.round(size * 0.8) + 'px sans-serif';
     ctx.fillText(ch, size / 2, size / 2);
+    return toMask(ctx, size, out);
+  }
+  function toMask(ctx, size, out) {
     var d = ctx.getImageData(0, 0, size, size).data;
     for (var i = 0; i < out.length; i++) out[i] = d[i * 4 + 3] > 128 ? 1 : 0;
     return out;

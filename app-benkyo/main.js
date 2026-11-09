@@ -14,7 +14,7 @@
     { id: "kuku", name: "九九", yomi: "くく", sub: "だんの れんしゅう", enabled: true },
     { id: "kukuB", name: "九九", yomi: "くく", sub: "□を こたえる", enabled: true, kuku: "blank" },
     { id: 'keisan', name: 'けいさん', sub: 'たしざん・ひきざん', enabled: true },
-    { id: 'kanji', name: 'かんじ', enabled: false },
+    { id: 'kanji', name: 'かんじ', sub: 'よみ・かきわけ', enabled: true },
     { id: 'eigo', name: 'えいご', enabled: false }
   ];
 
@@ -325,6 +325,13 @@
       try {
         var rk = B.keisanScreen.show({ profileId: st.profileId });
         if (rk && rk.catch) rk.catch(function () { showSoon(s); });
+      } catch (e) { showSoon(s); }
+      return;
+    }
+    if (id === 'kanji' && B.kanjiScreen && typeof B.kanjiScreen.show === 'function') {
+      try {
+        var rj = B.kanjiScreen.show({ profileId: st.profileId });
+        if (rj && rj.catch) rj.catch(function () { showSoon(s); });
       } catch (e) { showSoon(s); }
       return;
     }

@@ -315,6 +315,7 @@
     playBtn("かず", function () { C.kazu.start(p.id); });
     playBtn("とけい", function () { C.tokei.start(p.id); });
     playBtn("いろ・かたち", function () { C.iro.start(p.id); });
+    playBtn("まちがいさがし", function () { C.machigai.start(p.id); });
     right.appendChild(btns);
     body.appendChild(left);
     body.appendChild(right);

@@ -540,3 +540,84 @@ ruby rt { font-size: .42em; font-weight: bold; }
 @media (orientation: portrait) and (max-width: 520px) {
   .ks-expr { font-size: clamp(30px, 11vw, 52px); }
 }
+
+/* ==================== かんじ（kanji-screen.js）：九九の kk-* に、かんじだけの所を足す ==================== */
+/* 字は、入っていれば教科書体（端末の中のフォントだけ。外から読みこまない） */
+.scr-kanji { --kj-font: "UD Digi Kyokasho N-R", "UD デジタル 教科書体 N-R", "YuKyokasho", "Yu Kyokasho", var(--font); }
+.kj-grades .kj-grade { padding: 0 16px; font-size: 20px; }
+.kj-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 20px;
+  border-radius: 24px;
+  background: var(--c-surface);
+  box-shadow: 0 4px 0 var(--c-line);
+}
+.kj-big { font-family: var(--kj-font); font-size: clamp(96px, 13vw, 168px); line-height: 1.1; font-weight: bold; color: var(--c-text); }
+.kj-big.kana { font-family: inherit; font-size: clamp(56px, 7vw, 96px); color: var(--c-primary-dark); }
+.kj-ex { font-size: clamp(26px, 3.2vw, 40px); font-weight: bold; white-space: nowrap; }
+.kj-mark { font-family: var(--kj-font); color: var(--c-primary-dark); padding: 0 .05em; }
+.kj-slot {
+  display: inline-block;
+  width: 1.1em;
+  height: 1.1em;
+  margin: 0 .08em;
+  vertical-align: -.18em;
+  border: 4px dashed var(--c-primary);
+  border-radius: 10px;
+}
+.kj-ex.done .kj-mark { color: #2f8a3c; }
+.kj-choices { flex: 0 0 auto; display: flex; flex-direction: column; gap: 14px; width: 300px; }
+.kj-choice {
+  min-height: 96px;
+  padding: 0 12px;
+  border: 4px solid transparent;
+  border-radius: 22px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  box-shadow: 0 5px 0 var(--c-line);
+  font-family: inherit;
+  font-size: 40px;
+  font-weight: bold;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.kj-choice.kanji { font-family: var(--kj-font); font-size: 60px; line-height: 1; }
+.kj-choice:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--c-line); }
+.kj-choice.out { opacity: .35; box-shadow: none; transform: translateY(4px); }
+.kj-choice.right { border-color: var(--c-good); color: #2f8a3c; background: #eef9ef; }
+.kj-choice.reveal { border-color: #e0a440; color: #a8701c; background: #fff6e6; }
+.kk-body.is-wait .kj-choice:not(.right):not(.reveal) { opacity: .35; }
+
+@media (orientation: portrait) {
+  .scr-kanji .topbar { flex-wrap: wrap; }
+  .kj-grades { grid-template-columns: repeat(3, minmax(0, 140px)) !important; }
+  .kj-choices { width: 100%; max-width: 560px; flex-direction: row; }
+  .kj-choice { flex: 1 1 0; min-width: 0; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .dan-open .kj-grades { grid-template-columns: 1fr; }
+  .dan-open .kj-grade { width: 200px !important; height: auto !important; min-height: var(--tap-min); font-size: 20px !important; }
+  .kj-card { padding: 4px 12px; gap: 0; border-radius: 16px; }
+  .kj-big { font-size: clamp(44px, calc(var(--vh) * 24), 120px); }
+  .kj-big.kana { font-size: clamp(30px, calc(var(--vh) * 14), 72px); }
+  .kj-ex { font-size: clamp(16px, calc(var(--vh) * 7), 30px); }
+  .kj-slot { border-width: 3px; border-radius: 6px; }
+  .kj-choices { width: clamp(180px, 30vw, 280px); justify-content: center; gap: calc(var(--vh) * 3); }
+  .kj-choice { min-height: var(--tap-min); height: calc(var(--vh) * 22); border-radius: 16px; font-size: clamp(20px, calc(var(--vh) * 8), 36px); box-shadow: 0 4px 0 var(--c-line); }
+  .kj-choice.kanji { font-size: clamp(30px, calc(var(--vh) * 13), 56px); }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .kj-grades { width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .kj-grades .kj-grade { height: 56px; padding: 0; font-size: 17px; }
+  .kj-card { padding: 8px 12px; }
+  .kj-big { font-size: clamp(72px, 28vw, 120px); }
+  .kj-big.kana { font-size: clamp(40px, 13vw, 64px); }
+  .kj-ex { font-size: clamp(20px, 6.4vw, 30px); }
+  .kj-choices { gap: 8px; }
+  .kj-choice { min-height: 84px; padding: 0 4px; font-size: clamp(20px, 6.4vw, 30px); border-radius: 18px; }
+  .kj-choice.kanji { font-size: clamp(40px, 13vw, 56px); }
+}

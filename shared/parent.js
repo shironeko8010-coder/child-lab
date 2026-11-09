@@ -5,7 +5,7 @@
   'use strict';
   var C = (window.Chiid = window.Chiid || {});
 
-  var AREA_NAMES = { hiragana: 'ひらがな', kuku: 'くく', kukuB: 'くく（□をこたえる）', kazu: 'かず', tokei: 'とけい', iro: 'いろ・かたち', machigai: 'まちがいさがし', keisan: 'けいさん' };
+  var AREA_NAMES = { hiragana: 'ひらがな', kuku: 'くく', kukuB: 'くく（□をこたえる）', kazu: 'かず', tokei: 'とけい', iro: 'いろ・かたち', machigai: 'まちがいさがし', keisan: 'けいさん', kanji: 'かんじ' };
   var LIMIT_CHOICES = [0, 15, 30, 45, 60];
 
   function summarize(logs, days) {

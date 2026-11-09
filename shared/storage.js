@@ -158,6 +158,7 @@
         correct: !!o.correct, level: o.level, ts: Date.now()
       };
       if (o.dan != null) entry.dan = o.dan;   // 九九の「○のだんだけ」の練習（レベル計算に使わない印）
+      if (o.grade != null) entry.grade = o.grade;   // かんじの「1ねんせい／2ねんせい」だけの練習（同じく、レベル計算に使わない印）
       if (useIdb()) {
         return idbRequest('readwrite', function (os) { os.add(entry); }).catch(function () {
           memLogs.push(entry); // 書けなければメモリへ
@@ -177,6 +178,7 @@
           var o = { profileId: e.profileId, area: e.area, itemId: e.itemId,
                    correct: e.correct, level: e.level, ts: e.ts };
           if (e.dan != null) o.dan = e.dan;
+          if (e.grade != null) o.grade = e.grade;
           return o;
         }).sort(function (a, b) { return a.ts - b.ts; });
       }, function () { return fromMem; });

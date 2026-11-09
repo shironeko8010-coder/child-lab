@@ -308,6 +308,7 @@
     playBtn("ひらがな", function () { C.game.start(p.id); });
     playBtn("かず", function () { C.kazu.start(p.id); });
     playBtn("とけい", function () { C.tokei.start(p.id); });
+    playBtn("まちがいさがし", function () { C.machigai.start(p.id); });
     right.appendChild(btns);
     body.appendChild(left);
     body.appendChild(right);

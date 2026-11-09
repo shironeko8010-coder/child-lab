@@ -595,3 +595,36 @@
   .tk-cards.n3 .pick-card:last-child { width: calc(50% - 6px); }
   .tk-label { font-size: clamp(22px, 7vw, 36px); }
 }
+
+/* ===== いろ・かたち（iro.js）===== */
+.ir-head { flex-wrap: nowrap; }
+.ir-cards .pick-card { width: 220px; min-height: 230px; }
+.ir-cards.n4 .pick-card { width: 200px; min-height: 210px; }
+.ir-shape { display: block; width: 150px; height: 150px; }
+.ir-cards.n4 .ir-shape { width: 140px; height: 140px; }
+.ir-shape svg { display: block; width: 100%; height: 100%; }
+.ir-fig { stroke: #333; stroke-width: 4; stroke-linejoin: round; }   /* 濃い ふちどり（きいろを白に とかさない） */
+
+/* ホームのボタンが4つ以上になったら、2段に並べる（ひらがな・かず・とけい・いろ・かたち・まちがいさがし） */
+.home-btns { max-width: 760px; }
+
+@media (orientation: landscape) and (max-height: 700px) {
+  .ir-cards .pick-card, .ir-cards.n4 .pick-card { min-height: 180px; }
+  .ir-shape, .ir-cards.n4 .ir-shape { width: 120px; height: 120px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .home-btns { flex-wrap: wrap; gap: 8px 10px; max-width: none; }
+  .home-btns .btn-play { min-height: 56px; font-size: clamp(20px, calc(var(--vh) * 7), 30px); padding: 4px 14px; }
+  .home-main { flex: 1 1 auto; min-width: 0; }
+  .ir-cards .pick-card, .ir-cards.n4 .pick-card { width: min(180px, 22vw); }
+  .ir-shape, .ir-cards.n4 .ir-shape { width: min(100%, calc(var(--vh) * 36)); height: auto; aspect-ratio: 1; }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .home-btns { flex-direction: row; flex-wrap: wrap; gap: 10px; }
+  .home-btns .btn-play { min-height: 64px; font-size: clamp(22px, 6.6vw, 30px); padding: 6px 18px; }
+  .home-btns .btn-play .ico svg { width: 30px; height: 30px; }
+  .ir-head { flex-wrap: wrap; }   /* 問題文は キャラの下に 1行で */
+  .ir-cards, .ir-cards.n4 { grid-template-columns: repeat(2, minmax(0, 220px)); }
+  .ir-cards .pick-card, .ir-cards.n4 .pick-card { width: 100%; min-height: clamp(120px, calc(var(--vh) * 21), 250px); }
+  .ir-shape, .ir-cards.n4 .ir-shape { width: min(32vw, calc(var(--vh) * 16)); height: auto; aspect-ratio: 1; }
+}

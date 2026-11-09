@@ -308,6 +308,7 @@
     playBtn("ひらがな", function () { C.game.start(p.id); });
     playBtn("かず", function () { C.kazu.start(p.id); });
     playBtn("とけい", function () { C.tokei.start(p.id); });
+    playBtn("いろ・かたち", function () { C.iro.start(p.id); });
     right.appendChild(btns);
     body.appendChild(left);
     body.appendChild(right);
@@ -711,7 +712,7 @@
 
   C.game = { start: start };
   C.chiikuPickProfile = pickProfile;   // テスト用に公開
-  // かず・とけいゲーム（kazu.js・tokei.js）が使う画面の部品
+  // かず・とけい・いろゲーム（kazu.js・tokei.js・iro.js）が使う画面の部品
   C.chiikuUi = {
     el: el, svg: svg, button: button, later: later, bubble: bubble,
     newScreen: newScreen, chara: chara, topBar: topBar,

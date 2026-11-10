@@ -28,6 +28,7 @@ var PRECACHE = [
   'app-chiiku/tokei.js',
   'app-chiiku/iro.js',
   'app-chiiku/machigai.js',
+  'app-chiiku/doutoku.js',
   'app-benkyo/index.html',
   'app-benkyo/app.css',
   'app-benkyo/main.js',

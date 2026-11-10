@@ -630,6 +630,7 @@
   .ir-cards, .ir-cards.n4 { grid-template-columns: repeat(2, minmax(0, 220px)); }
   .ir-cards .pick-card, .ir-cards.n4 .pick-card { width: 100%; min-height: clamp(120px, calc(var(--vh) * 21), 250px); }
   .ir-shape, .ir-cards.n4 .ir-shape { width: min(32vw, calc(var(--vh) * 16)); height: auto; aspect-ratio: 1; }
+}
 /* ---------- ホームのボタン（5つまで）：横に並べきれないときは2段（3つ＋2つ） ---------- */
 .home-btns { max-width: 820px; gap: 16px 20px; }
 .home-btns .btn-play { font-size: 36px; padding: 14px 32px; min-height: 96px; }
@@ -716,4 +717,95 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .mg-mark, .mg-hint, .mg-miss, .mg-hint-btn.wiggle { animation: none; }
+}
+
+/* ---------- どうとく（doutoku.js） ---------- */
+.dt-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
+}
+.dt-pic {
+  border: 6px solid var(--c-primary);
+  border-radius: 24px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 6px 0 var(--c-soft);
+  line-height: 0;
+}
+.dt-pic svg { display: block; width: 100%; height: auto; }
+.dt-pic .dt-ln { fill: none; stroke: #3a3a3a; stroke-width: 3; stroke-linecap: round; }
+.dt-pic .dt-ln.thin { stroke-width: 2.2; }
+.dt-side { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.dt-talk { display: flex; align-items: center; gap: 12px; }
+.dt-talk .q-chara .chara { width: 96px; height: 96px; }
+.dt-talk .bubble { flex: 1 1 0; min-width: 0; font-size: 28px; }
+.dt-talk .speak-btn { flex: 0 0 auto; }
+.dt-choices { display: flex; flex-direction: column; gap: 16px; }
+.dt-choice { position: relative; }
+.dt-pick {
+  position: relative;
+  width: 100%;
+  min-height: 96px;
+  padding: 14px 96px 14px 24px;
+  border: 0;
+  border-radius: 24px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  box-shadow: 0 6px 0 #ecd3b4;
+  font-family: inherit;
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 1.35;
+  text-align: left;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s, opacity .2s;
+}
+.dt-pick:active { transform: translateY(4px); box-shadow: 0 2px 0 #ecd3b4; }
+.dt-pick.reading { box-shadow: 0 6px 0 #ecd3b4, 0 0 0 6px var(--c-primary); }
+.dt-pick.tried { opacity: .6; }
+.dt-pick.right { box-shadow: 0 6px 0 #3e9b4b, 0 0 0 6px var(--c-good); opacity: 1; }
+.dt-choices.settled .dt-pick:not(.right) { opacity: .4; }
+.dt-pick .burst { position: absolute; inset: 0; pointer-events: none; }
+.dt-say { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 64px; height: 64px; box-shadow: 0 3px 0 #ecd3b4; background: #fff7ea; }
+.dt-say:active { transform: translateY(-50%) translateY(2px); }
+.no-voice .dt-pick { padding-right: 24px; }
+
+@media (orientation: landscape) and (max-height: 700px) {
+  .dt-talk .q-chara .chara { width: 80px; height: 80px; }
+  .dt-talk .bubble, .dt-pick { font-size: 24px; }
+  .dt-pick { min-height: 80px; }
+}
+/* スマホ横向き：絵を小さめにして、文とボタンに幅を回す */
+@media (orientation: landscape) and (max-height: 520px) {
+  .dt-main { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 14px; align-items: center; }
+  .dt-pic { border-width: 4px; border-radius: 16px; max-height: 100%; }
+  .dt-side { gap: 8px; }
+  .dt-talk { gap: 8px; }
+  .dt-talk .q-chara { display: none; }
+  .dt-talk .bubble { font-size: clamp(15px, calc(var(--vh) * 5), 22px); padding: 6px 12px; line-height: 1.35; }
+  .dt-choices { gap: 8px; padding-bottom: 6px; }
+  .dt-pick { min-height: 56px; font-size: clamp(15px, calc(var(--vh) * 5), 22px); padding: 6px 64px 6px 14px; border-radius: 16px; box-shadow: 0 4px 0 #ecd3b4; }
+  .dt-say { width: 48px; height: 48px; min-width: 48px; min-height: 48px; right: 6px; }
+  .dt-say .ico svg { width: 26px; height: 26px; }
+}
+@media (orientation: portrait) {
+  .dt-main { grid-template-columns: minmax(0, 1fr); align-content: start; gap: 16px; }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .dt-main { gap: 10px; }
+  .dt-pic { border-width: 4px; border-radius: 16px; }
+  .dt-side { gap: 10px; }
+  .dt-talk .q-chara .chara { width: min(16vw, 64px); height: min(16vw, 64px); }
+  .dt-talk .bubble { font-size: clamp(17px, 5vw, 24px); padding: 8px 14px; }
+  .dt-choices { gap: 12px; }
+  .dt-pick { min-height: 72px; font-size: clamp(17px, 5vw, 24px); padding: 10px 76px 10px 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dt-pick { transition: none; }
 }

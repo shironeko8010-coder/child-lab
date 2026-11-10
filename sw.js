@@ -1,6 +1,6 @@
 /* Service Worker：ネットワーク優先＋オフライン用の保存。外部への通信はしない。 */
 'use strict';
-var CACHE_NAME = 'chiid-v15'; // ファイルを変えたら番号を上げる
+var CACHE_NAME = 'chiid-v16'; // ファイルを変えたら番号を上げる
 var PRECACHE = [
   './',
   'index.html',
@@ -28,6 +28,7 @@ var PRECACHE = [
   'app-chiiku/tokei.js',
   'app-chiiku/iro.js',
   'app-chiiku/machigai.js',
+  'app-chiiku/doutoku.js',
   'app-benkyo/index.html',
   'app-benkyo/app.css',
   'app-benkyo/main.js',

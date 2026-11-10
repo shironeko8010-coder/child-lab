@@ -69,4 +69,26 @@
       C.assertEq(/kukuB: /.test(txt), true);
     });
   });
+  C.test("chiikuUi.speakThen: 読み上げが終わるまで次へ進まない", function () {
+    var V = C.voice, orig = V.speak, endSpeech, called = 0;
+    V.speak = function () { return new Promise(function (r) { endSpeech = r; }); };
+    C.chiikuUi.speakThen("せいかい！", 0, function () { called++; });
+    return new Promise(function (r) { setTimeout(r, 400); }).then(function () {
+      C.assertEq(called, 0);                     // まだ読み上げ中
+      endSpeech();
+      return new Promise(function (r) { setTimeout(r, 400); });
+    }).then(function () {
+      C.assertEq(called, 1);                     // 読み終わってから進む
+      V.speak = orig;
+    }, function (e) { V.speak = orig; throw e; });
+  });
+  C.test("chiikuUi.speakThen: 読み上げが短くても minMs までは待つ", function () {
+    var V = C.voice, orig = V.speak, called = 0;
+    V.speak = function () { return Promise.resolve(); };
+    C.chiikuUi.speakThen("x", 600, function () { called++; });
+    return new Promise(function (r) { setTimeout(r, 300); }).then(function () {
+      C.assertEq(called, 0);
+      return new Promise(function (r) { setTimeout(r, 500); });
+    }).then(function () { C.assertEq(called, 1); V.speak = orig; }, function (e) { V.speak = orig; throw e; });
+  });
 })();

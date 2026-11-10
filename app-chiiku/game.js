@@ -51,6 +51,19 @@
     var h = setTimeout(function () { if (myToken === token) fn(); }, ms);
     cleanup.push(function () { clearTimeout(h); });
   }
+  // 読み上げが終わってから次へ進む（次の声で、ほめ言葉が途中で切れないように）。
+  // minMs より早くは進まない。声が出ない端末でも、voice.speak は最大6秒で終わる。
+  function speakThen(text, minMs, fn) {
+    var myToken = token;
+    var t0 = Date.now();
+    var went = false;
+    function go() { if (went || myToken !== token) return; went = true; fn(); }
+    speak(text).then(function () {
+      if (myToken !== token) return;          // もう別の画面に移っている
+      var rest = (minMs || 0) - (Date.now() - t0);
+      later(go, Math.max(rest, 250));          // 読み終わりに少し間をあける
+    });
+  }
   function shuffle(a) {
     for (var i = a.length - 1; i > 0; i--) {
       var j = Math.floor(Math.random() * (i + 1));
@@ -726,7 +739,7 @@
   C.chiikuUi = {
     el: el, svg: svg, button: button, later: later, bubble: bubble,
     newScreen: newScreen, chara: chara, topBar: topBar,
-    play: play, speak: speak, ICO: ICO, STAR: STAR,
+    play: play, speak: speak, speakThen: speakThen, ICO: ICO, STAR: STAR,
     showHome: showHome, showRest: showRest
   };
 

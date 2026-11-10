@@ -151,9 +151,8 @@
         var burst = ui.el('div', 'burst');
         for (var s = 0; s < 5; s++) burst.appendChild(ui.svg(ui.STAR, 'reward-star s' + s));
         card.appendChild(burst);
-        ui.speak('せいかい！ ' + q.n + 'こ だね');
         finishQuestion(q);
-        ui.later(afterCorrect, WAIT_CORRECT);
+        ui.speakThen('せいかい！ ' + q.n + 'こ だね', WAIT_CORRECT, afterCorrect);   // 言い終わってから次へ
       } else {
         q.busy = true;
         q.missed = true;

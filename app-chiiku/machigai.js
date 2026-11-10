@@ -345,9 +345,8 @@
       var burst = ui.el('div', 'burst');
       for (var k = 0; k < 5; k++) burst.appendChild(ui.svg(ui.STAR, 'reward-star s' + k));
       pics.appendChild(burst);
-      ui.speak('ぜんぶ みつけた！ すごいね');
       finishQuestion(q);
-      ui.later(afterClear, WAIT_CLEAR);
+      ui.speakThen('ぜんぶ みつけた！ すごいね', WAIT_CLEAR, afterClear);   // 言い終わってから次へ
     }
 
     // ちがわない所：ぽよん と 波が出るだけ（叱らない）

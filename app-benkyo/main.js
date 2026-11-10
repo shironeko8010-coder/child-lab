@@ -15,6 +15,7 @@
     { id: "kukuB", name: "九九", yomi: "くく", sub: "□を こたえる", enabled: true, kuku: "blank" },
     { id: 'keisan', name: 'けいさん', sub: 'たしざん・ひきざん', enabled: true },
     { id: 'kanji', name: 'かんじ', sub: 'よみ・かき', enabled: true },
+    { id: "doutoku", name: "どうとく", sub: "こんなとき どうする？", enabled: true },
     { id: 'eigo', name: 'えいご', enabled: false }
   ];
 
@@ -125,6 +126,7 @@
     kukuB: "<svg viewBox=\"0 0 48 48\" aria-hidden=\"true\"><rect x=\"3\" y=\"3\" width=\"42\" height=\"42\" rx=\"10\" fill=\"#e3eefa\"/><path d=\"M9 17l10 10M19 17L9 27\" stroke=\"#2f6fb0\" stroke-width=\"4\" stroke-linecap=\"round\"/><rect x=\"25\" y=\"14\" width=\"15\" height=\"15\" rx=\"3\" fill=\"#fff\" stroke=\"#2f6fb0\" stroke-width=\"3\" stroke-dasharray=\"4 3\"/><path d=\"M10 37h28\" stroke=\"#2f6fb0\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>",
     keisan: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#e6f3ee"/><path d="M14 17h12M20 11v12M24 33h12" stroke="#3f8f74" stroke-width="4.5" stroke-linecap="round"/></svg>',
     kanji: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#f6ece4"/><rect x="11" y="11" width="26" height="26" rx="3" fill="#fff" stroke="#a0673d" stroke-width="3"/><path d="M24 13v22M13 24h22" stroke="#d2b49c" stroke-width="2" stroke-dasharray="3 3"/><path d="M17 19q7 1 14 -1M23 15q2 12 -6 18" stroke="#a0673d" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg>',
+    doutoku: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#fbeaf0"/><path d="M24 37C11 29 9 20 14 15c4-4 8-2 10 2 2-4 6-6 10-2 5 5 3 14-10 22z" fill="#ff8fb1" stroke="#d9587f" stroke-width="2.5" stroke-linejoin="round"/></svg>',
     eigo: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#efe9f6"/><path d="M11 36l8-24 8 24M14 28h10M31 12v24h6a6 6 0 0 0 0-12h-6" stroke="#6d55a3" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
   };
 
@@ -332,6 +334,13 @@
       try {
         var rj = B.kanjiScreen.show({ profileId: st.profileId });
         if (rj && rj.catch) rj.catch(function () { showSoon(s); });
+      } catch (e) { showSoon(s); }
+      return;
+    }
+    if (id === 'doutoku' && B.doutokuScreen && typeof B.doutokuScreen.show === 'function') {
+      try {
+        var rd = B.doutokuScreen.show({ profileId: st.profileId });
+        if (rd && rd.catch) rd.catch(function () { showSoon(s); });
       } catch (e) { showSoon(s); }
       return;
     }

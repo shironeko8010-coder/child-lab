@@ -10,6 +10,8 @@
   var MAX_LEVEL = 3;
   var ROUND_SIZE = 5;          // 5問ごとにごほうび画面
   var WAIT_CORRECT = 1500;     // 正解のあと、次へ進むまで（ms）
+  // 「○こ」の読み（数字のまま読ませると、10 を「テン」と読む端末があるため、かなで持つ）
+  var KO_YOMI = ['', 'いっこ', 'にこ', 'さんこ', 'よんこ', 'ごこ', 'ろっこ', 'ななこ', 'はっこ', 'きゅうこ', 'じゅっこ'];
   // pic は Unicode 12（2019年）以前の絵文字だけ。word は「○○は いくつ かな？」に使う
   var PICS = [
     { pic: '🍎', word: 'りんご' }, { pic: '🐟', word: 'さかな' }, { pic: '⭐', word: 'ほし' },
@@ -152,7 +154,7 @@
         for (var s = 0; s < 5; s++) burst.appendChild(ui.svg(ui.STAR, 'reward-star s' + s));
         card.appendChild(burst);
         finishQuestion(q);
-        ui.speakThen('せいかい！ ' + q.n + 'こ だね', WAIT_CORRECT, afterCorrect);   // 言い終わってから次へ
+        ui.speakThen('せいかい！ ' + KO_YOMI[q.n] + ' だね', WAIT_CORRECT, afterCorrect);   // 言い終わってから次へ
       } else {
         q.busy = true;
         q.missed = true;
@@ -219,6 +221,7 @@
   C.kazu = {
     AREA: AREA, MAX_LEVEL: MAX_LEVEL, ROUND_SIZE: ROUND_SIZE, PICS: PICS,
     levelConfig: levelConfig, pickNumber: pickNumber, makeChoices: makeChoices,
+    KO_YOMI: KO_YOMI,
     progressFromLogs: progressFromLogs, start: start
   };
 })();

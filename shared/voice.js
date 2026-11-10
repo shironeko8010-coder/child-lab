@@ -9,6 +9,24 @@
   var chosenName = '';
   var NATURAL = /enhanced|premium|neural|natural|kyoko|otoya|o-ren|oren|haruka|hattori|sayaka|ichiro|ayumi|nanami|google/i;
 
+  // 数字（例：10）を、ひらがなの読み（じゅう）にしてから読ませる。
+  // 日本語の声がまだ用意できていない時などに、端末が「テン」のように英語で読むのを防ぐ。
+  var D = ["", "いち", "に", "さん", "よん", "ご", "ろく", "なな", "はち", "きゅう"];
+  var HYAKU = ["", "ひゃく", "にひゃく", "さんびゃく", "よんひゃく", "ごひゃく", "ろっぴゃく", "ななひゃく", "はっぴゃく", "きゅうひゃく"];
+  var SEN = ["", "せん", "にせん", "さんぜん", "よんせん", "ごせん", "ろくせん", "ななせん", "はっせん", "きゅうせん"];
+  function numToKana(n) {
+    n = Math.floor(Number(n));
+    if (!(n >= 0) || n > 9999) return String(n);
+    if (n === 0) return "ゼロ";
+    var s = SEN[Math.floor(n / 1000)] + HYAKU[Math.floor(n / 100) % 10];
+    var t = Math.floor(n / 10) % 10, o = n % 10;
+    if (t) s += (t === 1 ? "" : D[t]) + "じゅう";
+    return s + D[o];
+  }
+  function kanaNumbers(text) {
+    return String(text).replace(/[0-9]+/g, function (m) { return numToKana(m); });
+  }
+
   // 声の選び方（通信しない声 localService=true だけ。自然そうな名前を優先）
   function pickVoice(voices) {
     if (!voices || !voices.length) return null;
@@ -71,7 +89,7 @@
         try {
           var synth = getSynth();
           if (!synth || !text) { finish(); return; }
-          var u = makeUtterance(String(text));
+          var u = makeUtterance(kanaNumbers(text));
           if (!u) { finish(); return; }
           u.lang = 'ja-JP';
           u.rate = 0.85;
@@ -102,6 +120,8 @@
     // テスト用
     _pickVoice: pickVoice,
     _disable: function () { disabled = true; override = null; },
+    numToKana: numToKana,
+    kanaNumbers: kanaNumbers,
     _enable: function () { disabled = false; override = null; },
     _setSynth: function (synth, make) { disabled = false; override = { synth: synth, make: make }; }
   };

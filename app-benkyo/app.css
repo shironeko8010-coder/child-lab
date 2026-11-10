@@ -735,3 +735,133 @@ ruby rt { font-size: .42em; font-weight: bold; }
   .kj-area { width: min(100%, calc(var(--vh) * 100 - 420px), 420px); }
   .kj-wbtn { font-size: 22px; min-height: 60px; }
 }
+
+/* ==================== トップ：教科カード6まい ==================== */
+/* 横向きタブレット・縦向きは 3まい×2だん。スマホ横向きは 6まい 1れつ */
+.subjects { grid-template-columns: repeat(3, minmax(0, 210px)); }
+.subject-card { min-height: 200px; }
+.sc-sub { white-space: normal; line-height: 1.25; text-align: center; word-break: keep-all; overflow-wrap: anywhere; }
+@media (orientation: portrait) {
+  .subjects { grid-template-columns: repeat(3, minmax(0, 200px)); }
+}
+@media (orientation: landscape) and (max-height: 700px) {
+  .subject-card { min-height: min(190px, calc(var(--vh) * 29)); }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .subjects { gap: 6px; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .subject-card { min-height: 0; padding: 8px 4px; }
+  .sc-name { font-size: clamp(16px, min(calc(var(--vh) * 7.5), 3vw), 30px); }
+  .sc-sub { white-space: normal; line-height: 1.2; text-align: center; }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .home-chara .chara { width: min(32vw, calc(var(--vh) * 18), 180px); height: min(32vw, calc(var(--vh) * 18), 180px); }
+  .subjects { gap: 10px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .subject-card { min-height: clamp(120px, calc(var(--vh) * 22), 200px); padding: 10px 4px; gap: 6px; }
+  .sc-ico svg { width: min(15vw, 72px); height: min(15vw, 72px); }
+  .sc-name { font-size: clamp(18px, 6vw, 32px); }
+  .sc-sub { white-space: normal; line-height: 1.2; text-align: center; font-size: clamp(11px, 3.4vw, 16px); }
+  .sc-soon { font-size: clamp(10px, 3.2vw, 14px); padding: 1px 6px; }
+}
+
+/* ==================== どうとく（doutoku-screen.js） ==================== */
+.dt-body { flex: 1 1 auto; min-height: 0; display: flex; gap: 28px; align-items: stretch; padding-top: 8px; }
+.dt-scene { position: relative; flex: 1 1 56%; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.dt-pic {
+  width: 100%;
+  max-height: calc(var(--vh) * 100 - 260px);
+  aspect-ratio: 400 / 260;
+  border-radius: 24px;
+  overflow: hidden;
+  background: var(--c-surface);
+  box-shadow: 0 6px 0 var(--c-line);
+  align-self: center;
+}
+.dt-pic-art, .dt-pic-art svg { width: 100%; height: 100%; display: block; }
+.dt-text { margin: 0; font-size: 30px; font-weight: bold; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
+.dt-text rt, .dt-choice rt, .dt-msg rt { font-size: .5em; }
+.dt-side { flex: 1 1 44%; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 14px; }
+.dt-ask { margin: 0; font-size: 28px; font-weight: bold; color: var(--c-primary-dark); }
+.is-think .dt-ask { color: #6d55a3; font-size: 24px; }
+.dt-choices { display: flex; flex-direction: column; gap: 14px; }
+.dt-choice {
+  min-height: 88px;
+  border: 4px solid var(--c-primary);
+  border-radius: 20px;
+  background: var(--c-surface);
+  box-shadow: 0 6px 0 var(--c-line);
+  color: var(--c-text);
+  font-family: inherit;
+  font-size: 26px;
+  font-weight: bold;
+  line-height: 1.5;
+  text-align: left;
+  padding: 10px 20px;
+  cursor: pointer;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.dt-choice:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--c-line); }
+.dt-choice:disabled { cursor: default; color: var(--c-text); }
+.dt-choice.tried { opacity: .38; border-color: var(--c-line); box-shadow: none; }   /* ×は付けない。うすくするだけ */
+.dt-choice.chosen { border-color: #3f9a55; background: #eaf7ec; }
+.is-think .dt-choice { border-color: #b38be0; }
+.is-think .dt-choice.chosen { border-color: #8a6ccc; background: #f3edfb; }
+.dt-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 76px; flex-wrap: wrap; }
+.dt-next { visibility: hidden; }
+.dt-next.on { visibility: visible; }
+/* 返事：場面の上に重ねて出す（ぴよ＋ふきだし） */
+.dt-talk { position: absolute; left: 0; right: 0; bottom: 0; display: none; align-items: flex-end; gap: 8px; padding: 10px; }
+.dt-talk.on { display: flex; }
+.dt-who { flex: 0 0 auto; }
+.dt-who .chara { width: 96px; height: 96px; }
+.dt-msg {
+  flex: 1 1 auto;
+  font-size: 26px;
+  line-height: 1.6;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .14);
+  max-height: 100%;
+  overflow: auto;
+}
+.dt-msg.good { color: #2f8a3c; }
+
+@media (orientation: portrait) {
+  .dt-body { flex-direction: column; gap: 14px; padding-top: 4px; }
+  .dt-scene, .dt-side { flex: 0 0 auto; }
+  .dt-pic { max-height: calc(var(--vh) * 34); width: auto; max-width: 100%; }
+}
+
+/* スマホ横向き */
+@media (orientation: landscape) and (max-height: 520px) {
+  .dt-body { gap: 14px; padding-top: 2px; }
+  .dt-scene { flex: 0 1 auto; gap: 4px; width: min(46vw, calc(var(--vh) * 48 * 400 / 260)); }
+  .dt-pic { max-height: calc(var(--vh) * 48); border-radius: 14px; box-shadow: 0 3px 0 var(--c-line); }
+  .dt-text { font-size: clamp(13px, calc(var(--vh) * 4.8), 20px); line-height: 1.6; }
+  .dt-side { flex: 1 1 auto; gap: 6px; }
+  .dt-ask { font-size: clamp(14px, calc(var(--vh) * 5), 22px); }
+  .is-think .dt-ask { font-size: clamp(12px, calc(var(--vh) * 4.4), 20px); }
+  .dt-choices { gap: 6px; }
+  .dt-choice { min-height: 48px; font-size: clamp(13px, calc(var(--vh) * 4.8), 20px); line-height: 1.3; padding: 4px 12px; border-width: 3px; border-radius: 14px; box-shadow: 0 3px 0 var(--c-line); }
+  .dt-foot { min-height: 0; gap: 8px; flex-wrap: nowrap; }
+  .dt-next { padding: 4px 18px; font-size: 20px; min-height: 48px; }
+  .dt-talk { padding: 4px; gap: 4px; }
+  .dt-who .chara { width: calc(var(--vh) * 16); height: calc(var(--vh) * 16); }
+  .dt-msg { font-size: clamp(12px, calc(var(--vh) * 4.4), 18px); line-height: 1.5; padding: 6px 10px; }
+}
+
+/* スマホ縦向き */
+@media (orientation: portrait) and (max-width: 520px) {
+  .dt-body { gap: 8px; }
+  .dt-scene { gap: 4px; }
+  .dt-pic { max-height: calc(var(--vh) * 34); border-radius: 16px; }
+  .dt-text { font-size: clamp(15px, 4.6vw, 20px); line-height: 1.6; }
+  .dt-side { gap: 6px; }
+  .dt-ask { font-size: clamp(16px, 5vw, 22px); }
+  .is-think .dt-ask { font-size: clamp(14px, 4.2vw, 18px); }
+  .dt-choices { gap: 8px; }
+  .dt-choice { min-height: 56px; font-size: clamp(15px, 4.6vw, 20px); line-height: 1.35; padding: 6px 12px; border-width: 3px; border-radius: 16px; }
+  .dt-foot { min-height: 0; flex-wrap: nowrap; }
+  .dt-next { padding: 6px 18px; font-size: 20px; min-height: 52px; }
+  .dt-who .chara { width: 56px; height: 56px; }
+  .dt-msg { font-size: clamp(14px, 4.4vw, 18px); line-height: 1.5; padding: 8px 12px; }
+}

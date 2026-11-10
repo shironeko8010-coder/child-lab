@@ -5,7 +5,7 @@
   'use strict';
   var C = (window.Chiid = window.Chiid || {});
 
-  var AREA_NAMES = { hiragana: 'ひらがな', kuku: 'くく', kukuB: 'くく（□をこたえる）', kazu: 'かず', tokei: 'とけい', iro: 'いろ・かたち', machigai: 'まちがいさがし', keisan: 'けいさん', kanji: 'かんじ' };
+  var AREA_NAMES = { hiragana: 'ひらがな', kuku: 'くく', kukuB: 'くく（□をこたえる）', kazu: 'かず', tokei: 'とけい', iro: 'いろ・かたち', machigai: 'まちがいさがし', keisan: 'けいさん', kanji: 'かんじ（えらぶ）', kanjiYomi: 'かんじ（よみ）', kanjiKaki: 'かんじ（かき）' };
   var LIMIT_CHOICES = [0, 15, 30, 45, 60];
 
   function summarize(logs, days) {
@@ -18,6 +18,7 @@
     });
     var byArea = {};
     var misses = {};
+    var kaki = {}, hasKaki = false;   // かんじの書き取り（自己採点）で「もういっかい」になった字
     logs.forEach(function (e) {
       if (!e) return;
       var a = e.area || 'unknown';
@@ -25,13 +26,20 @@
       byArea[a].total++;
       if (e.correct) byArea[a].correct++;
       else misses[e.itemId] = (misses[e.itemId] || 0) + 1;
+      if (a === 'kanjiKaki') {
+        hasKaki = true;
+        if (!e.correct) { var k = String(e.itemId).split('（')[0]; kaki[k] = (kaki[k] || 0) + 1; }
+      }
     });
     Object.keys(byArea).forEach(function (a) {
       byArea[a].rate = byArea[a].total ? byArea[a].correct / byArea[a].total : 0;
     });
     var weak = Object.keys(misses).map(function (id) { return { itemId: id, misses: misses[id] }; });
     weak.sort(function (x, y) { return y.misses - x.misses || (x.itemId < y.itemId ? -1 : x.itemId > y.itemId ? 1 : 0); });
-    return { playDays: playDays, totalMin: Math.round(totalSec / 60), byArea: byArea, weak: weak.slice(0, 5) };
+    var kakiMiss = Object.keys(kaki).map(function (k) { return { k: k, misses: kaki[k] }; });
+    kakiMiss.sort(function (x, y) { return y.misses - x.misses || (x.k < y.k ? -1 : x.k > y.k ? 1 : 0); });
+    return { playDays: playDays, totalMin: Math.round(totalSec / 60), byArea: byArea, weak: weak.slice(0, 5),
+             hasKaki: hasKaki, kakiMiss: kakiMiss.slice(0, 20) };
   }
 
   /* ---- 見た目 ---- */
@@ -188,6 +196,14 @@
           t2.appendChild(tr);
         });
         cw.appendChild(t2);
+      }
+      // かんじの書き取り：書けなかった字（記録があるときだけ出す）
+      if (sum.hasKaki) {
+        var ck = card('かけなかった かんじ');
+        if (!sum.kakiMiss.length) ck.appendChild(el('p', 'p-note', 'まだ ありません。'));
+        else ck.appendChild(el('p', 'p-stat', sum.kakiMiss.map(function (w) { return w.k + ' ' + w.misses + 'かい'; }).join('・')));
+        ck.appendChild(el('p', 'p-note', '書き取りで、お子さんが「もういっかい」を選んだ字（多い順・最大20字）'));
+        if (cw.nextSibling) view.insertBefore(ck, cw.nextSibling); else view.appendChild(ck);
       }
     }
 

@@ -14,7 +14,7 @@
     { id: "kuku", name: "九九", yomi: "くく", sub: "だんの れんしゅう", enabled: true },
     { id: "kukuB", name: "九九", yomi: "くく", sub: "□を こたえる", enabled: true, kuku: "blank" },
     { id: 'keisan', name: 'けいさん', sub: 'たしざん・ひきざん', enabled: true },
-    { id: 'kanji', name: 'かんじ', sub: 'よみ・かきわけ', enabled: true },
+    { id: 'kanji', name: 'かんじ', sub: 'よみ・かき', enabled: true },
     { id: 'eigo', name: 'えいご', enabled: false }
   ];
 

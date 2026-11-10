@@ -1,4 +1,4 @@
-/* かんじ（subjects/kanji-data.js・subjects/kanji.js・kanji-screen.js）のテスト */
+/* かんじ（subjects/kanji-data.js・subjects/kanji.js・kana-pad.js・kanji-screen.js）のテスト */
 (function () {
   'use strict';
   var C = window.Chiid;
@@ -89,70 +89,155 @@
     C.assertEq(K.missByKanji({ '花（よみ）': 2, '花（かき）': 1, '3×4': 5 }), { '花': 3 });
   });
 
-  /* ---------- 選択肢の決まり ---------- */
-  function checkQuestion(q, label) {
-    if (!q) throw new Error('問題が作れない: ' + label);
-    if (q.choices.length !== 3) throw new Error('選択肢が3つでない: ' + label + ' ' + q.choices.join(','));
-    if (new Set(q.choices).size !== 3) throw new Error('選択肢が重複: ' + label + ' ' + q.choices.join(','));
-    if (q.choices.indexOf(q.ans) < 0) throw new Error('こたえが選択肢にない: ' + label);
-    var it = K.byKanji(q.k);
-    q.choices.forEach(function (c) {
-      if (c === q.ans) return;
-      if (q.kind === 'yomi' && K.hasReading(it, c)) throw new Error('よみ: ほかの選択肢が正しい読み: ' + label + ' ' + c);
-      if (q.kind === 'kaki' && K.hasReading(K.byKanji(c), q.r)) throw new Error('かき: 同じ読みの字が選択肢: ' + label + ' ' + c);
-    });
-  }
-  C.test('kanji: 240字すべて・読みすべて・よみ/かき で、3択が作れ、まぎらわしい選択肢が出ない（乱数を変えて5回）', function () {
-    K.ITEMS.forEach(function (it, n) {
+  /* ---------- ひらがなキーボード（kana-pad.js） ---------- */
+  var P = C.kanaPad;
+  C.test('kanaPad: 行は10こ。や行は やゆよ、わ行は わをん', function () {
+    C.assertEq(P.ROWS.length, 10);
+    C.assertEq(P.ROWS.map(function (r) { return r.name; }).join(''), 'あ行か行さ行た行な行は行ま行や行ら行わ行');
+    C.assertEq(P.rowById('ya').chars, 'やゆよ');
+    C.assertEq(P.rowById('wa').chars, 'わをん');
+    C.assertEq(P.rowById('xx'), null);
+  });
+  C.test('kanaPad: 「゛゜ ちいさい」の切り替え（押すたびに順に変わり、最初にもどる）', function () {
+    C.assertEq([P.cycle('は'), P.cycle('ば'), P.cycle('ぱ')], ['ば', 'ぱ', 'は']);
+    C.assertEq([P.cycle('つ'), P.cycle('っ'), P.cycle('づ')], ['っ', 'づ', 'つ']);
+    C.assertEq([P.cycle('や'), P.cycle('ゃ')], ['ゃ', 'や']);
+    C.assertEq([P.cycle('ゆ'), P.cycle('よ'), P.cycle('か'), P.cycle('が')], ['ゅ', 'ょ', 'が', 'か']);
+    C.assertEq([P.cycle('し'), P.cycle('ち'), P.cycle('ふ'), P.cycle('あ'), P.cycle('わ')], ['じ', 'ぢ', 'ぶ', 'ぁ', 'ゎ']);
+    C.assertEq([P.cycle('ん'), P.cycle('な'), P.cycle('ま'), P.cycle('を'), P.cycle('')], [null, null, null, null, null]);
+  });
+  C.test('kanaPad: 行を選ぶ→字を入れると行えらびに戻る。違う行を押せば切り替わる', function () {
+    var m = new P.Model(3);
+    C.assertEq(m.row, null);
+    C.assertEq(m.selectRow('ka'), true);
+    C.assertEq(m.row, 'ka');
+    C.assertEq(m.selectRow('sa'), true);
+    C.assertEq(m.row, 'sa');
+    C.assertEq(m.selectRow('zz'), false);
+    C.assertEq(m.row, 'sa');
+    m.input('さ');
+    C.assertEq([m.value, m.row], ['さ', null]);
+  });
+  C.test('kanaPad: 「きゅう」「じゅう」「がっこう」「ぱん」を入れられる（濁点・小さい字）', function () {
+    function type(max, keys) {
+      var m = new P.Model(max);
+      keys.forEach(function (k) { if (k === '*') m.mod(); else m.input(k); });
+      return m.value;
+    }
+    C.assertEq(type(3, ['き', 'ゆ', '*', 'う']), 'きゅう');
+    C.assertEq(type(3, ['し', '*', 'ゆ', '*', 'う']), 'じゅう');
+    C.assertEq(type(4, ['か', '*', 'つ', '*', 'こ', 'う']), 'がっこう');
+    C.assertEq(type(2, ['は', '*', '*', 'ん']), 'ぱん');
+    C.assertEq(type(2, ['は', '*', '*', '*']), 'は');          // 3回で もとにもどる
+    C.assertEq(type(2, ['つ', '*', '*']), 'づ');
+  });
+  C.test('kanaPad: 字数の上限・けす・変えられない字・空で゛', function () {
+    var m = new P.Model(2);
+    C.assertEq(m.mod(), false);                  // 空のときは何も起きない
+    C.assertEq(m.back(), false);
+    C.assertEq(m.input('な'), true);
+    C.assertEq(m.mod(), false);                  // な は変えられない
+    C.assertEq(m.input('ま'), true);
+    C.assertEq(m.isFull(), true);
+    C.assertEq(m.input('あ'), false);            // 上限をこえて入らない
+    C.assertEq(m.value, 'なま');
+    C.assertEq(m.back(), true);
+    C.assertEq(m.value, 'な');
+    m.clear();
+    C.assertEq([m.value, m.row], ['', null]);
+    var u = new P.Model(0);                      // 0 は上限なし
+    for (var i = 0; i < 8; i++) u.input('あ');
+    C.assertEq(u.value.length, 8);
+    m.setMax(1); m.input('か'); m.input('き');
+    C.assertEq(m.value, 'か');
+  });
+  C.test('kanaPad: 描画（ボタンを押して入力・こたえる）', function () {
+    var got = null;
+    var pad = P.render({ max: 3, onSubmit: function (v) { got = v; } });
+    var root = pad.el;
+    C.assertEq(root.querySelectorAll('.kp-row').length, 10);
+    C.assertEq(pad.slots.querySelectorAll('.kp-slot').length, 3);
+    C.assertEq(root.querySelector('.kp-row small').textContent, 'あいうえお');
+    function rowBtn(id) { return root.querySelector('.kp-row[data-row="' + id + '"]'); }
+    function chars() { return Array.prototype.filter.call(root.querySelectorAll('.kp-char'), function (b) { return !b.hidden; }); }
+    C.assertEq(chars().length, 0);
+    rowBtn('ka').click();
+    C.assertEq(chars().map(function (b) { return b.textContent; }).join(''), 'かきくけこ');
+    rowBtn('ya').click();                        // 違う行に切り替え
+    C.assertEq(chars().map(function (b) { return b.textContent; }).join(''), 'やゆよ');
+    rowBtn('ka').click();
+    chars()[1].click();                          // き
+    C.assertEq(chars().length, 0);               // 行えらびに戻る
+    rowBtn('ya').click();
+    chars()[1].click();                          // ゆ
+    root.querySelector('.kp-mod').click();       // ゅ
+    rowBtn('a').click();
+    chars()[2].click();                          // う
+    C.assertEq(pad.model.value, 'きゅう');
+    C.assertEq(pad.slots.textContent, 'きゅう');
+    root.querySelector('.kp-del').click();
+    C.assertEq(pad.model.value, 'きゅ');
+    root.querySelector('.kp-ok').click();
+    C.assertEq(got, 'きゅ');
+    pad.showAnswer('きゅう', 'reveal');          // 見せているあいだは押せない
+    rowBtn('ka').click();
+    C.assertEq(chars().length, 0);
+    C.assertEq(pad.slots.querySelector('.kp-slot').className.indexOf('reveal') >= 0, true);
+    pad.reset(2);
+    C.assertEq(pad.slots.querySelectorAll('.kp-slot').length, 2);
+    C.assertEq(pad.model.value, '');
+  });
+
+  /* ---------- 問題づくり・出題 ---------- */
+  C.test('kanji: 240字すべて・読みすべてで、よみ/かき の問題が作れる', function () {
+    K.ITEMS.forEach(function (it) {
       ['yomi', 'kaki'].forEach(function (kind) {
         for (var yi = 0; yi < it.yomi.length; yi++) {
-          for (var s = 0; s < 5; s++) {
-            var q = K.makeQuestion(it.k, kind, seeded(n * 31 + s * 7 + yi), yi);
-            checkQuestion(q, it.k + ' ' + kind + ' ' + it.yomi[yi].r);
-            C.assertEq(q.r, it.yomi[yi].r);
-            C.assertEq(q.ans, kind === 'yomi' ? it.yomi[yi].r : it.k);
-          }
+          var q = K.makeQuestion(it.k, kind, seeded(yi), yi);
+          C.assertEq([q.k, q.kind, q.r, q.ans, q.area, q.id],
+            [it.k, kind, it.yomi[yi].r, kind === 'yomi' ? it.yomi[yi].r : it.k, kind === 'yomi' ? 'kanjiYomi' : 'kanjiKaki', it.k + (kind === 'yomi' ? '（よみ）' : '（かき）')]);
         }
       });
     });
   });
-  C.test('kanji: 乱数のはし（0 と 0.999…）でも問題が作れる', function () {
-    [0, 0.9999999].forEach(function (r) {
-      var rng = function () { return r; };
-      K.ITEMS.forEach(function (it) {
-        checkQuestion(K.makeQuestion(it.k, 'yomi', rng), it.k + ' yomi');
-        checkQuestion(K.makeQuestion(it.k, 'kaki', rng), it.k + ' kaki');
+  C.test('kanji: 読みはキーボードで入れられる字だけ（濁点・小さい字は ゛゜ で作れる）', function () {
+    var base = {};
+    P.ROWS.forEach(function (r) { r.chars.split('').forEach(function (ch) { base[ch] = true; }); });
+    function reachable(ch) {
+      if (base[ch]) return true;
+      return Object.keys(base).some(function (b) {
+        var x = b;
+        for (var i = 0; i < 3; i++) { x = P.cycle(x); if (!x) return false; if (x === ch) return true; }
+        return false;
+      });
+    }
+    C.kanjiData.forEach(function (row) {
+      row[2].forEach(function (y) {
+        y[0].split('').forEach(function (ch) { if (!reachable(ch)) throw new Error('入れられない字: ' + row[0] + ' ' + y[0]); });
       });
     });
   });
-  C.test('kanji: 形の似た字が指定されていれば、1つ選択肢に入る（右 → 石か左）', function () {
-    for (var s = 0; s < 10; s++) {
-      var q = K.makeQuestion('右', 'kaki', seeded(s));
-      C.assertEq(q.choices.indexOf('石') >= 0 || q.choices.indexOf('左') >= 0, true);
+  C.test('kanji: roundKinds は よみ5・かき5 をまぜる', function () {
+    for (var s = 0; s < 20; s++) {
+      var ks = K.roundKinds(seeded(s));
+      C.assertEq(ks.length, 10);
+      C.assertEq(ks.filter(function (k) { return k === 'yomi'; }).length, 5);
+      C.assertEq(ks.filter(function (k) { return k === 'kaki'; }).length, 5);
     }
+    [0, 0.9999999].forEach(function (r) { C.assertEq(K.roundKinds(function () { return r; }).length, 10); });
   });
-
-  /* ---------- 出題 ---------- */
-  C.test('kanji: pickItem はレベルの範囲（いまのグループ＋それまで）だけ、直前の字は出さない', function () {
+  C.test('kanji: pickItem はレベルの範囲（いまのグループ＋それまで）だけ、直前の字は出さない。形は opts.kind', function () {
     for (var lv = 1; lv <= 12; lv++) {
       var allowed = [];
       for (var i = 0; i < lv; i++) allowed = allowed.concat(K.GROUPS[i]);
       for (var n = 0; n < 60; n++) {
-        var q = K.pickItem({ level: lv, missCounts: {}, lastK: K.GROUPS[lv - 1][0] }, Math.random);
+        var kind = n % 2 ? 'kaki' : 'yomi';
+        var q = K.pickItem({ level: lv, missCounts: {}, lastK: K.GROUPS[lv - 1][0], kind: kind }, Math.random);
         if (allowed.indexOf(q.k) < 0) throw new Error('レベル' + lv + ' の範囲外: ' + q.k);
         if (q.k === K.GROUPS[lv - 1][0]) throw new Error('直前の字が出た');
-        checkQuestion(q, q.k);
+        C.assertEq(q.kind, kind);
       }
     }
-  });
-  C.test('kanji: pickItem はレベル1で、1グループ目の字だけ。よみ・かき の両方が出る', function () {
-    var kinds = {};
-    for (var n = 0; n < 100; n++) {
-      var q = K.pickItem({ level: 1, missCounts: {} }, Math.random);
-      C.assertEq(K.GROUPS[0].indexOf(q.k) >= 0, true);
-      kinds[q.kind] = true;
-    }
-    C.assertEq(Object.keys(kinds).sort(), ['kaki', 'yomi']);
   });
   C.test('kanji: pickItem は学年をえらぶと、その学年の字だけ', function () {
     [1, 2].forEach(function (g) {
@@ -162,68 +247,124 @@
       }
     });
   });
-  C.test('kanji: pickItem は苦手な字を多めに出す', function () {
-    var miss = { '山（よみ）': 30 };
+  C.test('kanji: pickItem は苦手な字を多めに出す（かきの苦手も数える）', function () {
+    var miss = { '山（かき）': 30 };
     var hit = 0;
     for (var n = 0; n < 200; n++) if (K.pickItem({ level: 1, missCounts: miss }, Math.random).k === '山') hit++;
     if (hit < 60) throw new Error('苦手の山が少ない: ' + hit + '/200');
   });
 
-  /* ---------- 判定 ---------- */
-  C.test('kanji: submit は 1回目まちがい→retry、同じ選択肢はもう数えない、2回目→reveal', function () {
-    var q = K.makeQuestion('花', 'yomi', seeded(1), 0);
-    var wrong = q.choices.filter(function (c) { return c !== q.ans; });
+  /* ---------- よみの採点 ---------- */
+  C.test('kanji: judgeYomi（例の言葉での読みだけ正解。別の正しい読みは other、字数が足りないと short）', function () {
+    var q = K.makeQuestion('生', 'yomi', seeded(1), 1);          // なま（□たまご）
+    C.assertEq(q.ans, 'なま');
+    C.assertEq(K.judgeYomi(q, 'なま'), 'correct');
+    C.assertEq(K.judgeYomi(q, 'せい'), 'other');
+    C.assertEq(K.judgeYomi(q, 'なか'), 'wrong');
+    C.assertEq(K.judgeYomi(q, 'な'), 'short');
+    C.assertEq(K.judgeYomi(q, ''), 'empty');
+    C.assertEq(K.judgeYomi(q, null), 'empty');
+    var q2 = K.makeQuestion('九', 'yomi', seeded(1), 0);
+    C.assertEq(K.judgeYomi(q2, 'きゅう'), 'correct');
+    C.assertEq(K.judgeYomi(q2, 'きゆう'), 'wrong');               // 小さい字にしないと ちがう
+  });
+  C.test('kanji: submitYomi は 空・short・other を数えず、1回目まちがい→retry、2回目→reveal', function () {
+    var q = K.makeQuestion('生', 'yomi', seeded(1), 1);
     var a = K.newAttempt();
-    C.assertEq(K.submit(a, q, '').kind, 'empty');
-    C.assertEq(K.submit(a, q, 'ほげ').kind, 'empty');   // 選択肢にないもの
-    C.assertEq(K.submit(a, q, wrong[0]).kind, 'retry');
-    C.assertEq(K.submit(a, q, wrong[0]).kind, 'empty');
+    C.assertEq(K.submitYomi(a, q, '').kind, 'empty');
+    C.assertEq(K.submitYomi(a, q, 'な').kind, 'short');
+    C.assertEq(K.submitYomi(a, q, 'せい').kind, 'other');
+    C.assertEq(a.tries, 0);
+    C.assertEq(K.submitYomi(a, q, 'なか').kind, 'retry');
     C.assertEq(a.tries, 1);
-    C.assertEq(K.submit(a, q, wrong[1]).kind, 'reveal');
-    C.assertEq(K.submit(K.newAttempt(), q, 'はな').kind, 'correct');
+    C.assertEq(K.submitYomi(a, q, 'せい').kind, 'other');
+    C.assertEq(K.submitYomi(a, q, 'なか').kind, 'reveal');
+    var b = K.newAttempt();
+    C.assertEq(K.submitYomi(b, q, 'なま').kind, 'correct');
   });
   C.test('kanji: 声の文', function () {
     var q = K.makeQuestion('花', 'kaki', seeded(1), 0);
-    C.assertEq(K.speakText(q), 'はな。 はなが さく の、 はな は どれ？');
+    C.assertEq(K.speakText(q), 'はな。 はなが さく の、 はな を かこう');
     C.assertEq(K.speakText(K.makeQuestion('花', 'yomi', seeded(1), 0)), 'この かんじの よみかたは？');
   });
-  C.test('kanji: progressFromLogs（学年えらびの記録はレベルに使わない）', function () {
+  C.test('kanji: progressFromLogs（よみ・かきの記録でレベル。学年えらび・3択の版はレベルに使わず、苦手には数える）', function () {
     var logs = [
-      { area: 'kanji', itemId: '花（よみ）', correct: false, level: 3 },
-      { area: 'kanji', itemId: '花（かき）', correct: true, level: 3 },
-      { area: 'kanji', itemId: '春（よみ）', correct: false, level: 3, grade: 2 },
+      { area: 'kanji', itemId: '空（よみ）', correct: false, level: 9 },
+      { area: 'kanjiYomi', itemId: '花（よみ）', correct: false, level: 3 },
+      { area: 'kanjiKaki', itemId: '花（かき）', correct: true, level: 3 },
+      { area: 'kanjiKaki', itemId: '春（かき）', correct: false, level: 3, grade: 2 },
       { area: 'kuku', itemId: '3×4', correct: false, level: 9 }
     ];
     var p = K.progressFromLogs(logs);
     C.assertEq(p.level, 3);
     C.assertEq(p.recent, [false, true]);
-    C.assertEq(p.missCounts, { '花（よみ）': 1, '春（よみ）': 1 });
+    C.assertEq(p.missCounts, { '空（よみ）': 1, '花（よみ）': 1, '春（かき）': 1 });
     C.assertEq(K.progressFromLogs([]).level, 1);
+    C.assertEq(K.progressFromLogs([{ area: 'kanji', itemId: '空（よみ）', correct: true, level: 9 }]).level, 1);   // 3択の版のレベルは引き継がない
     var up = [];
-    for (var i = 0; i < 5; i++) up.push({ area: 'kanji', itemId: '一（よみ）', correct: true, level: 12 });
+    for (var i = 0; i < 5; i++) up.push({ area: 'kanjiYomi', itemId: '一（よみ）', correct: true, level: 12 });
     C.assertEq(K.progressFromLogs(up).level, 12);   // 12より上には行かない
+  });
+
+  /* ---------- 親画面：書けなかった字 ---------- */
+  C.test('parent: かんじ（かき）で × の字を、多い順に kakiMiss に出す', function () {
+    function L(id, ok, area) { return { profileId: 'x', area: area, itemId: id, correct: ok, level: 1, ts: 1 }; }
+    var s = C.parent.summarize([
+      L('生（かき）', false, 'kanjiKaki'), L('右（かき）', false, 'kanjiKaki'), L('生（かき）', false, 'kanjiKaki'),
+      L('花（かき）', true, 'kanjiKaki'), L('生（よみ）', false, 'kanjiYomi')
+    ], []);
+    C.assertEq(s.hasKaki, true);
+    C.assertEq(s.kakiMiss, [{ k: '生', misses: 2 }, { k: '右', misses: 1 }]);
+    C.assertEq(s.byArea.kanjiYomi.total, 1);
+    C.assertEq(s.byArea.kanjiKaki.total, 4);
+    C.assertEq(C.parent.summarize([L('あ', false, 'hiragana')], []).hasKaki, false);
   });
 
   /* ---------- 画面（#app が無いので描画はせず、状態だけを動かす） ---------- */
   var S = function () { return C.benkyo.kanjiScreen; };
   function fresh() { C.storage._forceMemory(true); return C.storage.init().then(function () { return C.storage.resetAll(); }); }
   function done() { C.storage._forceMemory(false); }
+  // いまの問題に答える（1問おわるまで）。ok=true：よみは正しい読み、かきは書いて「かけた」。false：よみは2回まちがい、かきは「もういっかい」
   function answer(ok) {
     S()._flush();
     var s = S()._state();
-    var pick = ok ? s.ans : s.choices.filter(function (c) { return c !== s.ans && s.wrong.indexOf(c) < 0; })[0];
-    S()._choose(pick);
+    if (s.kind === 'yomi') {
+      if (ok) S()._answer(s.ans);
+      else { S()._answer(wrongOf(s)); S()._answer(wrongOf(s)); }   // 2回まちがえて、こたえを見る
+    } else {
+      S()._draw();
+      S()._done();
+      S()._grade(!!ok);
+      if (!ok) S()._done();      // なぞりの練習 →「つぎへ」
+    }
+  }
+  function wrongOf(s) {
+    // 読みと同じ字数で、どの正しい読みでもない言葉
+    var w = '';
+    for (var i = 0; i < s.ans.length; i++) w += 'ぬ';
+    return K.hasReading(K.byKanji(s.k), w) ? w.replace(/ぬ$/, 'ね') : w;
   }
   function logsOf(pid) {
-    return C.storage.getLogs(pid).then(function (l) { return l.filter(function (e) { return e.area === 'kanji'; }); });
+    return C.storage.getLogs(pid).then(function (l) { return l.filter(function (e) { return /^kanji/.test(e.area); }); });
   }
-  function open(seed) {
+  function open(seed, rng) {
     return fresh().then(function () {
       var pid = C.storage.addProfile('たろう', 'benkyo');
       C.storage.setActive(pid);
-      (seed || []).forEach(function (e) { C.storage.logAnswer({ profileId: pid, area: 'kanji', itemId: e.itemId, correct: e.correct, level: e.level }); });
-      return S().show({ profileId: pid }).then(function () { return pid; });
+      (seed || []).forEach(function (e) { C.storage.logAnswer({ profileId: pid, area: e.area || 'kanjiYomi', itemId: e.itemId, correct: e.correct, level: e.level }); });
+      return S().show({ profileId: pid, rng: rng }).then(function () { return pid; });
     });
+  }
+  // 最初の問題が kind になるまで開き直す（決まった乱数で）
+  function openKind(kind) {
+    var s = 0;
+    function tryOne() {
+      return open(null, seeded(++s)).then(function (pid) {
+        if (S()._state().kind === kind || s > 40) return pid;
+        return tryOne();
+      });
+    }
+    return tryOne();
   }
   function kt(name, fn) {
     C.test('kanjiScreen: ' + name, function () {
@@ -231,34 +372,96 @@
     });
   }
 
-  kt('最初はレベル1（1グループ目の字）。正解で記録 true が1件', function () {
-    return open().then(function (pid) {
+  kt('最初はレベル1（1グループ目の字）。10問の形は よみ5・かき5', function () {
+    return open().then(function () {
       var s = S()._state();
       C.assertEq(s.phase, 'question');
       C.assertEq(s.level, 1);
       C.assertEq(K.GROUPS[0].indexOf(s.k) >= 0, true);
-      C.assertEq(s.choices.length, 3);
-      answer(true);
+      C.assertEq(s.kinds.filter(function (k) { return k === 'yomi'; }).length, 5);
+      C.assertEq(s.kind, s.kinds[0]);
+      var seen = [];
+      for (var i = 0; i < 10; i++) { S()._flush(); seen.push(S()._state().kind); answer(true); }
+      C.assertEq(seen, s.kinds);
+    });
+  });
+  kt('よみ：正解で記録 true が1件（area kanjiYomi）', function () {
+    return openKind('yomi').then(function (pid) {
+      var s = S()._state();
+      S()._answer(s.ans);
       s = S()._state();
       C.assertEq(s.phase, 'feedback'); C.assertEq(s.message, 'せいかい！'); C.assertEq(s.solved, 1);
       return logsOf(pid).then(function (logs) {
-        C.assertEq(logs.length, 1); C.assertEq(logs[0].correct, true); C.assertEq(logs[0].itemId, s.id); C.assertEq(logs[0].level, 1);
+        C.assertEq(logs.length, 1); C.assertEq(logs[0].area, 'kanjiYomi'); C.assertEq(logs[0].correct, true);
+        C.assertEq(logs[0].itemId, s.id); C.assertEq(logs[0].level, 1);
       });
     });
   });
-  kt('1回目まちがい→はげまし、2回目まちがい→こたえを見せる（記録 false が1件）', function () {
-    return open().then(function (pid) {
+  kt('よみ：空・字数が足りない は数えない。1回目まちがい→はげまし、2回目→こたえ（記録 false が1件）', function () {
+    return openKind('yomi').then(function (pid) {
       var id = S()._state().id;
-      answer(false);
+      S()._answer('');
       var s = S()._state();
-      C.assertEq(s.phase, 'question'); C.assertEq(s.message, 'もういっかい やってみよう！'); C.assertEq(s.tries, 1); C.assertEq(s.wrong.length, 1);
-      S()._choose(s.wrong[0]);                 // うすくなった選択肢は、押しても数えない
-      C.assertEq(S()._state().tries, 1);
-      answer(false);
+      C.assertEq([s.phase, s.tries, s.message], ['question', 0, 'ひらがなを えらんでね']);
+      if (s.ans.length > 1) {
+        S()._answer(s.ans.charAt(0));
+        s = S()._state();
+        C.assertEq([s.phase, s.tries, s.message], ['question', 0, 'ますを ぜんぶ うめてね']);
+      }
+      S()._answer(wrongOf(s));
+      s = S()._state();
+      C.assertEq([s.phase, s.tries, s.message, s.input], ['question', 1, 'もういっかい やってみよう！', '']);
+      S()._answer(wrongOf(s));
       s = S()._state();
       C.assertEq(s.phase, 'feedback'); C.assertEq(s.id, id); C.assertEq(s.revealed, true);
       C.assertEq(s.message, 'こたえは 「' + s.ans + '」 だよ。つぎは できるよ！');
       return logsOf(pid).then(function (logs) { C.assertEq(logs.length, 1); C.assertEq(logs[0].correct, false); });
+    });
+  });
+  kt('かき：書いて「できた」→見比べ→「かけた」で記録 true（area kanjiKaki）', function () {
+    return openKind('kaki').then(function (pid) {
+      var s = S()._state();
+      C.assertEq(s.kind, 'kaki');
+      S()._grade(true);                         // 見比べの前は押せない
+      C.assertEq(S()._state().phase, 'question');
+      S()._draw();
+      C.assertEq(S()._state().ink, true);
+      S()._clear();
+      C.assertEq(S()._state().ink, false);
+      S()._draw();
+      S()._done();
+      s = S()._state();
+      C.assertEq([s.phase, s.message], ['check', 'よく みくらべてね。かけたかな？']);
+      S()._grade(true);
+      s = S()._state();
+      C.assertEq([s.phase, s.graded, s.solved, s.message], ['feedback', true, 1, 'すごい！ よく かけたね！']);
+      return logsOf(pid).then(function (logs) {
+        C.assertEq(logs.length, 1); C.assertEq(logs[0].area, 'kanjiKaki'); C.assertEq(logs[0].correct, true); C.assertEq(logs[0].itemId, s.id);
+      });
+    });
+  });
+  kt('かき：「もういっかい」で記録 false、なぞりの練習→「つぎへ」で次の問題', function () {
+    return openKind('kaki').then(function (pid) {
+      var id = S()._state().id;
+      S()._draw(); S()._done(); S()._grade(false);
+      var s = S()._state();
+      C.assertEq([s.phase, s.graded, s.solved, s.ink], ['practice', false, 1, false]);
+      C.assertEq(s.message, 'おてほんを なぞって、もういちど かいてみよう');
+      S()._draw();                              // 練習で書いても記録しない
+      S()._done();                              // 「つぎへ」
+      s = S()._state();
+      C.assertEq(s.phase, 'question');
+      C.assertEq(s.id !== id || s.solved === 1, true);
+      return logsOf(pid).then(function (logs) { C.assertEq(logs.length, 1); C.assertEq(logs[0].correct, false); });
+    });
+  });
+  kt('かき：何も書かずに「できた」→お手本を見せて練習（記録 false）', function () {
+    return openKind('kaki').then(function (pid) {
+      S()._done();
+      var s = S()._state();
+      C.assertEq([s.phase, s.graded, s.solved], ['practice', false, 1]);
+      C.assertEq(s.message, 'みて おぼえよう！ おてほんを なぞってみよう');
+      return logsOf(pid).then(function (logs) { C.assertEq(logs.length, 1); C.assertEq(logs[0].correct, false); C.assertEq(logs[0].area, 'kanjiKaki'); });
     });
   });
   kt('5問正解でレベル2へ。10問でごほうび、星2つ。もういっかいで0から', function () {
@@ -274,6 +477,13 @@
       S()._again();
       s = S()._state();
       C.assertEq(s.phase, 'question'); C.assertEq(s.solved, 0); C.assertEq(s.stars, 0); C.assertEq(s.level, 3);
+    });
+  });
+  kt('まちがい（よみ）・もういっかい（かき）を混ぜても、10問で区切る', function () {
+    return open().then(function () {
+      for (var i = 0; i < 10; i++) answer(i % 2 === 0);
+      S()._flush();
+      C.assertEq(S()._state().phase, 'reward');
     });
   });
   kt('学年をえらぶと、その学年の字に取りかわる。記録に grade が付き、レベルは動かない', function () {
@@ -292,20 +502,22 @@
       });
     });
   });
-  kt('まちがえる前に学年を切り替えたときは記録しない。1回まちがえてから切り替えると false が1件', function () {
-    return open().then(function (pid) {
+  kt('よみで1回まちがえてから学年を切り替えると false が1件。まちがえる前なら記録しない', function () {
+    return openKind('yomi').then(function (pid) {
       S()._selectGrade(1);
       return logsOf(pid).then(function (logs) {
         C.assertEq(logs.length, 0);
-        answer(false);
+        var s = S()._state();
+        if (s.kind === 'yomi') S()._answer(wrongOf(s));
+        var tried = S()._state().tries;
         S()._selectGrade(null);
         C.assertEq(S()._state().grade, null);
-        return logsOf(pid);
-      }).then(function (logs) { C.assertEq(logs.length, 1); C.assertEq(logs[0].correct, false); });
+        return logsOf(pid).then(function (l2) { C.assertEq(l2.length, tried ? 1 : 0); });
+      });
     });
   });
-  kt('記録からレベルを組み立てて始める（レベル6で記録あり→レベル6、2年生の字）', function () {
-    return open([{ itemId: '春（よみ）', correct: true, level: 6 }, { itemId: '夏（かき）', correct: false, level: 6 }]).then(function () {
+  kt('記録からレベルを組み立てて始める（レベル6で記録あり→レベル6、範囲内の字）', function () {
+    return open([{ area: 'kanjiYomi', itemId: '春（よみ）', correct: true, level: 6 }, { area: 'kanjiKaki', itemId: '夏（かき）', correct: false, level: 6 }]).then(function () {
       var s = S()._state();
       C.assertEq(s.level, 6);
       var allowed = [];
@@ -313,8 +525,8 @@
       C.assertEq(allowed.indexOf(s.k) >= 0, true);
     });
   });
-  C.test('benkyo: SUBJECTS の kanji は有効で、よみ・かきわけ', function () {
+  C.test('benkyo: SUBJECTS の kanji は有効で、よみ・かき', function () {
     var s = C.benkyo.SUBJECTS.filter(function (x) { return x.id === 'kanji'; })[0];
-    C.assertEq(s.enabled, true); C.assertEq(s.sub, 'よみ・かきわけ');
+    C.assertEq(s.enabled, true); C.assertEq(s.sub, 'よみ・かき');
   });
 })();

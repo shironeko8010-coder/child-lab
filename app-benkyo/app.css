@@ -570,54 +570,168 @@ ruby rt { font-size: .42em; font-weight: bold; }
   border-radius: 10px;
 }
 .kj-ex.done .kj-mark { color: #2f8a3c; }
-.kj-choices { flex: 0 0 auto; display: flex; flex-direction: column; gap: 14px; width: 300px; }
-.kj-choice {
-  min-height: 96px;
-  padding: 0 12px;
-  border: 4px solid transparent;
-  border-radius: 22px;
-  background: var(--c-surface);
-  color: var(--c-text);
-  box-shadow: 0 5px 0 var(--c-line);
+.kj-big.answer { color: #2f8a3c; }
+
+/* 左（問題）と右（キーボード／手書き） */
+.kj-body { gap: 36px; align-items: center; }
+.kj-q { max-width: 520px; gap: 16px; }
+.kj-side { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; min-width: 0; }
+.kj-padwrap { width: min(600px, 46vw); }
+.kj-padwrap[hidden], .kj-write[hidden], .kp-slots[hidden] { display: none !important; }
+
+/* かき：手書きの枠とボタン */
+.kj-write { display: flex; align-items: center; gap: 20px; }
+.kj-area {
+  width: min(44vw, calc(var(--vh) * 100 - 230px), 540px);
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.kj-canvas { display: block; border-radius: 18px; border: 4px solid var(--c-primary); background: #fff; touch-action: none; box-shadow: 0 4px 0 var(--c-line); }
+.kj-wbtns { display: flex; flex-direction: column; gap: 16px; width: 200px; }
+.kj-wbtn { width: 100%; justify-content: center; padding: 10px 12px; font-size: 26px; white-space: nowrap; }
+.kj-wbtn.dim { opacity: .5; }
+
+/* ===== ひらがなキーボード（kana-pad.js）===== */
+.kp { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; touch-action: manipulation; }
+.kp-rows, .kp-chars { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.kp-acts { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 8px; }
+.kp button {
+  min-width: 0;
+  min-height: 56px;
+  border: 0;
+  border-radius: 16px;
   font-family: inherit;
-  font-size: 40px;
   font-weight: bold;
   cursor: pointer;
-  white-space: nowrap;
+  touch-action: manipulation;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  line-height: 1.1;
 }
-.kj-choice.kanji { font-family: var(--kj-font); font-size: 60px; line-height: 1; }
-.kj-choice:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--c-line); }
-.kj-choice.out { opacity: .35; box-shadow: none; transform: translateY(4px); }
-.kj-choice.right { border-color: var(--c-good); color: #2f8a3c; background: #eef9ef; }
-.kj-choice.reveal { border-color: #e0a440; color: #a8701c; background: #fff6e6; }
-.kk-body.is-wait .kj-choice:not(.right):not(.reveal) { opacity: .35; }
+.kp button:active { transform: translateY(3px); }
+.kp-row { height: 78px; background: var(--c-surface); color: var(--c-primary-dark); box-shadow: 0 4px 0 var(--c-line); }
+.kp-row b { font-size: 28px; }
+.kp-row small { font-size: 14px; margin-top: 3px; color: #5b7690; letter-spacing: -.04em; font-feature-settings: "palt"; white-space: nowrap; }
+.kp-row.on { background: var(--c-primary); color: #fff; box-shadow: 0 4px 0 var(--c-primary-dark); }
+.kp-row.on small { color: #e3eefa; }
+.kp-chars { min-height: 84px; padding: 6px; border-radius: 20px; background: var(--c-soft); }
+.kp-chars.open { background: #cfe0f1; }
+.kp-hint { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #6b7f93; }
+.kp-hint[hidden], .kp-char[hidden] { display: none !important; }
+.kp-char { height: 72px; background: #fff; color: var(--c-text); border: 3px solid var(--c-primary) !important; font-size: 40px; box-shadow: 0 4px 0 var(--c-line); }
+.kp-act { height: 68px; box-shadow: 0 4px 0 var(--c-line); }
+.kp-act b { font-size: 24px; }
+.kp-act small { font-size: 14px; margin-top: 2px; }
+.kp-mod, .kp-del { background: var(--c-surface); color: var(--c-accent-dark); }
+.kp-mod b.kp-mark { line-height: 0; }
+.kp-mod b.kp-mark svg { display: block; width: 52px; height: 26px; }
+.kp-ok { background: var(--c-accent); color: #fff; box-shadow: 0 4px 0 var(--c-accent-dark) !important; }
+.kp-ok b { font-size: 26px; }
+.kp.locked button { opacity: .5; }
 
+/* 答えの枠（字数ぶんの四角） */
+.kp-slots { display: flex; justify-content: center; gap: 10px; }
+.kp-slot {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid var(--c-line);
+  border-radius: 14px;
+  background: #fff;
+  font-size: 44px;
+  font-weight: bold;
+  color: var(--c-text);
+}
+.kp-slot.next { border-color: var(--c-primary); border-style: dashed; }
+.kp-slot.filled { border-color: var(--c-primary); }
+.kp-slot.right { border-color: var(--c-good); color: #2f8a3c; background: #eef9ef; }
+.kp-slot.reveal { border-color: #e0a440; color: #a8701c; background: #fff6e6; }
+
+/* 縦向き：問題の下にキーボード／手書き */
 @media (orientation: portrait) {
   .scr-kanji .topbar { flex-wrap: wrap; }
   .kj-grades { grid-template-columns: repeat(3, minmax(0, 140px)) !important; }
-  .kj-choices { width: 100%; max-width: 560px; flex-direction: row; }
-  .kj-choice { flex: 1 1 0; min-width: 0; }
+  .kj-body { flex-direction: column; justify-content: flex-start; gap: 18px; }
+  .kj-q { max-width: none; }
+  .kj-side { width: 100%; }
+  .kj-padwrap { width: 100%; max-width: 620px; }
+  .kj-write { flex-direction: column; width: 100%; }
+  .kj-area { width: min(100%, calc(var(--vh) * 100 - 600px), 520px); min-width: 220px; }
+  .kj-wbtns { flex-direction: row; width: 100%; max-width: 520px; }
+  .kj-wbtn { flex: 1 1 0; }
+  /* かきのときは画面の高さに固定し、手書きの枠は のこりの高さに合わせる（ボタンが下に はみ出さないように） */
+  .app.scr-kanji.kj-mode-kaki { height: calc(var(--vh) * 100); min-height: 0; }
+  .kj-body.is-kaki { min-height: 0; }
+  .kj-body.is-kaki .kj-side { flex: 1 1 0; min-height: 0; }
+  .kj-body.is-kaki .kj-write { height: 100%; }
+  .kj-body.is-kaki .kj-area { flex: 1 1 0; min-height: 0; width: 100%; aspect-ratio: auto; }
 }
+
+/* 低い横向き（スマホ）：キーボードの操作ボタンは右の1列に。高さに合わせて詰める */
 @media (orientation: landscape) and (max-height: 520px) {
   .dan-open .kj-grades { grid-template-columns: 1fr; }
   .dan-open .kj-grade { width: 200px !important; height: auto !important; min-height: var(--tap-min); font-size: 20px !important; }
-  .kj-card { padding: 4px 12px; gap: 0; border-radius: 16px; }
-  .kj-big { font-size: clamp(44px, calc(var(--vh) * 24), 120px); }
-  .kj-big.kana { font-size: clamp(30px, calc(var(--vh) * 14), 72px); }
-  .kj-ex { font-size: clamp(16px, calc(var(--vh) * 7), 30px); }
+  .kj-body { gap: 14px; align-items: stretch; }
+  .kj-q { gap: calc(var(--vh) * 2); justify-content: center; min-width: 190px; }
+  .kj-card { padding: 2px 10px; gap: 0; border-radius: 16px; }
+  .kj-big { font-size: clamp(40px, calc(var(--vh) * 20), 110px); line-height: 1.05; }
+  .kj-big.kana { font-size: clamp(28px, calc(var(--vh) * 12), 64px); }
+  .kj-ex { font-size: clamp(15px, calc(var(--vh) * 6), 28px); }
   .kj-slot { border-width: 3px; border-radius: 6px; }
-  .kj-choices { width: clamp(180px, 30vw, 280px); justify-content: center; gap: calc(var(--vh) * 3); }
-  .kj-choice { min-height: var(--tap-min); height: calc(var(--vh) * 22); border-radius: 16px; font-size: clamp(20px, calc(var(--vh) * 8), 36px); box-shadow: 0 4px 0 var(--c-line); }
-  .kj-choice.kanji { font-size: clamp(30px, calc(var(--vh) * 13), 56px); }
+  .kj-q .kk-talk { min-height: 0; }
+  .kj-q .kk-who .chara { width: calc(var(--vh) * 14); height: calc(var(--vh) * 14); }
+  .kj-q .kk-msg { font-size: clamp(14px, calc(var(--vh) * 4.6), 22px); max-width: 32vw; padding: 4px 10px; }
+  .kj-padwrap { width: min(66vw, 560px); }
+  .kp { grid-template-columns: minmax(0, 1fr) 92px; gap: 6px; }
+  .kp-rows { grid-column: 1; grid-row: 1; gap: 6px; }
+  .kp-chars { grid-column: 1; grid-row: 2; min-height: 0; padding: 4px; gap: 6px; border-radius: 14px; }
+  .kp-acts { grid-column: 2; grid-row: 1 / span 2; grid-template-columns: 1fr; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .kp-row { height: calc((var(--vh) * 100 - 112px) / 3.4); min-height: 56px; border-radius: 12px; }
+  .kp-row b { font-size: clamp(20px, calc(var(--vh) * 7), 26px); }
+  .kp-char { height: calc((var(--vh) * 100 - 112px) / 3.4 - 8px); min-height: 52px; font-size: clamp(26px, calc(var(--vh) * 10), 40px); border-radius: 12px; }
+  .kp-hint { font-size: 16px; min-height: 52px; }
+  .kp-act { height: auto; min-height: 56px; border-radius: 12px; }
+  .kp-act b { font-size: 20px; }
+  .kp-mod b.kp-mark svg { width: 44px; height: 22px; }
+  .kp-ok b { font-size: 20px; }
+  .kp-slots { gap: 6px; }
+  .kp-slot { width: clamp(40px, calc(var(--vh) * 14), 64px); height: clamp(40px, calc(var(--vh) * 14), 64px); font-size: clamp(24px, calc(var(--vh) * 9), 40px); border-width: 3px; border-radius: 10px; }
+  .kj-write { gap: 12px; }
+  .kj-area { width: calc(var(--vh) * 100 - 84px); }
+  .kj-wbtns { width: 150px; gap: 10px; }
+  .kj-wbtn { font-size: 20px; padding: 6px 8px; min-height: 56px; }
 }
+
+/* スマホ縦向き */
 @media (orientation: portrait) and (max-width: 520px) {
   .kj-grades { width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
   .kj-grades .kj-grade { height: 56px; padding: 0; font-size: 17px; }
-  .kj-card { padding: 8px 12px; }
-  .kj-big { font-size: clamp(72px, 28vw, 120px); }
-  .kj-big.kana { font-size: clamp(40px, 13vw, 64px); }
-  .kj-ex { font-size: clamp(20px, 6.4vw, 30px); }
-  .kj-choices { gap: 8px; }
-  .kj-choice { min-height: 84px; padding: 0 4px; font-size: clamp(20px, 6.4vw, 30px); border-radius: 18px; }
-  .kj-choice.kanji { font-size: clamp(40px, 13vw, 56px); }
+  .kj-body { gap: 10px; padding-top: 8px; }
+  .kj-q { gap: 8px; }
+  .kj-card { padding: 4px 12px; gap: 0; }
+  .kj-big { font-size: clamp(56px, 20vw, 100px); line-height: 1.05; }
+  .kj-big.kana { font-size: clamp(36px, 11vw, 56px); }
+  .kj-ex { font-size: clamp(18px, 5.6vw, 26px); }
+  .kj-q .kk-who .chara { width: 52px; height: 52px; }
+  .kj-q .kk-msg { font-size: clamp(16px, 4.8vw, 20px); padding: 6px 12px; }
+  .kp { gap: 8px; }
+  .kp-rows, .kp-chars, .kp-acts { gap: 6px; }
+  .kp-row { height: 64px; border-radius: 12px; padding: 0; }
+  .kp-row b { font-size: 22px; }
+  .kp-row small { letter-spacing: -.08em; }
+  .kp-chars { min-height: 70px; padding: 4px; }
+  .kp-char { height: 60px; font-size: 32px; border-radius: 12px; }
+  .kp-act { height: 58px; border-radius: 12px; }
+  .kp-act b { font-size: 20px; }
+  .kp-mod b.kp-mark svg { width: 44px; height: 22px; }
+  .kp-slot { width: 52px; height: 52px; font-size: 32px; }
+  .kj-area { width: min(100%, calc(var(--vh) * 100 - 420px), 420px); }
+  .kj-wbtn { font-size: 22px; min-height: 60px; }
 }

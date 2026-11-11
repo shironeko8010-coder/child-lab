@@ -118,7 +118,7 @@
       s = K()._state();
       C.assertEq(s.phase, 'feedback');
       C.assertEq(s.solved, 1);
-      C.assertEq(s.message, 'せいかい！');
+      C.assertEq(s.message, '正かい！');
       return kukuLogs(pid).then(function (logs) {
         C.assertEq(logs.length, 1);
         C.assertEq(logs[0].correct, true);
@@ -136,12 +136,12 @@
       C.assertEq(s.phase, 'question');
       C.assertEq(s.id, first.id);
       C.assertEq(s.input, '');
-      C.assertEq(s.message, 'もういっかい やってみよう！');
+      C.assertEq(s.message, 'もう{一回|いっかい} やってみよう！');
       C.assertEq(s.solved, 0);
       answer(false);
       s = K()._state();
       C.assertEq(s.phase, 'feedback');
-      C.assertEq(s.message, 'こたえは ' + first.ans + ' だよ。つぎは できるよ！');
+      C.assertEq(s.message, '{答|こた}えは ' + first.ans + ' だよ。つぎは できるよ！');
       C.assertEq(s.expr, first.a + ' × ' + first.b + ' = ' + first.ans);
       C.assertEq(s.solved, 1);
       K()._flush();
@@ -160,7 +160,7 @@
     return openKuku().then(function (pid) {
       answer(false);
       answer(true);
-      C.assertEq(K()._state().message, 'せいかい！');
+      C.assertEq(K()._state().message, '正かい！');
       return kukuLogs(pid).then(function (logs) {
         C.assertEq(logs.map(function (e) { return e.correct; }), [false]);
       });
@@ -180,7 +180,7 @@
       C.assertEq(s.message, first.message);
       // そのあと2回間違えて、はじめて正解が見える（空は数えていない）
       answer(false);
-      C.assertEq(K()._state().message, 'もういっかい やってみよう！');
+      C.assertEq(K()._state().message, 'もう{一回|いっかい} やってみよう！');
       return kukuLogs(pid).then(function (logs) { C.assertEq(logs.length, 0); });
     });
   });
@@ -200,7 +200,7 @@
       K()._press('0'); K()._press(String(s.ans));
       C.assertEq(K()._state().input, '0' + s.ans);
       K()._press('ok');
-      C.assertEq(K()._state().message, 'せいかい！');
+      C.assertEq(K()._state().message, '正かい！');
     });
   });
 
@@ -333,7 +333,7 @@
       answer(true);
       s = K()._state();
       C.assertEq(s.phase, "feedback");
-      C.assertEq(s.message, "せいかい！");
+      C.assertEq(s.message, "正かい！");
       return C.storage.getLogs(pid);
     }).then(function (logs) {
       C.assertEq(logs.length, 1);
@@ -352,7 +352,7 @@
       var b = K()._state().b;
       answer(false);
       C.assertEq(K()._state().phase, "question");
-      C.assertEq(K()._state().message, "もういっかい やってみよう！");
+      C.assertEq(K()._state().message, "もう{一回|いっかい} やってみよう！");
       answer(false);
       var s = K()._state();
       C.assertEq(s.phase, "feedback");

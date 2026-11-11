@@ -180,7 +180,7 @@
     var row = ui.el('div', 'kk-r-row');
     row.appendChild(ui.chara('happy'));
     var info = ui.el('div', 'kk-r-info');
-    info.appendChild(ui.el('p', 'kk-r-msg', 'よく かんがえたね！'));
+    info.appendChild(ui.elR('p', 'kk-r-msg', 'よく {考|かんが}えたね！'));
     info.appendChild(ui.el('p', 'kk-r-sub', D().ROUND_SIZE + 'もん できたよ'));
     var btns = ui.el('div', 'kk-r-btns');
     var again = ui.button('btn-big', function () {
@@ -190,7 +190,7 @@
       againRound();
     });
     again.appendChild(ui.svg(ui.ICO.play));
-    again.appendChild(ui.el('span', null, 'もういっかい'));
+    again.appendChild(ui.elR('span', null, 'もう{一回|いっかい}'));
     var end = ui.button('btn-big secondary', function () {
       if (end.disabled) return;
       end.disabled = true;
@@ -317,7 +317,7 @@
     var v = view, sc = st.scene;
     v.pic.innerHTML = picture(sc.pic);
     fillText(v.text, sc.text);
-    v.ask.textContent = sc.kind === 'think' ? 'かんがえて みよう（どれを えらんでも いいよ）' : D().ASK;
+    fillText(v.ask, sc.kind === 'think' ? '{考|かんが}えて みよう（どれを えらんでも いいよ）' : D().ASK);
     v.body.classList.toggle('is-think', sc.kind === 'think');
     for (var i = 0; i < v.btns.length; i++) {
       var c = st.order[i];

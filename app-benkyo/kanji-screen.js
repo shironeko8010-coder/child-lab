@@ -303,7 +303,7 @@
       againRound();
     });
     again.appendChild(ui.svg(ui.ICO.play));
-    again.appendChild(ui.el('span', null, 'もういっかい'));
+    again.appendChild(ui.elR('span', null, 'もう{一回|いっかい}'));   // ごほうび画面だけ漢字（問題中の文字は、答えの字を見せないよう ひらがな）
     var end = ui.button('btn-big secondary', function () {
       if (end.disabled) return;
       end.disabled = true;

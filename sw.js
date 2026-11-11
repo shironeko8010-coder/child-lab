@@ -1,6 +1,6 @@
 /* Service Worker：ネットワーク優先＋オフライン用の保存。外部への通信はしない。 */
 'use strict';
-var CACHE_NAME = 'chiid-v17'; // ファイルを変えたら番号を上げる
+var CACHE_NAME = 'chiid-v18'; // ファイルを変えたら番号を上げる
 var PRECACHE = [
   './',
   'index.html',

@@ -566,7 +566,7 @@
           if (id !== q.readId || q.done || i >= cards.length) { if (id === q.readId) light(null); return; }
           var cd = cards[i];
           light(cd.node);
-          ui.speak((i === 0 ? 'これ？ ' : 'それとも、') + cd.choice.text).then(function () { i++; next(); });
+          ui.speak((i === 0 ? '' : 'それとも、') + cd.choice.text).then(function () { i++; next(); });
         })();
       });
     }

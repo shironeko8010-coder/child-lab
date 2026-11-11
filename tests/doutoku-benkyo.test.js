@@ -7,7 +7,7 @@
 
   // 場面に出てくる文を全部
   function allTexts(s) {
-    var out = [s.text, s.name, s.end || ''];
+    var out = [s.text, s.label, s.end || ''];
     s.choices.forEach(function (c) { out.push(c.text, c.reply); });
     return out;
   }
@@ -54,6 +54,19 @@
     });
   });
 
+  C.test('doutoku: 2年生までに習う漢字は漢字で書く（ふりがなの字も2年生まで）', function () {
+    var g12 = {};
+    C.kanjiData.forEach(function (r) { if (r[1] <= 2) g12[r[0]] = true; });
+    var all = D().SCENES.map(function (s) { return allTexts(s).join(' '); }).join(' ');
+    (all.match(/\{([^|{}]+)\|/g) || []).forEach(function (m) {
+      m.replace(/[一-鿿]/g, function (k) { if (!g12[k]) throw new Error('2年生までに習わない字にふりがな: ' + k); });
+    });
+    var plain = D().plain(all);
+    ['ともだち', 'はなして', 'せんせい', 'がっこう', 'じぶん', ' こえ', 'かんがえ', 'おしえ', 'でんしゃ', 'こうえん', ' いう'].forEach(function (w) {
+      if (plain.indexOf(w) >= 0) throw new Error('漢字にできる ことばが ひらがな: ' + w);
+    });
+  });
+
   C.test('doutoku: 決めた言葉づかい（えまちゃん・パパや ママ・テレビ・ぼうはんブザー・おわかれ）', function () {
     var all = D().SCENES.map(function (s) { return allTexts(s).join(' '); }).join(' ');
     C.assertEq(all.indexOf('いもうと') < 0, true);
@@ -62,10 +75,10 @@
     C.assertEq(D().get('shiranai').choices[0].reply.indexOf('ぼうはんブザー') >= 0, true);
     C.assertEq(D().get('neru').text.indexOf('テレビ') >= 0, true);
     C.assertEq(D().get('ema_omocha').text.indexOf('えまちゃん') >= 0, true);
-    C.assertEq(D().get('t_owakare').text.indexOf('おわかれの ときが きたら') >= 0, true);
+    C.assertEq(D().get('t_owakare').text.indexOf('おわかれの ときが {来|き}たら') >= 0, true);
     C.assertEq(D().get('t_owakare').quiet, true);
     C.assertEq(D().get('dangomushi').name, 'ダンゴムシ');
-    C.assertEq(D().get('t_yakusoku').end, 'パパや ママと はなして みてね。');
+    C.assertEq(D().get('t_yakusoku').end, 'パパや ママと {話|はな}して みてね。');
     // 「ともだちの いえ」の おうちの人は、ともだちの家の人なので そのまま
     C.assertEq(D().get('ojama').choices[0].reply.indexOf('おうちの 人') >= 0, true);
   });
@@ -78,9 +91,13 @@
   });
 
   C.test('doutoku: 声の文。えらぶ問題は「こんなとき どうする？」を足す', function () {
-    C.assertEq(D().speakText(D().get('densha')), 'でんしゃに のって いるよ。 こんなとき どうする？');
+    C.assertEq(D().speakText(D().get('densha')), '電車にのっているよ。 こんなときどうする？');
     C.assertEq(D().speakText(D().get('t_kuni')).indexOf('{') < 0, true);
-    C.assertEq(D().speakText(D().get('t_kuni')).indexOf('くにから') >= 0, true);
+    C.assertEq(D().speakText(D().get('t_kuni')).indexOf('国から') >= 0, true);
+    // 「はなして」の「は」を「わ」と読ませない：漢字のまま・すき間なしで読ませる
+    C.assertEq(D().voice('パパや ママと {話|はな}して みてね。'), 'パパやママと話してみてね。');
+    C.assertEq(D().voice('3{時|じ}に {公園|こうえん}'), '3じに公園');
+    C.assertEq(D().replyText(D().get('t_yakusoku'), { kind: 'think', reply: 'いいね。', end: D().get('t_yakusoku').end }), 'いいね。 パパやママと話してみてね。');
     C.assertEq(D().sentences('あいう。えお！ かき？'), ['あいう。', 'えお！', 'かき？']);
   });
 
@@ -88,12 +105,12 @@
     var s = D().get('densha'), a = D().newAttempt();
     var r1 = D().choose(a, s, 1);
     C.assertEq(r1.kind, 'retry');
-    C.assertEq(D().replyText(s, r1).indexOf(D().RETRY) >= 0, true);
+    C.assertEq(D().replyText(s, r1).indexOf(D().voice(D().RETRY)) >= 0, true);
     C.assertEq(D().choose(a, s, 1).kind, 'ignore');        // 同じものは2回えらべない
     var r2 = D().choose(a, s, 0);
     C.assertEq(r2.kind, 'good'); C.assertEq(r2.firstTry, false);
     C.assertEq(D().choose(a, s, 2).kind, 'ignore');        // おわったあと
-    C.assertEq(D().logEntry(s, a), { area: 'doutoku_b', itemId: 'でんしゃの なか', correct: false, level: 1 });
+    C.assertEq(D().logEntry(s, a), { area: 'doutoku_b', itemId: '電車の 中', correct: false, level: 1 });
     var b = D().newAttempt();
     C.assertEq(D().choose(b, s, 0).firstTry, true);
     C.assertEq(D().logEntry(s, b).correct, true);
@@ -104,11 +121,11 @@
     [0, 1, 2].forEach(function (i) {
       var a = D().newAttempt(), r = D().choose(a, s, i);
       C.assertEq(r.kind, 'think');
-      C.assertEq(D().replyText(s, r).indexOf('パパや ママと はなして みてね') >= 0, true);
+      C.assertEq(D().replyText(s, r).indexOf('パパやママと話してみてね') >= 0, true);
       C.assertEq(D().logEntry(s, a), { area: 'doutoku_bk', itemId: 'いつも おに', correct: true, level: 1 });
     });
     var w = D().get('t_owakare'), r7 = D().choose(D().newAttempt(), w, 0);
-    C.assertEq(D().replyText(w, r7).indexOf('いのちは ひとつ だけ') >= 0, true);
+    C.assertEq(D().replyText(w, r7).indexOf('いのちは一つだけ') >= 0, true);
   });
 
   C.test('doutoku: pickRound は10問・重ならない・6問目と10問目が かんがえる問題', function () {
@@ -138,10 +155,10 @@
 
   C.test('doutoku: progressFromLogs は場面の名前で数える', function () {
     var p = D().progressFromLogs([
-      { area: 'doutoku_b', itemId: 'でんしゃの なか', correct: false },
-      { area: 'doutoku_b', itemId: 'でんしゃの なか', correct: true },
+      { area: 'doutoku_b', itemId: '電車の 中', correct: false },
+      { area: 'doutoku_b', itemId: '電車の 中', correct: true },
       { area: 'doutoku_bk', itemId: 'いつも おに', correct: true },
-      { area: 'doutoku', itemId: 'でんしゃの なか', correct: false },   // 知育の どうとく は数えない
+      { area: 'doutoku', itemId: '電車の 中', correct: false },   // 知育の どうとく は数えない
       { area: 'doutoku_b', itemId: 'ない場面', correct: false }
     ]);
     C.assertEq(p.seen, { densha: 2, t_oni: 1 });

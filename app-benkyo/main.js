@@ -12,12 +12,14 @@
   // 教科の一覧。教科を足すときは、ここに1行と subjects/ に1ファイル
   var SUBJECTS = [
     { id: "kuku", name: "九九", yomi: "くく", sub: "だんの れんしゅう", enabled: true },
-    { id: "kukuB", name: "九九", yomi: "くく", sub: "□を こたえる", enabled: true, kuku: "blank" },
-    { id: 'keisan', name: 'けいさん', sub: 'たしざん・ひきざん', enabled: true },
-    { id: 'kanji', name: 'かんじ', sub: 'よみ・かき', enabled: true },
-    { id: "doutoku", name: "どうとく", sub: "こんなとき どうする？", enabled: true },
-    { id: 'eigo', name: 'えいご', enabled: false }
+    { id: "kukuB", name: "九九", yomi: "くく", sub: "□を {答|こた}える", enabled: true, kuku: "blank" },
+    { id: 'keisan', name: '計算', yomi: 'けいさん', sub: 'たし{算|ざん}・ひき{算|ざん}', enabled: true },
+    { id: 'kanji', name: 'かん字', sub: '{読|よ}み・{書|か}き', enabled: true },
+    { id: "doutoku", name: "{道|どう}とく", sub: "こんなとき どうする？", enabled: true },
+    { id: 'eigo', name: 'えい{語|ご}', enabled: false }
   ];
+  // 画面の文字は、2年生までに習う漢字を使う（1年生の漢字はそのまま、2年生の漢字は {漢字|よみ} でふりがな）
+  function yomiOf(text) { return String(text || '').replace(/\{([^|{}]+)\|([^|{}]+)\}/g, '$2'); }
 
   var app = null;
   var token = 0;           // 画面ごとの番号。古い画面のタイマーやタップを無視する
@@ -59,6 +61,20 @@
     r.appendChild(el('rt', null, yomi));
     return r;
   }
+  // {漢字|よみ} の入った文を、ふりがな付きで node に入れる（2年生の漢字に使う）
+  function fillR(node, text) {
+    var re = /\{([^|{}]+)\|([^|{}]+)\}/g, last = 0, m;
+    text = String(text == null ? '' : text);
+    node.textContent = '';
+    while ((m = re.exec(text))) {
+      if (m.index > last) node.appendChild(document.createTextNode(text.slice(last, m.index)));
+      node.appendChild(ruby(m[1], m[2]));
+      last = re.lastIndex;
+    }
+    if (last < text.length) node.appendChild(document.createTextNode(text.slice(last)));
+    return node;
+  }
+  function elR(tag, cls, text) { return fillR(el(tag, cls), text); }
   function speak(text) {
     try { return C.voice.speak(text); } catch (e) { return Promise.resolve(); }
   }
@@ -218,7 +234,7 @@
     try { C.timer.stop(); } catch (e) {}
     var box = el('div', 'profile-box card');
     box.appendChild(chara('normal'));
-    box.appendChild(el('h1', 'p-title', 'なまえを おしえてね'));
+    box.appendChild(elR('h1', 'p-title', '{名前|なまえ}を {教|おし}えてね'));
     var form = el('form', 'p-form');
     var input = el('input', 'p-input');
     input.type = 'text';
@@ -235,7 +251,7 @@
       if (done) return;
       // 日本語入力では maxLength を超えることがあるので、ここでも10文字に切る
       var name = (input.value || '').replace(/^\s+|\s+$/g, '').slice(0, NAME_MAX);
-      if (!name) { msg.textContent = 'なまえを いれてね'; input.focus(); return; }
+      if (!name) { fillR(msg, '{名前|なまえ}を 入れてね'); input.focus(); return; }
       done = true;
       play('tap');
       var id = C.storage.addProfile(name, KIND);
@@ -272,7 +288,7 @@
     left.appendChild(chara('normal'));
     var right = el('div', 'home-main');
     right.appendChild(el('p', 'home-hello', 'こんにちは、' + p.nickname + '！'));
-    right.appendChild(el('h1', 'home-title', 'なにを やる？'));
+    right.appendChild(elR('h1', 'home-title', '{何|なに}を やる？'));
     var grid = el('div', 'subjects');
     SUBJECTS.forEach(function (s) {
       var card = button('subject-card' + (s.enabled ? '' : ' soon'), function () {
@@ -286,17 +302,17 @@
       if (!s.enabled) {
         card.disabled = true;
         card.setAttribute('aria-disabled', 'true');
-        card.setAttribute('aria-label', (s.yomi || s.name) + '（じゅんびちゅう）');
+        card.setAttribute('aria-label', (s.yomi || yomiOf(s.name)) + '（じゅんびちゅう）');
       } else {
-        card.setAttribute('aria-label', s.yomi || s.name);
+        card.setAttribute('aria-label', s.yomi || yomiOf(s.name));
       }
       card.appendChild(svg(SUBJECT_ICO[s.id] || SUBJECT_ICO.kuku, 'sc-ico'));
       var nm = el('span', 'sc-name');
       if (s.yomi) nm.appendChild(ruby(s.name, s.yomi));
-      else nm.textContent = s.name;
+      else fillR(nm, s.name);
       card.appendChild(nm);
-      if (s.sub) card.appendChild(el("span", "sc-sub", s.sub));
-      if (!s.enabled) card.appendChild(el('span', 'sc-soon', 'じゅんびちゅう'));
+      if (s.sub) card.appendChild(elR("span", "sc-sub", s.sub));
+      if (!s.enabled) card.appendChild(el('span', 'sc-soon', 'じゅんび中'));
       grid.appendChild(card);
     });
     right.appendChild(grid);
@@ -354,10 +370,10 @@
     var msg = el('p', 'rest-msg');
     var t = el('span');
     if (s && s.yomi) t.appendChild(ruby(s.name, s.yomi));
-    else t.textContent = s ? s.name : '';
-    t.appendChild(document.createTextNode(' は じゅんびちゅう だよ'));
+    else fillR(t, s ? s.name : '');
+    t.appendChild(document.createTextNode(' は じゅんび中 だよ'));
     msg.appendChild(t);
-    msg.appendChild(el('span', null, 'もうすこし まってね'));
+    msg.appendChild(elR('span', null, 'もう{少|すこ}し まってね'));
     body.appendChild(msg);
     var back = button('btn-big', function () { play('tap'); showHome(); });
     back.appendChild(svg(ICO.home));
@@ -384,7 +400,7 @@
     body.appendChild(chara('sleep'));
     var msg = el('p', 'rest-msg');
     msg.appendChild(el('span', null, 'きょうは たくさん がんばったね。'));
-    msg.appendChild(el('span', null, 'おやすみしよう'));
+    msg.appendChild(el('span', null, 'お休みしよう'));
     body.appendChild(msg);
     app.appendChild(body);
     speak('きょうは たくさん がんばったね。 おやすみしよう');
@@ -445,7 +461,7 @@
   B.checkRest = checkRest;
   // 教科画面（kuku-screen.js など）が使う共通の部品
   B.ui = {
-    el: el, svg: svg, button: button, later: later, ruby: ruby, bubble: bubble,
+    el: el, svg: svg, button: button, later: later, ruby: ruby, fillR: fillR, elR: elR, bubble: bubble,
     newScreen: newScreen, chara: chara, topBar: topBar,
     play: play, speak: speak, ICO: ICO, STAR: STAR,
     profileId: function () { return st.profileId; },

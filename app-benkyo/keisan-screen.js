@@ -92,7 +92,7 @@
     if (r.kind === 'empty') return;                // 空は間違いに数えない。何も起きない
     var ans = st.item.ans;
     if (r.kind === 'correct') {
-      st.message = 'せいかい！';
+      st.message = '正かい！';
       st.mood = 'happy';
       play('correct');
       finish(st.attempt.tries === 0);
@@ -100,7 +100,7 @@
       wait(WAIT_CORRECT);
     } else if (r.kind === 'retry') {
       st.input = '';
-      st.message = 'もういっかい やってみよう！';
+      st.message = 'もう{一回|いっかい} やってみよう！';
       st.mood = 'think';
       play('oops');
       paint();
@@ -108,7 +108,7 @@
     } else {                                       // reveal：こたえをそっと見せて次へ
       st.input = String(ans);
       st.revealed = true;
-      st.message = 'こたえは ' + ans + ' だよ。つぎは できるよ！';
+      st.message = '{答|こた}えは ' + ans + ' だよ。つぎは できるよ！';
       st.mood = 'normal';
       play('oops');
       finish(false);
@@ -188,7 +188,7 @@
       againRound();
     });
     again.appendChild(ui.svg(ui.ICO.play));
-    again.appendChild(ui.el('span', null, 'もういっかい'));
+    again.appendChild(ui.elR('span', null, 'もう{一回|いっかい}'));
     var end = ui.button('btn-big secondary', function () {
       if (end.disabled) return;
       end.disabled = true;
@@ -274,7 +274,7 @@
     KEYS.forEach(function (k) {
       var cls = 'kk-key' + (k === 'del' ? ' del' : k === 'ok' ? ' ok' : '');
       var b = ui.button(cls, function () { onKey(k); });
-      b.textContent = k === 'del' ? 'けす' : k === 'ok' ? 'こたえる' : k;
+      ui.fillR(b, k === 'del' ? 'けす' : k === 'ok' ? '{答|こた}える' : String(k));
       b.setAttribute('data-key', k);
       pad.appendChild(b);
     });
@@ -301,7 +301,7 @@
     v.ans.textContent = st.input !== '' ? st.input : '?';
     v.ans.className = 'kk-ans' + (st.input === '' ? ' empty' : '') +
       (st.revealed ? ' reveal' : '') + (st.phase === 'feedback' && !st.revealed ? ' right' : '');
-    v.bubble.textContent = st.message || 'すうじを おして こたえてね';
+    ui.fillR(v.bubble, st.message || '{数字|すうじ}を おして {答|こた}えてね');
     v.bubble.classList.toggle('good', st.mood === 'happy');
     if (v.mood !== st.mood) {
       v.who.innerHTML = '';

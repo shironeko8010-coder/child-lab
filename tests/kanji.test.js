@@ -527,6 +527,6 @@
   });
   C.test('benkyo: SUBJECTS の kanji は有効で、よみ・かき', function () {
     var s = C.benkyo.SUBJECTS.filter(function (x) { return x.id === 'kanji'; })[0];
-    C.assertEq(s.enabled, true); C.assertEq(s.sub, 'よみ・かき');
+    C.assertEq(s.enabled, true); C.assertEq(s.sub, '{読|よ}み・{書|か}き'); C.assertEq(s.name, 'かん字');
   });
 })();

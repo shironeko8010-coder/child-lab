@@ -157,7 +157,7 @@
       C.assertEq(s.expr, s.a + ' + ' + s.b + ' = ?');
       answer(true);
       s = S()._state();
-      C.assertEq(s.phase, 'feedback'); C.assertEq(s.message, 'せいかい！'); C.assertEq(s.solved, 1);
+      C.assertEq(s.phase, 'feedback'); C.assertEq(s.message, '正かい！'); C.assertEq(s.solved, 1);
       return logsOf(pid).then(function (logs) {
         C.assertEq(logs.length, 1); C.assertEq(logs[0].correct, true); C.assertEq(logs[0].itemId, s.id); C.assertEq(logs[0].level, 1);
       });
@@ -168,11 +168,11 @@
       var id = S()._state().id;
       answer(false);
       var s = S()._state();
-      C.assertEq(s.phase, 'question'); C.assertEq(s.message, 'もういっかい やってみよう！'); C.assertEq(s.input, ''); C.assertEq(s.tries, 1);
+      C.assertEq(s.phase, 'question'); C.assertEq(s.message, 'もう{一回|いっかい} やってみよう！'); C.assertEq(s.input, ''); C.assertEq(s.tries, 1);
       answer(false);
       s = S()._state();
       C.assertEq(s.phase, 'feedback'); C.assertEq(s.id, id);
-      C.assertEq(s.message, 'こたえは ' + s.ans + ' だよ。つぎは できるよ！');
+      C.assertEq(s.message, '{答|こた}えは ' + s.ans + ' だよ。つぎは できるよ！');
       C.assertEq(s.input, String(s.ans));
       return logsOf(pid).then(function (logs) { C.assertEq(logs.length, 1); C.assertEq(logs[0].correct, false); });
     });
@@ -212,6 +212,6 @@
   });
   C.test('benkyo: SUBJECTS の keisan は有効で、たしざん・ひきざん', function () {
     var s = C.benkyo.SUBJECTS.filter(function (x) { return x.id === 'keisan'; })[0];
-    C.assertEq(s.enabled, true); C.assertEq(s.sub, 'たしざん・ひきざん');
+    C.assertEq(s.enabled, true); C.assertEq(s.sub, 'たし{算|ざん}・ひき{算|ざん}'); C.assertEq(s.name, '計算');
   });
 })();

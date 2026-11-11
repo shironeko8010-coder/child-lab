@@ -10,11 +10,11 @@
   }
   function done() { C.storage._forceMemory(false); }
 
-  C.test('benkyo.SUBJECTS: 6件で、有効なのは kuku, kukuB, keisan, kanji, doutoku', function () {
+  C.test('benkyo.SUBJECTS: 7件で、有効なのは kuku, kukuB, keisan, kanji, doutoku, chizuJ', function () {
     var list = C.benkyo.SUBJECTS;
-    C.assertEq(list.length, 6);
-    C.assertEq(list.map(function (s) { return s.id; }), ['kuku', 'kukuB', 'keisan', 'kanji', 'doutoku', 'eigo']);
-    C.assertEq(list.filter(function (s) { return s.enabled; }).map(function (s) { return s.id; }), ['kuku', 'kukuB', 'keisan', 'kanji', 'doutoku']);
+    C.assertEq(list.length, 7);
+    C.assertEq(list.map(function (s) { return s.id; }), ['kuku', 'kukuB', 'keisan', 'kanji', 'doutoku', 'chizuJ', 'eigo']);
+    C.assertEq(list.filter(function (s) { return s.enabled; }).map(function (s) { return s.id; }), ['kuku', 'kukuB', 'keisan', 'kanji', 'doutoku', 'chizuJ']);
     list.forEach(function (s) { if (!s.name) throw new Error('名前がない: ' + s.id); });
   });
 

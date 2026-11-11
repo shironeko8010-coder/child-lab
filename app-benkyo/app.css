@@ -865,3 +865,113 @@ ruby rt { font-size: .42em; font-weight: bold; }
   .dt-who .chara { width: 56px; height: 56px; }
   .dt-msg { font-size: clamp(14px, 4.4vw, 18px); line-height: 1.5; padding: 8px 12px; }
 }
+
+/* ==================== 日本の 地図（japan-screen.js） ==================== */
+.jp-body { flex: 1 1 auto; min-height: 0; display: flex; gap: 22px; align-items: stretch; padding-top: 6px; }
+.jp-map {
+  position: relative; flex: 1 1 58%; min-width: 0; min-height: 0;
+  border-radius: 24px; overflow: hidden; background: #d6ecf8; box-shadow: 0 6px 0 var(--c-line);
+}
+.jp-svg { width: 100%; height: 100%; display: block; touch-action: manipulation; }
+.jp-pref { stroke: #6f7a86; stroke-width: 1.2; vector-effect: non-scaling-stroke; stroke-linejoin: round; cursor: pointer; fill: #eef1e6; transition: fill .3s; }
+.jp-pref.r-hokkaido { fill: #f3e7cf; } .jp-pref.r-tohoku { fill: #e3f0d6; } .jp-pref.r-kanto { fill: #f6e3e1; } .jp-pref.r-chubu { fill: #e1e8f5; }
+.jp-pref.r-kinki { fill: #f5edd2; } .jp-pref.r-chugoku { fill: #ebe3f4; } .jp-pref.r-shikoku { fill: #dcefeb; } .jp-pref.r-kyushu { fill: #f5e2ec; }
+.jp-pref.done { fill: #ffd67a; }
+.jp-pref.hl { fill: #ff9a4d; animation: jp-blink 1s ease-in-out infinite alternate; }
+.jp-pref.good { fill: #ff8a3d; stroke: #b24f12; stroke-width: 2.5; }
+@keyframes jp-blink { from { fill: #ffb27a; } to { fill: #ff7a2e; } }
+.jp-lake { fill: #a9d8f0; stroke: #6f9fbd; stroke-width: 1; vector-effect: non-scaling-stroke; pointer-events: none; }
+.jp-oki { fill: none; stroke: #7a8a99; stroke-width: 1.5; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; pointer-events: none; }
+.jp-label { fill: #3a2a1a; font-weight: bold; paint-order: stroke; stroke: #fff; stroke-width: 4px; vector-effect: non-scaling-stroke; pointer-events: none; }
+.jp-mini { position: absolute; left: 8px; top: 8px; width: 92px; height: 82px; background: rgba(255,255,255,.75); border-radius: 10px; display: none; pointer-events: none; }
+.jp-mini.on { display: block; }
+.jp-mini .jp-pref { fill: #b9c4cf; stroke: none; cursor: default; }
+.jp-mini .jp-lake, .jp-mini .jp-oki { display: none; }
+.jp-mini-box { fill: rgba(255,138,61,.25); stroke: #ff7a2e; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.jp-all {
+  position: absolute; right: 10px; bottom: 10px; display: none;
+  min-height: var(--tap-min); padding: 6px 18px; border: 3px solid var(--c-accent); border-radius: 18px;
+  background: #fff; color: #2f7f8a; font: inherit; font-size: 22px; font-weight: bold; box-shadow: 0 4px 0 var(--c-line); cursor: pointer;
+}
+.jp-all.on { display: block; }
+.jp-all rt { font-size: .5em; }
+.jp-side { flex: 1 1 42%; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+.jp-head { display: flex; align-items: center; gap: 10px; }
+.jp-icon { flex: 0 0 auto; width: 72px; height: 72px; }
+.jp-icon svg { width: 100%; height: 100%; display: block; }
+.jp-ask { margin: 0; font-size: 28px; font-weight: bold; line-height: 1.6; color: var(--c-primary-dark); word-break: keep-all; overflow-wrap: anywhere; }
+.jp-hint { margin: 0; font-size: 20px; color: #2f7f8a; font-weight: bold; }
+.jp-ask rt, .jp-hint rt, .jp-choice rt, .jp-msg rt { font-size: .5em; }
+.jp-choices { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.jp-choices.n4 { grid-template-columns: 1fr 1fr; }
+.is-touch .jp-choices { display: none; }
+.jp-choice {
+  min-height: 76px; border: 4px solid var(--c-primary); border-radius: 20px; background: var(--c-surface);
+  box-shadow: 0 6px 0 var(--c-line); color: var(--c-text); font-family: inherit; font-size: 28px; font-weight: bold;
+  line-height: 1.5; padding: 6px 12px; cursor: pointer; word-break: keep-all; overflow-wrap: anywhere;
+}
+.jp-choice:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--c-line); }
+.jp-choice:disabled { cursor: default; color: var(--c-text); }
+.jp-choice.tried { opacity: .38; border-color: var(--c-line); box-shadow: none; }   /* ×は付けない。うすくするだけ */
+.jp-choice.show { border-color: #ff7a2e; background: #fff1e4; animation: jp-pulse 1s ease-in-out infinite alternate; }
+.jp-choice.chosen { border-color: #3f9a55; background: #eaf7ec; opacity: 1; }
+@keyframes jp-pulse { from { transform: scale(1); } to { transform: scale(1.04); } }
+.jp-talk { display: none; align-items: flex-end; gap: 8px; }
+.jp-talk.on { display: flex; }
+.jp-who { flex: 0 0 auto; }
+.jp-who .chara { width: 84px; height: 84px; }
+.jp-msg { flex: 1 1 auto; font-size: 24px; line-height: 1.6; background: #fff; box-shadow: 0 4px 14px rgba(0, 0, 0, .14); }
+.jp-msg.good { color: #2f8a3c; }
+.jp-extra { color: #d9587f; }
+.jp-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 72px; flex-wrap: wrap; }
+.jp-next { visibility: hidden; white-space: nowrap; flex: 0 0 auto; }
+.jp-next.on { visibility: visible; }
+@media (prefers-reduced-motion: reduce) {
+  .jp-pref.hl, .jp-choice.show { animation: none; }
+}
+@media (orientation: portrait) {
+  .jp-body { flex-direction: column; gap: 10px; padding-top: 4px; }
+  .jp-map { flex: 1 1 46%; }
+  .jp-side { flex: 0 0 auto; justify-content: flex-start; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .jp-body { gap: 10px; padding-top: 2px; }
+  .jp-map { border-radius: 14px; box-shadow: 0 3px 0 var(--c-line); flex-basis: 52%; }
+  .jp-side { gap: 5px; }
+  .jp-icon { width: calc(var(--vh) * 12); height: calc(var(--vh) * 12); }
+  .jp-ask { font-size: clamp(13px, calc(var(--vh) * 5), 22px); line-height: 1.45; }
+  .jp-hint { font-size: clamp(11px, calc(var(--vh) * 3.8), 16px); }
+  .jp-choices { gap: 6px; grid-template-columns: 1fr 1fr; }
+  .jp-choice { min-height: 46px; font-size: clamp(13px, calc(var(--vh) * 5), 22px); line-height: 1.3; padding: 2px 8px; border-width: 3px; border-radius: 14px; box-shadow: 0 3px 0 var(--c-line); }
+  .jp-who .chara { width: calc(var(--vh) * 13); height: calc(var(--vh) * 13); }
+  .jp-msg { font-size: clamp(12px, calc(var(--vh) * 4.2), 18px); line-height: 1.45; padding: 4px 10px; }
+  .jp-foot { min-height: 0; gap: 8px; flex-wrap: nowrap; }
+  .jp-next { padding: 4px 12px; font-size: 18px; min-height: 44px; }
+  .jp-foot .kk-dots { gap: 4px; }
+  .jp-foot .kk-dot { width: 10px; height: 10px; }
+  .jp-foot .kk-prog { gap: 2px 6px; min-height: 0; flex: 1 1 auto; min-width: 0; flex-wrap: wrap; }
+  .is-wait .jp-choices { display: none; }   /* 正解のあとは地図で答えが分かるので、返事を広く見せる */
+  .jp-all { font-size: 16px; padding: 2px 12px; min-height: 44px; right: 6px; bottom: 6px; }
+  .jp-mini { width: 64px; height: 56px; left: 4px; top: 4px; }
+  .kk-star { width: 26px; height: 26px; }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .jp-map { border-radius: 16px; }
+  .jp-side { gap: 6px; }
+  .jp-icon { width: 52px; height: 52px; }
+  .jp-ask { font-size: clamp(16px, 5vw, 22px); line-height: 1.5; }
+  .jp-hint { font-size: clamp(13px, 4vw, 16px); }
+  .jp-choices { gap: 8px; grid-template-columns: 1fr 1fr; }
+  .jp-choice { min-height: 54px; font-size: clamp(15px, 4.8vw, 20px); line-height: 1.35; padding: 4px 8px; border-width: 3px; border-radius: 16px; }
+  .jp-who .chara { width: 52px; height: 52px; }
+  .jp-msg { font-size: clamp(14px, 4.4vw, 18px); line-height: 1.5; padding: 6px 10px; }
+  .jp-foot { min-height: 0; flex-wrap: nowrap; }
+  .jp-next { padding: 6px 12px; font-size: 18px; min-height: 48px; }
+  .jp-foot .kk-dots { gap: 4px; }
+  .jp-foot .kk-dot { width: 11px; height: 11px; }
+  .jp-foot .kk-prog { gap: 2px 6px; min-height: 0; flex: 1 1 auto; min-width: 0; flex-wrap: wrap; }
+  .jp-foot .kk-star { width: 26px; height: 26px; }
+  .jp-all { font-size: 18px; padding: 4px 14px; }
+}
+/* ホームのカード：名前が長いので、少し小さくする */
+.subject-card[data-subject="chizuJ"] .sc-name { transform: scale(.88); }

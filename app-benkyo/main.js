@@ -16,6 +16,7 @@
     { id: 'keisan', name: '計算', yomi: 'けいさん', sub: 'たし{算|ざん}・ひき{算|ざん}', enabled: true },
     { id: 'kanji', name: 'かん字', sub: '{読|よ}み・{書|か}き', enabled: true },
     { id: "doutoku", name: "{道|どう}とく", sub: "こんなとき どうする？", enabled: true },
+    { id: 'chizuJ', name: '日本の {地図|ちず}', sub: '{県|けん}の {名前|なまえ}と 名ぶつ', enabled: true },
     { id: 'eigo', name: 'えい{語|ご}', enabled: false }
   ];
   // 画面の文字は、2年生までに習う漢字を使う（1年生の漢字はそのまま、2年生の漢字は {漢字|よみ} でふりがな）
@@ -143,6 +144,7 @@
     keisan: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#e6f3ee"/><path d="M14 17h12M20 11v12M24 33h12" stroke="#3f8f74" stroke-width="4.5" stroke-linecap="round"/></svg>',
     kanji: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#f6ece4"/><rect x="11" y="11" width="26" height="26" rx="3" fill="#fff" stroke="#a0673d" stroke-width="3"/><path d="M24 13v22M13 24h22" stroke="#d2b49c" stroke-width="2" stroke-dasharray="3 3"/><path d="M17 19q7 1 14 -1M23 15q2 12 -6 18" stroke="#a0673d" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg>',
     doutoku: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#fbeaf0"/><path d="M24 37C11 29 9 20 14 15c4-4 8-2 10 2 2-4 6-6 10-2 5 5 3 14-10 22z" fill="#ff8fb1" stroke="#d9587f" stroke-width="2.5" stroke-linejoin="round"/></svg>',
+    chizuJ: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#e4f2fb"/><path d="M34 8l4 3-2 5-5 1-1-4zM30 18l3 4-2 6-4 4-5 2-4 4-5 1-3-2 4-3 5-2 4-4 3-5zM12 38l3 1-1 3-3-1z" fill="#7cc28a" stroke="#3f8f5a" stroke-width="1.6" stroke-linejoin="round"/></svg>',
     eigo: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#efe9f6"/><path d="M11 36l8-24 8 24M14 28h10M31 12v24h6a6 6 0 0 0 0-12h-6" stroke="#6d55a3" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
   };
 
@@ -357,6 +359,13 @@
       try {
         var rd = B.doutokuScreen.show({ profileId: st.profileId });
         if (rd && rd.catch) rd.catch(function () { showSoon(s); });
+      } catch (e) { showSoon(s); }
+      return;
+    }
+    if (id === 'chizuJ' && B.japanScreen && typeof B.japanScreen.show === 'function') {
+      try {
+        var rjp = B.japanScreen.show({ profileId: st.profileId });
+        if (rjp && rjp.catch) rjp.catch(function () { showSoon(s); });
       } catch (e) { showSoon(s); }
       return;
     }

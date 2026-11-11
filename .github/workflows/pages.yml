@@ -27,6 +27,7 @@ jobs:
         run: |
           mkdir _site
           cp -r index.html manifest.json sw.js icons app-chiiku app-benkyo shared _site/
+          mkdir -p _site/voice && cp -r voice/z _site/voice/
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:

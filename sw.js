@@ -1,6 +1,6 @@
 /* Service Worker：ネットワーク優先＋オフライン用の保存。外部への通信はしない。 */
 'use strict';
-var CACHE_NAME = 'chiid-v21'; // ファイルを変えたら番号を上げる
+var CACHE_NAME = 'chiid-v22'; // ファイルを変えたら番号を上げる
 // 読み上げの音声ファイル（VOICEVOX:ずんだもん）の対応表。音声ファイルも保存して、オフラインで鳴らす
 try { importScripts('shared/voice-clips.js'); } catch (e) { /* なくても動く */ }
 function voiceFiles() {

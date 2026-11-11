@@ -267,6 +267,12 @@
     cd.appendChild(msg);
     view.appendChild(cd);
 
+    // このアプリについて（音声のクレジット表記。ずんだもんの利用規約で必要）
+    var cab = card('このアプリについて');
+    cab.appendChild(el('p', 'p-credit', '音声：' + ((C.voice && C.voice.CREDIT) || 'VOICEVOX:ずんだもん')));
+    cab.appendChild(el('p', 'p-note', '名前が入る あいさつなど、一部の文は この端末の声で読みます。'));
+    view.appendChild(cab);
+
     container.innerHTML = '';
     container.appendChild(view);
   }

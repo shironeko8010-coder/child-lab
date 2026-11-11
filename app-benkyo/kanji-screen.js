@@ -680,6 +680,7 @@
 
   B.kanjiScreen = {
     show: show,
+    MSG: MSG,   // 読み上げ文の書き出し（tools/voice-lines.js）で使う
     // テスト用：表示中の待ちがあれば先に進めてから
     _answer: function (value) { if (pendingFn && st.phase === 'feedback') flush(); submitYomi(value); },
     _draw: function () { if (st && (st.phase === 'question' || st.phase === 'practice')) st.ink = true; },

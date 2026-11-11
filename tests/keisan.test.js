@@ -94,8 +94,8 @@
     C.assertEq(K.submit(K.newAttempt(), it, '85').kind, 'correct');
   });
   C.test('keisan: speakText', function () {
-    C.assertEq(K.speakText(K.make(23, '+', 45)), '23 たす 45 は？');
-    C.assertEq(K.speakText(K.make(72, '-', 38)), '72 ひく 38 は？');
+    C.assertEq(K.speakText(K.make(23, '+', 45)), '23たす｜45は？');
+    C.assertEq(K.speakText(K.make(72, '-', 38)), '72ひく｜38は？');
   });
   function log(id, ok, lv, area) { return { area: area || 'keisan', itemId: id, correct: ok, level: lv }; }
   C.test('keisan: progressFromLogs 空と、ほかの area', function () {

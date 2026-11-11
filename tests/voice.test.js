@@ -108,4 +108,103 @@
     C.assertEq(C.kazu.KO_YOMI[10], "じゅっこ");
     C.assertEq(C.kazu.KO_YOMI.slice(1).every(function (s) { return /^[ぁ-ゖ]+$/.test(s); }), true);
   });
+
+  /* ---------- 音声ファイル（ずんだもん） ---------- */
+  function fakeTts(spoken) {
+    return {
+      speak: function (u) { spoken.push(u.text); setTimeout(function () { if (u.onend) u.onend(); }, 5); },
+      cancel: function () {}
+    };
+  }
+  function withClips(clips, okIds, fn) {
+    var V = C.voice, played = [], spoken = [];
+    V._setSynth(fakeTts(spoken), function (text) { return { text: text }; });
+    V._setClips(clips, function (id) { played.push(id); return Promise.resolve(okIds.indexOf(id) >= 0); });
+    return Promise.resolve().then(function () { return fn(V, played, spoken); })
+      .then(function () { V._enable(); }, function (e) { V._enable(); throw e; });
+  }
+
+  C.test('voice.keyOf: ふりがなの記号を取り、空白をつめる', function () {
+    C.assertEq(C.voice.keyOf('パパや ママと {話|はな}して みてね。'), 'パパやママと話してみてね。');
+    C.assertEq(C.voice.pieces('23たす｜45は？'), ['23たす', '45は？']);
+    C.assertEq(C.voice.pieces('すごい！ りんごの、り。'), ['すごい！', 'りんごの、り。']);
+  });
+
+  C.test('voice: 音声ファイルがある文は、ファイルを鳴らす（端末の声は使わない）', function () {
+    return withClips({ 'せいかい！': 'a1' }, ['a1'], function (V, played, spoken) {
+      C.assertEq(V.isAvailable(), true);
+      C.assertEq(V.hasClip('せいかい！'), true);
+      return V.speak('せいかい！').then(function () {
+        C.assertEq(played, ['a1']);
+        C.assertEq(spoken, []);
+      });
+    });
+  });
+
+  C.test('voice: 部品（｜）と文の区切りごとに、続けて鳴らす', function () {
+    return withClips({ '23たす': 'p1', '45は？': 'p2', 'すごい！': 's1', 'りんごの、り。': 's2' }, ['p1', 'p2', 's1', 's2'], function (V, played) {
+      return V.speak('23たす｜45は？').then(function () {
+        C.assertEq(played, ['p1', 'p2']);
+        return V.speak('すごい！ りんごの、り。');
+      }).then(function () { C.assertEq(played, ['p1', 'p2', 's1', 's2']); });
+    });
+  });
+
+  C.test('voice: 部品が1つでも足りなければ、端末の声で全体を読む（｜は読まない）', function () {
+    return withClips({ '23たす': 'p1' }, ['p1'], function (V, played, spoken) {
+      return V.speak('23たす｜46は？').then(function () {
+        C.assertEq(played, []);
+        C.assertEq(spoken, [C.voice.kanaNumbers('23たす 46は？')]);
+      });
+    });
+  });
+
+  C.test('voice: 音声ファイルが鳴らせなければ、端末の声で読む', function () {
+    return withClips({ 'おしい！': 'x1' }, [], function (V, played, spoken) {
+      return V.speak('おしい！').then(function () {
+        C.assertEq(played, ['x1']);
+        C.assertEq(spoken, ['おしい！']);
+      });
+    });
+  });
+
+  C.test('voice: 名前入りの文など、音声ファイルにない文は端末の声', function () {
+    return withClips({ 'せいかい！': 'a1' }, ['a1'], function (V, played, spoken) {
+      return V.speak('こんにちは、たろう！').then(function () {
+        C.assertEq(played, []);
+        C.assertEq(spoken, ['こんにちは、たろう！']);
+      });
+    });
+  });
+
+  C.test('voice: 本物の対応表の音声ファイルは、すべて置いてある', function () {
+    var g = self.CHIID_VOICE;
+    if (!g || !g.clips) return;   // まだ作っていないとき
+    var ids = {}, list = [];
+    Object.keys(g.clips).forEach(function (k) { if (!ids[g.clips[k]]) { ids[g.clips[k]] = 1; list.push(g.clips[k]); } });
+    // 全部を確かめると重いので、先頭・まん中・最後と、ばらばらに 30件
+    var pick = [list[0], list[list.length - 1], list[Math.floor(list.length / 2)]];
+    for (var i = 0; i < 27 && list.length; i++) pick.push(list[(i * 7919) % list.length]);
+    return Promise.all(pick.map(function (id) {
+      return fetch('../' + g.dir + id + g.ext, { method: 'HEAD' }).then(function (r) {
+        if (!r.ok) throw new Error('音声ファイルがない: ' + id);
+      });
+    }));
+  });
+
+  C.test('parent: 「このアプリについて」に 音声のクレジット（VOICEVOX:ずんだもん）がある', function () {
+    var div = document.createElement('div');
+    C.storage._forceMemory(true);
+    return C.storage.init().then(function () { C.parent.render(div); C.assertEq(div.textContent.indexOf('音声：VOICEVOX:ずんだもん') >= 0, true); })
+      .then(function () { C.storage._forceMemory(false); }, function (e) { C.storage._forceMemory(false); throw e; });
+  });
+
+  C.test('voice: アプリが読み上げる文は、すべて音声ファイルがある（tools/voice-lines.js で集めた文）', function () {
+    var g = self.CHIID_VOICE;
+    if (!g || !g.clips || !window.ChiidVoiceLines) return;
+    return window.ChiidVoiceLines.collect().then(function (keys) {
+      var miss = keys.filter(function (k) { return !Object.prototype.hasOwnProperty.call(g.clips, k); });
+      if (miss.length) throw new Error('音声ファイルがない文 ' + miss.length + '件: ' + miss.slice(0, 5).join(' / '));
+    });
+  });
 })();

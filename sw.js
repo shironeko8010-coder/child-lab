@@ -1,6 +1,24 @@
 /* Service Worker：ネットワーク優先＋オフライン用の保存。外部への通信はしない。 */
 'use strict';
-var CACHE_NAME = 'chiid-v20'; // ファイルを変えたら番号を上げる
+var CACHE_NAME = 'chiid-v21'; // ファイルを変えたら番号を上げる
+// 読み上げの音声ファイル（VOICEVOX:ずんだもん）の対応表。音声ファイルも保存して、オフラインで鳴らす
+try { importScripts('shared/voice-clips.js'); } catch (e) { /* なくても動く */ }
+function voiceFiles() {
+  var g = self.CHIID_VOICE, seen = {}, out = [];
+  if (!g || !g.clips) return out;
+  Object.keys(g.clips).forEach(function (k) { var id = g.clips[k]; if (!seen[id]) { seen[id] = 1; out.push(g.dir + id + g.ext); } });
+  return out;
+}
+// 少しずつ保存する（1つ失敗しても、ほかは保存する）
+function cacheVoices(c) {
+  var list = voiceFiles(), i = 0;
+  function batch() {
+    if (i >= list.length) return Promise.resolve();
+    var part = list.slice(i, i + 40); i += 40;
+    return Promise.all(part.map(function (u) { return c.add(u).catch(function () {}); })).then(batch);
+  }
+  return batch();
+}
 var PRECACHE = [
   './',
   'index.html',
@@ -13,6 +31,7 @@ var PRECACHE = [
   'shared/core.js',
   'shared/storage.js',
   'shared/sfx.js',
+  'shared/voice-clips.js',
   'shared/voice.js',
   'shared/gate.js',
   'shared/timer.js',
@@ -52,7 +71,7 @@ var PRECACHE = [
 
 self.addEventListener('install', function (e) {
   e.waitUntil(
-    caches.open(CACHE_NAME).then(function (c) { return c.addAll(PRECACHE); })
+    caches.open(CACHE_NAME).then(function (c) { return c.addAll(PRECACHE).then(function () { return cacheVoices(c); }); })
       .then(function () { return self.skipWaiting(); })
   );
 });

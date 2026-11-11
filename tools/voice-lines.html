@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>読み上げ文の書き出し</title>
+<style>
+  body { font-family: sans-serif; padding: 16px; }
+  #summary { font-size: 22px; font-weight: bold; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>読み上げ文の書き出し（開発用）</h1>
+<p>アプリが読み上げる文をすべて集めて、tools/voice/lines.tsv に書き出します（tools/serve.pl で開いたときだけ保存できます）。</p>
+<div id="summary">集めています...</div>
+<script>
+(function () {
+  var files = ['../shared/core.js']
+    .concat(['storage', 'sfx', 'voice-clips', 'voice', 'gate', 'timer', 'adaptive', 'parent'].map(function (n) { return '../shared/' + n + '.js'; }))
+    .concat(['data', 'glyphs', 'trace', 'game', 'kazu', 'tokei', 'iro', 'machigai', 'doutoku'].map(function (n) { return '../app-chiiku/' + n + '.js'; }))
+    .concat(['subjects/kuku', 'main', 'kuku-screen', 'subjects/keisan', 'keisan-screen', 'subjects/kanji-data', 'subjects/kanji', 'kana-pad', 'kanji-screen',
+      'subjects/doutoku', 'doutoku-screen', 'subjects/japan-data', 'subjects/japan', 'japan-screen', 'subjects/world-data', 'subjects/world', 'world-screen'].map(function (n) { return '../app-benkyo/' + n + '.js'; }))
+    .concat(['voice-lines.js']);
+  var left = files.length;
+  function done() { if (--left === 0) window.ChiidVoiceLines.run(); }
+  files.forEach(function (src) {
+    var s = document.createElement('script');
+    s.src = src;
+    s.async = false;
+    s.onload = done;
+    s.onerror = done;
+    document.body.appendChild(s);
+  });
+})();
+</script>
+</body>
+</html>

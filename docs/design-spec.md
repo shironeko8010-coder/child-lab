@@ -11,7 +11,7 @@
 |---|---|
 | 作り方 | 素のHTML/JS/CSS、ビルド不要、通常の `<script>` 読み込み |
 | 保存 | localStorage（設定）＋IndexedDB（学習ログ） |
-| 音声読み上げ | Web Speech API（端末の日本語音声） |
+| 音声読み上げ | VOICEVOX:ずんだもん の音声ファイル（`voice/z/`）。ファイルがない文は Web Speech API（端末の日本語音声）。詳しくは `docs/superpowers/specs/2026-11-11-voice-zundamon-design.md` |
 | 効果音・BGM | WebAudio で合成 |
 | イラスト | SVG + CSSアニメーション |
 | オフライン | Service Worker + manifest.json |
@@ -57,5 +57,5 @@ chiid-lab/
 
 ## 7. 未確認・制約
 - Android実機での確認は、やまとさんに依頼する。
-- 読み上げの声は、端末ごとに違う。
+- 名前が入る文など、音声ファイルがない文だけ、端末の声で読む（声は端末ごとに違う）。
 - 公開場所（オフライン・アプリ化の確認用）は、後で相談する。

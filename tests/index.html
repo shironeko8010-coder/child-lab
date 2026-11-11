@@ -21,8 +21,8 @@
     .concat(['storage', 'sfx', 'voice', 'gate', 'timer', 'adaptive', 'parent'].map(function (n) { return '../shared/' + n + '.js'; }))
     .concat(['data', 'glyphs', 'trace', 'game', 'kazu', 'tokei', 'iro', 'machigai', 'doutoku'].map(function (n) { return '../app-chiiku/' + n + '.js'; }))
     // main.js は読み込んでも起動しない（起動は app-benkyo/index.html から Chiid.benkyo.start()）
-    .concat(['../app-benkyo/subjects/kuku.js', '../app-benkyo/main.js', '../app-benkyo/kuku-screen.js', '../app-benkyo/subjects/keisan.js', '../app-benkyo/keisan-screen.js', '../app-benkyo/subjects/kanji-data.js', '../app-benkyo/subjects/kanji.js', '../app-benkyo/kana-pad.js', '../app-benkyo/kanji-screen.js', '../app-benkyo/subjects/doutoku.js', '../app-benkyo/doutoku-screen.js'])
-    .concat(['storage', 'sfx', 'voice', 'gate', 'timer', 'adaptive', 'trace', 'parent', 'precache', 'glyphs', 'kuku', 'benkyo', 'kazu', 'tokei', 'iro', 'machigai', 'doutoku', 'keisan', 'kanji', 'doutoku-benkyo'].map(function (n) { return n + '.test.js'; }));
+    .concat(['../app-benkyo/subjects/kuku.js', '../app-benkyo/main.js', '../app-benkyo/kuku-screen.js', '../app-benkyo/subjects/keisan.js', '../app-benkyo/keisan-screen.js', '../app-benkyo/subjects/kanji-data.js', '../app-benkyo/subjects/kanji.js', '../app-benkyo/kana-pad.js', '../app-benkyo/kanji-screen.js', '../app-benkyo/subjects/doutoku.js', '../app-benkyo/doutoku-screen.js', '../app-benkyo/subjects/japan-data.js', '../app-benkyo/subjects/japan.js', '../app-benkyo/japan-screen.js'])
+    .concat(['storage', 'sfx', 'voice', 'gate', 'timer', 'adaptive', 'trace', 'parent', 'precache', 'glyphs', 'kuku', 'benkyo', 'kazu', 'tokei', 'iro', 'machigai', 'doutoku', 'keisan', 'kanji', 'doutoku-benkyo', 'japan'].map(function (n) { return n + '.test.js'; }));
   var left = files.length;
   function done() {
     if (--left === 0) {

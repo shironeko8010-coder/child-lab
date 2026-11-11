@@ -16,6 +16,7 @@
     { id: 'keisan', name: '計算', yomi: 'けいさん', sub: 'たし{算|ざん}・ひき{算|ざん}', enabled: true },
     { id: 'kanji', name: 'かん字', sub: '{読|よ}み・{書|か}き', enabled: true },
     { id: "doutoku", name: "{道|どう}とく", sub: "こんなとき どうする？", enabled: true },
+    { id: 'chizuW', name: 'せかいの {国|くに}', sub: '{国|こっ}きと ちず', enabled: true },
     { id: 'eigo', name: 'えい{語|ご}', enabled: false }
   ];
   // 画面の文字は、2年生までに習う漢字を使う（1年生の漢字はそのまま、2年生の漢字は {漢字|よみ} でふりがな）
@@ -143,6 +144,7 @@
     keisan: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#e6f3ee"/><path d="M14 17h12M20 11v12M24 33h12" stroke="#3f8f74" stroke-width="4.5" stroke-linecap="round"/></svg>',
     kanji: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#f6ece4"/><rect x="11" y="11" width="26" height="26" rx="3" fill="#fff" stroke="#a0673d" stroke-width="3"/><path d="M24 13v22M13 24h22" stroke="#d2b49c" stroke-width="2" stroke-dasharray="3 3"/><path d="M17 19q7 1 14 -1M23 15q2 12 -6 18" stroke="#a0673d" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg>',
     doutoku: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#fbeaf0"/><path d="M24 37C11 29 9 20 14 15c4-4 8-2 10 2 2-4 6-6 10-2 5 5 3 14-10 22z" fill="#ff8fb1" stroke="#d9587f" stroke-width="2.5" stroke-linejoin="round"/></svg>',
+    chizuW: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#e2f2f7"/><circle cx="24" cy="24" r="15" fill="#9ad4ea" stroke="#2f7fa0" stroke-width="3"/><path d="M15 17c4 0 5 3 9 3s3 5 0 6-2 6-6 6c-1-4-4-5-4-9z M28 13c3 0 6 2 7 5-3 1-4 4-7 3-1-3-3-5 0-8z M30 28c3-1 5 1 5 3-1 3-3 4-5 4-1-3-2-5 0-7z" fill="#6fbf73"/><path d="M9 24h30M24 9c-6 8-6 22 0 30M24 9c6 8 6 22 0 30" stroke="#2f7fa0" stroke-width="1.5" fill="none" opacity=".55"/></svg>',
     eigo: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#efe9f6"/><path d="M11 36l8-24 8 24M14 28h10M31 12v24h6a6 6 0 0 0 0-12h-6" stroke="#6d55a3" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
   };
 
@@ -357,6 +359,13 @@
       try {
         var rd = B.doutokuScreen.show({ profileId: st.profileId });
         if (rd && rd.catch) rd.catch(function () { showSoon(s); });
+      } catch (e) { showSoon(s); }
+      return;
+    }
+    if (id === 'chizuW' && B.worldScreen && typeof B.worldScreen.show === 'function') {
+      try {
+        var rw = B.worldScreen.show({ profileId: st.profileId });
+        if (rw && rw.catch) rw.catch(function () { showSoon(s); });
       } catch (e) { showSoon(s); }
       return;
     }

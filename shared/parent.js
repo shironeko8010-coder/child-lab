@@ -6,6 +6,7 @@
   var C = (window.Chiid = window.Chiid || {});
 
   var AREA_NAMES = { hiragana: 'ひらがな', kuku: 'くく', kukuB: 'くく（□をこたえる）', kazu: 'かず', tokei: 'とけい', iro: 'いろ・かたち', machigai: 'まちがいさがし', doutoku: 'どうとく', keisan: 'けいさん', kanji: 'かんじ（えらぶ）', kanjiYomi: 'かんじ（よみ）', kanjiKaki: 'かんじ（かき）', doutoku_b: 'どうとく（べんきょう）', doutoku_bk: 'どうとく（かんがえた）' };
+  AREA_NAMES.chizuW = 'せかいの国';   // 勉強「せかいの 国」
   var LIMIT_CHOICES = [0, 15, 30, 45, 60];
 
   function summarize(logs, days) {

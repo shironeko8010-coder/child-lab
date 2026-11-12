@@ -6,6 +6,7 @@
 # 入力:  tools/voice/lines.tsv     （tools/voice-lines.html が書き出す。見分け方<TAB>読ませる文<TAB>どこの文か）
 #        tools/voice/overrides.tsv （1文ごとの読みの直し。見分け方<TAB>読ませる文。@で始まると AquesTalk 風のカナ表記）
 #        tools/voice/yomi-fix.tsv  （ことばの読みの直し。ことば<TAB>読み。すべての文に効く）
+#        tools/voice/styles.tsv    （声の設定を変える文。見分け方の正規表現<TAB>speaker=7 speed=0.85 bitrate=48k のように）
 #   --preview … 音声は作らず、VOICEVOX の読みだけを tools/voice/preview.tsv に書く（check.pl で調べる用）
 # 出力:  voice/z/<id>.ogg、shared/voice-clips.js、tools/voice/made.tsv（作った記録と、VOICEVOX の読み）
 use strict; use warnings; use utf8;
@@ -42,7 +43,10 @@ my $r = $ua->get("$ENGINE/version"); die "VOICEVOX が起動していません�
 my @lines = readtsv("$root/tools/voice/lines.tsv"); die "lines.tsv がありません\n" unless @lines;
 my %over = map { $_->[0] => $_->[1] } readtsv("$root/tools/voice/overrides.tsv");
 my @fix = sort { length($b->[0]) <=> length($a->[0]) } grep { defined $_->[1] && length $_->[0] } readtsv("$root/tools/voice/yomi-fix.tsv");
-my %made = map { $_->[0] => { synth => $_->[1], id => $_->[2], kana => $_->[3] } } readtsv("$root/tools/voice/made.tsv");
+my @styles = map { my ($re, $opt) = @$_; my %o = map { split /=/, $_, 2 } split ' ', ($opt // ''); [qr/$re/, \%o, $opt] }
+  grep { length $_->[0] } readtsv("$root/tools/voice/styles.tsv");
+sub style_of { my $k = shift; for my $s (@styles) { return ($s->[1], $s->[2]) if $k =~ $s->[0]; } ({}, '') }
+my %made =map { $_->[0] => { synth => $_->[1], id => $_->[2], kana => $_->[3] } } readtsv("$root/tools/voice/made.tsv");
 make_path("$root/voice/z");
 my $tmp = ($ENV{TMP} // '/tmp') =~ s{\\}{/}gr . "/chiid-voice.wav";
 
@@ -55,33 +59,38 @@ for my $row (@lines) {
     for my $f (@fix) { my ($from, $to) = @$f; $synth =~ s/\Q$from\E/$to/g; }   # ことばの読みの直し
   }
   my $id = idof($key); $want{$key} = $id;
+  my ($st, $stxt) = style_of($key);
+  my $sp = $st->{speaker} // $SPEAKER;
+  my $sig = $stxt ne '' ? "$synth\t$stxt" : $synth;   # 声の設定を変えたら作り直す
+  $sig =~ s/\t/ | /;
   if ($preview) {
-    my $k = $synth =~ /^@(.*)$/ ? $1 : eval { JSON::PP->new->utf8->decode(post('/audio_query', speaker => $SPEAKER, text => $synth))->{kana} } // '';
+    my $k = $synth =~ /^@(.*)$/ ? $1 : eval { JSON::PP->new->utf8->decode(post('/audio_query', speaker => $sp, text => $synth))->{kana} } // '';
     push @prev, join("\t", $key, $synth, 'preview', $k); next;
   }
   my $out = "$root/voice/z/$id.ogg";
-  if (-f $out && $made{$key} && $made{$key}{synth} eq $synth) { $skip++; next; }
+  if (-f $out && $made{$key} && $made{$key}{synth} eq $sig) { $skip++; next; }
   last if $limit && $n >= $limit;
   my ($q, $kana);
   eval {
     if ($synth =~ /^@(.*)$/) {
       $kana = $1;
-      my $ap = post('/accent_phrases', speaker => $SPEAKER, text => $kana, is_kana => 'true');
-      my $base = $json->decode(post('/audio_query', speaker => $SPEAKER, text => 'あ'));
+      my $ap = post('/accent_phrases', speaker => $sp, text => $kana, is_kana => 'true');
+      my $base = $json->decode(post('/audio_query', speaker => $sp, text => 'あ'));
       $base->{accent_phrases} = $json->decode($ap);
       $q = $base;
     } else {
-      $q = $json->decode(post('/audio_query', speaker => $SPEAKER, text => $synth));
+      $q = $json->decode(post('/audio_query', speaker => $sp, text => $synth));
       $kana = $q->{kana};
     }
-    $q->{speedScale} = $SPEED; $q->{prePhonemeLength} = 0.05; $q->{postPhonemeLength} = 0.12;
-    my $wav = post('/synthesis', speaker => $SPEAKER, _body => $json->encode($q));
+    $q->{speedScale} = $st->{speed} // $SPEED; $q->{prePhonemeLength} = 0.05; $q->{postPhonemeLength} = 0.12;
+    my $wav = post('/synthesis', speaker => $sp, _body => $json->encode($q));
     open my $w, '>:raw', $tmp or die "tmp"; print $w $wav; close $w;
-    my $rc = system($ffmpeg, '-y', '-loglevel', 'error', '-i', $tmp, '-af', 'loudnorm=I=-16:TP=-1.5:LRA=11', '-ar', '24000', '-ac', '1', '-c:a', 'libopus', '-b:a', '24k', $out);
+    my $br = $st->{bitrate} // '24k'; my $ar = $br =~ /^(\d+)/ && $1 >= 48 ? '48000' : '24000';
+    my $rc = system($ffmpeg, '-y', '-loglevel', 'error', '-i', $tmp, '-af', 'loudnorm=I=-16:TP=-1.5:LRA=11', '-ar', $ar, '-ac', '1', '-c:a', 'libopus', '-b:a', $br, $out);
     die "ffmpeg ($rc)\n" if $rc != 0;
     1;
   } or do { $fail++; print STDERR encode_utf8("失敗: $key: $@"); next; };
-  $made{$key} = { synth => $synth, id => $id, kana => $kana // '' };
+  $made{$key} = { synth => $sig, id => $id, kana => $kana // '' };
   $n++;
   print encode_utf8("$n: $key\n") if $n % 50 == 0;
   write_made() if $n % 100 == 0;

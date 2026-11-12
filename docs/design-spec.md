@@ -64,3 +64,4 @@ chiid-lab/
 | アプリ | 教科 | 設計書 |
 |---|---|---|
 | 知育 | おかいもの（硬貨をトレーに入れて、値段どおりに払う） | `docs/superpowers/specs/2026-11-12-chiiku-okaimono-design.md` |
+| 勉強 | 長さ・かさ（ものさし・ますを読む、単位をかえる・えらぶ） | `docs/superpowers/specs/2026-11-12-benkyo-nagasa-design.md` |

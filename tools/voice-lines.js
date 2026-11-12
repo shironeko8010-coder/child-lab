@@ -155,6 +155,16 @@
     WD.COUNTRIES.forEach(function (c) { ['flag', 'pick', 'map'].forEach(function (t) { addW({ type: t, id: c.id, answer: c.id, choices: [] }); }); });
     WD.CONTINENTS.forEach(function (k) { addW({ type: 'cont', id: k.id, answer: k.id, choices: [] }); });
 
+    where = '長さ・かさ';
+    var NG = C.nagasa;
+    [1, 2, 3].forEach(function (lv) {
+      NG.idsFor(lv).forEach(function (id) {
+        var q = NG.makeQuestion(id, lv);
+        add(NG.speakText(q));
+        add(NG.answerText(q));
+      });
+    });
+
     where = 'ごほうび（べんきょう）';
     add('よく がんばったね！');
     add('よく かんがえたね！');
@@ -165,7 +175,7 @@
   /* ---------- ソースに直接書いてある文（speak('…') / speakThen('…', …)） ---------- */
   var SOURCES = ['app-chiiku/game.js', 'app-chiiku/kazu.js', 'app-chiiku/tokei.js', 'app-chiiku/iro.js', 'app-chiiku/machigai.js', 'app-chiiku/doutoku.js', 'app-chiiku/okaimono.js',
     'app-benkyo/main.js', 'app-benkyo/kuku-screen.js', 'app-benkyo/keisan-screen.js', 'app-benkyo/kanji-screen.js',
-    'app-benkyo/doutoku-screen.js', 'app-benkyo/japan-screen.js', 'app-benkyo/world-screen.js'];
+    'app-benkyo/doutoku-screen.js', 'app-benkyo/japan-screen.js', 'app-benkyo/world-screen.js', 'app-benkyo/nagasa-screen.js'];
   function literals() {
     return Promise.all(SOURCES.map(function (f) {
       return fetch('../' + f).then(function (r) { return r.text(); }).then(function (src) {
@@ -178,7 +188,7 @@
 
   /* ---------- ふりがなの一覧（読みのまちがい調べ用）：漢字<TAB>読み（ソースの {漢字|よみ} から） ---------- */
   var RUBY_SOURCES = SOURCES.concat(['app-benkyo/subjects/doutoku.js', 'app-benkyo/subjects/japan.js', 'app-benkyo/subjects/japan-data.js',
-    'app-benkyo/subjects/world.js', 'app-benkyo/subjects/world-data.js']);
+    'app-benkyo/subjects/world.js', 'app-benkyo/subjects/world-data.js', 'app-benkyo/subjects/nagasa.js']);
   function rubyList() {
     var seen = {}, rows = [];
     return Promise.all(RUBY_SOURCES.map(function (f) {

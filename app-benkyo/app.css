@@ -889,6 +889,27 @@ ruby rt { font-size: .42em; font-weight: bold; }
   .sc-ico svg { width: min(12vw, calc(var(--vh) * 6.5), 64px); height: min(12vw, calc(var(--vh) * 6.5), 64px); }
 }
 
+/* ==================== トップ：教科カード9まい（長さ・かさ を足した） ==================== */
+/* 横向きは 5まい×2だん。縦向きは 3まい×3だん（上のまま） */
+@media (orientation: landscape) {
+  .subjects { grid-template-columns: repeat(5, minmax(0, 170px)); gap: 14px; }
+  .subject-card { min-height: min(180px, calc(var(--vh) * 24)); }
+  .sc-ico svg { width: min(68px, calc(var(--vh) * 9)); height: min(68px, calc(var(--vh) * 9)); }
+}
+.subject-card[data-subject="nagasa"] .sc-name { transform: scale(.74); white-space: nowrap; }
+/* 低い横向きタブレット（1024×600 など）：2だんに おさめるため、カードの高さを画面に合わせる */
+@media (orientation: landscape) and (max-height: 700px) and (min-height: 521px) {
+  .home-hello { display: none; }
+  .home-main { gap: 6px; }
+  .subject-card { height: calc(var(--vh) * 31); min-height: 0; padding: 6px 4px; gap: 2px; }
+  .sc-ico svg { width: calc(var(--vh) * 9); height: calc(var(--vh) * 9); }
+  .sc-name { font-size: clamp(18px, calc(var(--vh) * 5), 30px); }
+  .sc-sub { font-size: clamp(11px, calc(var(--vh) * 2.2), 14px); }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .subjects { gap: 6px; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
 /* ==================== 日本の 地図（japan-screen.js） ==================== */
 .jp-body { flex: 1 1 auto; min-height: 0; display: flex; gap: 22px; align-items: stretch; padding-top: 6px; }
 .jp-map {
@@ -1114,4 +1135,59 @@ ruby rt { font-size: .42em; font-weight: bold; }
   .wd-foot .kk-dots { gap: 5px; }
   .wd-foot .kk-dot { width: 11px; height: 11px; }
   .wd-next { padding: 6px 18px; font-size: 20px; min-height: 52px; }
+}
+
+/* ---------- 長さ・かさ（nagasa-screen.js）。数字ボタン・ふきだし・星は九九（kk-*）と同じ ---------- */
+.ng-body { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; gap: 40px; padding-top: 8px; }
+.ng-left { flex: 1 1 0; max-width: 720px; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.ng-side { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.ng-pic { width: 100%; display: flex; justify-content: center; align-items: flex-end; gap: 10px; min-height: 120px; }
+.ng-ruler { width: 100%; max-width: 680px; height: auto; display: block; }
+.ng-cup { width: auto; height: min(250px, calc(var(--vh) * 34)); display: block; }
+.ng-glow { animation: ng-glow 1s ease-in-out infinite; }
+@keyframes ng-glow { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.ng-from { font-size: clamp(48px, 7vw, 84px); font-weight: bold; white-space: nowrap; }
+.ng-pic.k-unit { flex-direction: column; align-items: center; gap: 6px; }
+.ng-item { font-size: 34px; text-align: center; }
+.ng-item-n { font-size: clamp(56px, 8vw, 96px); font-weight: bold; color: var(--c-primary-dark); }
+.ng-boxes { display: flex; align-items: center; gap: 8px; font-size: clamp(44px, 6vw, 72px); font-weight: bold; }
+.ng-boxes:empty { display: none; }
+.ng-box {
+  min-width: 2.2em; min-height: var(--tap-min); padding: 0 .12em; font: inherit; text-align: center; cursor: pointer;
+  border: 5px solid var(--c-line); border-radius: 20px; background: #fff; color: var(--c-text);
+}
+.ng-box.on { border-color: var(--c-primary); box-shadow: 0 0 0 4px rgba(255, 138, 61, .25); }
+.ng-box.empty { color: #b7c3d0; }
+.ng-box.right { border-color: var(--c-good); color: #2f8a3c; background: #eef9ef; }
+.ng-box.reveal { border-color: #e0a440; color: #a8701c; background: #fff6e6; }
+.ng-u { font-size: .6em; color: #56616d; margin-right: 10px; }
+.ng-units { display: none; flex-direction: column; gap: 14px; }
+.ng-body.is-unit .ng-units { display: flex; }
+.ng-body.is-unit .kk-pad { display: none; }
+.ng-unit {
+  min-width: 220px; min-height: 100px; font-family: inherit; font-size: 48px; font-weight: bold; cursor: pointer;
+  border: 0; border-radius: 20px; background: var(--c-surface); color: var(--c-text); box-shadow: 0 5px 0 var(--c-line);
+}
+.ng-unit:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--c-line); }
+.ng-unit.right { background: #eef9ef; color: #2f8a3c; box-shadow: 0 5px 0 var(--c-good); }
+.ng-unit.tried { opacity: .45; }
+.ng-body.is-wait .ng-unit:not(.right) { opacity: .45; }
+
+@media (orientation: landscape) and (max-height: 700px) {
+  .ng-left { gap: 10px; }
+  .ng-item { font-size: 28px; }
+  .ng-unit { min-height: 84px; font-size: 40px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .ng-body { gap: 4vw; padding-top: 4px; align-items: stretch; }
+  .ng-left { justify-content: center; gap: calc(var(--vh) * 2); }
+  .ng-pic { min-height: 0; }
+  .ng-ruler { max-height: calc(var(--vh) * 30); width: auto; max-width: 100%; }
+  .ng-cup { height: calc(var(--vh) * 32); }
+  .ng-boxes { font-size: calc(var(--vh) * 11); }
+  .ng-unit { min-height: calc(var(--vh) * 18); min-width: 160px; font-size: calc(var(--vh) * 9); }
+}
+@media (orientation: portrait) {
+  .ng-body { flex-direction: column; gap: 24px; justify-content: flex-start; padding-top: 16px; }
+  .ng-left { flex: 0 0 auto; width: 100%; max-width: none; }
 }

@@ -18,6 +18,7 @@
     { id: "doutoku", name: "{道|どう}とく", sub: "こんなとき どうする？", enabled: true },
     { id: 'chizuJ', name: '日本の {地図|ちず}', sub: '{県|けん}の {名前|なまえ}と 名ぶつ', enabled: true },
     { id: 'chizuW', name: 'せかいの {国|くに}', sub: '{国|こっ}きと ちず', enabled: true },
+    { id: 'nagasa', name: '{長|なが}さ・かさ', sub: 'ものさし・ます', enabled: true },
     { id: 'eigo', name: 'えい{語|ご}', enabled: false }
   ];
   // 画面の文字は、2年生までに習う漢字を使う（1年生の漢字はそのまま、2年生の漢字は {漢字|よみ} でふりがな）
@@ -147,6 +148,7 @@
     doutoku: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#fbeaf0"/><path d="M24 37C11 29 9 20 14 15c4-4 8-2 10 2 2-4 6-6 10-2 5 5 3 14-10 22z" fill="#ff8fb1" stroke="#d9587f" stroke-width="2.5" stroke-linejoin="round"/></svg>',
     chizuJ: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#e4f2fb"/><path d="M34 8l4 3-2 5-5 1-1-4zM30 18l3 4-2 6-4 4-5 2-4 4-5 1-3-2 4-3 5-2 4-4 3-5zM12 38l3 1-1 3-3-1z" fill="#7cc28a" stroke="#3f8f5a" stroke-width="1.6" stroke-linejoin="round"/></svg>',
     chizuW: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#e2f2f7"/><circle cx="24" cy="24" r="15" fill="#9ad4ea" stroke="#2f7fa0" stroke-width="3"/><path d="M15 17c4 0 5 3 9 3s3 5 0 6-2 6-6 6c-1-4-4-5-4-9z M28 13c3 0 6 2 7 5-3 1-4 4-7 3-1-3-3-5 0-8z M30 28c3-1 5 1 5 3-1 3-3 4-5 4-1-3-2-5 0-7z" fill="#6fbf73"/><path d="M9 24h30M24 9c-6 8-6 22 0 30M24 9c6 8 6 22 0 30" stroke="#2f7fa0" stroke-width="1.5" fill="none" opacity=".55"/></svg>',
+    nagasa: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#fdf0d5"/><rect x="6" y="20" width="36" height="14" rx="2" fill="#f6c871" stroke="#a5701a" stroke-width="2"/><path d="M10 20v6M14 20v4M18 20v6M22 20v4M26 20v6M30 20v4M34 20v6M38 20v4" stroke="#6b4508" stroke-width="1.5"/><rect x="8" y="9" width="20" height="7" rx="2" fill="#f4a261"/><path d="M32 30h8v10h-8z" fill="#9fd3f2" stroke="#1d5f8c" stroke-width="1.5"/></svg>',
     eigo: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#efe9f6"/><path d="M11 36l8-24 8 24M14 28h10M31 12v24h6a6 6 0 0 0 0-12h-6" stroke="#6d55a3" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
   };
 
@@ -375,6 +377,13 @@
       try {
         var rw = B.worldScreen.show({ profileId: st.profileId });
         if (rw && rw.catch) rw.catch(function () { showSoon(s); });
+      } catch (e) { showSoon(s); }
+      return;
+    }
+    if (id === 'nagasa' && B.nagasaScreen && typeof B.nagasaScreen.show === 'function') {
+      try {
+        var rn = B.nagasaScreen.show({ profileId: st.profileId });
+        if (rn && rn.catch) rn.catch(function () { showSoon(s); });
       } catch (e) { showSoon(s); }
       return;
     }

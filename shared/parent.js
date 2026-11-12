@@ -5,7 +5,7 @@
   'use strict';
   var C = (window.Chiid = window.Chiid || {});
 
-  var AREA_NAMES = { hiragana: 'ひらがな', kuku: 'くく', kukuB: 'くく（□をこたえる）', kazu: 'かず', tokei: 'とけい', iro: 'いろ・かたち', machigai: 'まちがいさがし', okaimono: 'おかいもの', shiritori: 'しりとり', doutoku: 'どうとく', keisan: 'けいさん', kanji: 'かんじ（えらぶ）', kanjiYomi: 'かんじ（よみ）', kanjiKaki: 'かんじ（かき）', doutoku_b: 'どうとく（べんきょう）', doutoku_bk: 'どうとく（かんがえた）', chizuJ: 'にほんの ちず', chizuW: 'せかいの くに', nagasa: 'ながさ・かさ', hantai: 'はんたい ことば' };
+  var AREA_NAMES = { hiragana: 'ひらがな', kuku: 'くく', kukuB: 'くく（□をこたえる）', kazu: 'かず', tokei: 'とけい', iro: 'いろ・かたち', machigai: 'まちがいさがし', okaimono: 'おかいもの', shiritori: 'しりとり', doutoku: 'どうとく', keisan: 'けいさん', kanji: 'かんじ（えらぶ）', kanjiYomi: 'かんじ（よみ）', kanjiKaki: 'かんじ（かき）', doutoku_b: 'どうとく（べんきょう）', doutoku_bk: 'どうとく（かんがえた）', chizuJ: 'にほんの ちず', chizuW: 'せかいの くに', nagasa: 'ながさ・かさ', hantai: 'はんたい ことば', zukan: 'ずかん' };
   var LIMIT_CHOICES = [0, 15, 30, 45, 60];
 
   function summarize(logs, days) {

@@ -867,3 +867,87 @@
   .ok-body { grid-template-columns: 1fr; }
   .ok-bottom { flex-wrap: wrap; justify-content: center; }
 }
+
+/* ===== ホーム（なにで あそぶ？）：色ちがいの絵カード =====
+   左：「なにで あそぶ？」＋キャラ＋あいさつ。右：遊びのカード（4つずつ並べる）。
+   前の .home-btns / .btn-play の指定は使わない（クラス名を変えた）。 */
+.home-body { flex-wrap: nowrap; gap: 28px; }
+.home-side { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.home-ask {
+  margin: 0 0 10px; position: relative; white-space: nowrap;
+  background: var(--c-surface); color: var(--c-primary-dark);
+  font-size: 34px; padding: 12px 22px; border-radius: 26px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+.home-ask::after {   /* ふきだしの しっぽ */
+  content: ""; position: absolute; left: 50%; bottom: -15px; margin-left: -11px;
+  border: 11px solid transparent; border-top: 15px solid var(--c-surface); border-bottom: 0;
+}
+.home-side .home-chara .chara { width: min(22vw, 220px); height: min(22vw, 220px); }
+.home-side .home-hello { margin: 0; font-size: 24px; }
+.home-cards { flex: 0 1 840px; min-width: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+.home-card {
+  border: 0; border-radius: 28px; cursor: pointer; font-family: inherit; color: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  padding: 18px 6px 16px; min-height: 196px;
+  box-shadow: 0 7px 0 rgba(0, 0, 0, 0.16);
+  transition: transform .08s, box-shadow .08s;
+}
+.home-card:active { transform: translateY(5px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.16); }
+.home-card:disabled { opacity: 0.6; }
+.home-card .hc-pic {
+  display: block; flex: 0 0 auto; width: 120px; height: 120px; padding: 15px; box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.94); border-radius: 50%;
+}
+.home-card .hc-pic svg { display: block; width: 100%; height: 100%; }
+.home-card .hc-name { font-size: 28px; font-weight: bold; line-height: 1.15; white-space: nowrap; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.18); }
+.home-card.hc-machi .hc-name { font-size: 22px; }   /* 7文字なので少し小さく */
+.hc-hira { background: #ff7a59; }
+.hc-kazu { background: #f5a116; }
+.hc-tokei { background: #33abb9; }
+.hc-iro { background: #4f8fe8; }
+.hc-machi { background: #8a6fe0; }
+.hc-kai { background: #4fb35d; }
+.hc-dou { background: #e86a8e; }
+
+/* 横向きで縦が狭いタブレット */
+@media (orientation: landscape) and (max-height: 700px) {
+  .home-card { min-height: 150px; }
+  .home-card .hc-pic { width: 88px; height: 88px; padding: 11px; }
+  .home-card .hc-name { font-size: 24px; }
+  .home-card.hc-machi .hc-name { font-size: 19px; }
+  .home-side .home-chara .chara { width: min(20vw, 180px); height: min(20vw, 180px); }
+}
+/* スマホ横向き：高さに合わせて縮める */
+@media (orientation: landscape) and (max-height: 520px) {
+  .home-body { gap: 16px; }
+  .home-ask { font-size: clamp(18px, calc(var(--vh) * 6), 28px); padding: 6px 14px; margin-bottom: 6px; border-radius: 18px; }
+  .home-ask::after { bottom: -11px; border-width: 8px; border-top-width: 11px; margin-left: -8px; }
+  .home-side .home-chara .chara { width: min(18vw, calc(var(--vh) * 34)); height: min(18vw, calc(var(--vh) * 34)); }
+  .home-side .home-hello { font-size: clamp(14px, calc(var(--vh) * 4.5), 20px); }
+  .home-cards { gap: 10px; flex-basis: 640px; }
+  .home-card { min-height: 0; height: calc((var(--vh) * 100 - 100px) / 2); max-height: 170px; padding: 6px 4px; gap: 4px; border-radius: 20px; box-shadow: 0 5px 0 rgba(0, 0, 0, 0.16); }
+  .home-card .hc-pic { width: calc(var(--vh) * 17); height: calc(var(--vh) * 17); max-width: 90px; max-height: 90px; padding: calc(var(--vh) * 2); }
+  .home-card .hc-name { font-size: clamp(14px, calc(var(--vh) * 5), 24px); }
+  .home-card.hc-machi .hc-name { font-size: clamp(12px, calc(var(--vh) * 4), 20px); }
+}
+/* たて向き：上に「なにで あそぶ？」とキャラ、下にカード（3つずつ） */
+@media (orientation: portrait) {
+  .home-body { flex-direction: column; gap: 18px; justify-content: center; }
+  .home-side { flex-direction: row; gap: 14px; }
+  .home-ask { margin: 0; order: 2; }
+  .home-ask::after { left: -13px; top: 50%; bottom: auto; margin: -10px 0 0; border: 10px solid transparent; border-right: 14px solid var(--c-surface); border-left: 0; }
+  .home-side .home-chara { order: 1; }
+  .home-side .home-chara .chara { width: min(26vw, calc(var(--vh) * 16), 180px); height: min(26vw, calc(var(--vh) * 16), 180px); }
+  .home-side .home-hello { display: none; }
+  .home-cards { flex: 0 0 auto; width: min(100%, 640px); grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .home-card:last-child:nth-child(3n+1) { grid-column: 2; }   /* 最後に1まいだけ のこったら まんなかに */
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .home-ask { font-size: clamp(20px, 6.4vw, 28px); padding: 8px 14px; }
+  .home-cards { gap: 10px; }
+  .home-card { min-height: 0; padding: 10px 4px; gap: 6px; border-radius: 20px; }
+  .home-card .hc-pic { width: min(19vw, calc(var(--vh) * 10)); height: min(19vw, calc(var(--vh) * 10)); padding: 8px; }
+  .home-card .hc-name { font-size: clamp(14px, 4.6vw, 22px); }
+  .home-card.hc-machi .hc-name { font-size: clamp(11px, 3.5vw, 18px); }
+}

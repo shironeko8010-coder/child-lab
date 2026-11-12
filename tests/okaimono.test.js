@@ -81,7 +81,7 @@
   });
   C.test('okaimono: 知育のホームに「おかいもの」のボタンがある', function () {
     return fetch('../app-chiiku/game.js').then(function (r) { return r.text(); }).then(function (t) {
-      C.assertEq(/playBtn\("おかいもの", function \(\) \{ C\.okaimono\.start\(p\.id\); \}\);/.test(t), true);
+      C.assertEq(/playCard\('おかいもの', 'kai', function \(\) \{ C\.okaimono\.start\(p\.id\); \}\);/.test(t), true);
     });
   });
   C.test('okaimono: 読み上げる文は ひらがな・カタカナ・数字だけ', function () {

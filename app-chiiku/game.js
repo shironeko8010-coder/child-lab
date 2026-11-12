@@ -296,6 +296,16 @@
   }
 
   /* ---------- ホーム ---------- */
+  // ホームのカードの絵（64×64）
+  var HOME_ICO = {
+    hira: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="6" width="52" height="52" rx="12" fill="#ffe3c2"/><text x="32" y="46" font-size="40" font-weight="900" text-anchor="middle" fill="#e06f20">あ</text></svg>',
+    kazu: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="14" cy="42" r="8" fill="#ff7a59"/><circle cx="32" cy="42" r="8" fill="#ffb02e"/><circle cx="50" cy="42" r="8" fill="#5cc16a"/><text x="32" y="25" font-size="20" font-weight="900" text-anchor="middle" fill="#3a3a3a">1 2 3</text></svg>',
+    tokei: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="#fff" stroke="#3fb6c4" stroke-width="6"/><path d="M32 32V16M32 32l11 7" stroke="#3a3a3a" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="32" r="3.5" fill="#3a3a3a"/></svg>',
+    iro: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="20" cy="22" r="13" fill="#ff5a5a"/><path d="M44 8l14 24H30z" fill="#4f8fe8"/><rect x="22" y="38" width="20" height="20" rx="3" fill="#ffc83d"/></svg>',
+    machi: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="27" cy="27" r="17" fill="#e8f7fa" stroke="#8a6fe0" stroke-width="6"/><path d="M40 40l16 16" stroke="#8a6fe0" stroke-width="9" stroke-linecap="round"/><text x="27" y="35" font-size="22" font-weight="900" text-anchor="middle" fill="#e06f20">?</text></svg>',
+    kai: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M18 26a14 14 0 0 1 28 0" fill="none" stroke="#b07a3a" stroke-width="5"/><circle cx="24" cy="22" r="7" fill="#ff5a5a"/><circle cx="40" cy="21" r="7" fill="#ffc83d"/><path d="M8 26h48l-6 28H14z" fill="#e0a45a"/><path d="M20 32v16M32 32v16M44 32v16" stroke="#b07a3a" stroke-width="3"/></svg>',
+    dou: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 56S8 41 8 24a12 12 0 0 1 24-4 12 12 0 0 1 24 4c0 17-24 32-24 32z" fill="#ff6f91"/><path d="M22 26q3-6 8-4" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/></svg>'
+  };
   function showHome() {
     var p = pickProfile();
     if (!p) { showProfileCreate(); return; }
@@ -303,37 +313,38 @@
     st.resting = false;
     app.appendChild(topBar({ gear: true, entry: true }));
     var body = el('div', 'home-body');
-    var left = el('div', 'home-chara');
-    left.appendChild(chara('normal'));
-    var right = el('div', 'home-main');
-    right.appendChild(el('p', 'home-hello', 'こんにちは、' + p.nickname + '！'));
-    right.appendChild(el("h1", "home-title", "なにで あそぶ？"));
-    var btns = el("div", "home-btns");
+    var left = el('div', 'home-side');
+    left.appendChild(el('h1', 'home-ask', 'なにで あそぶ？'));
+    var ch = el('div', 'home-chara');
+    ch.appendChild(chara('normal'));
+    left.appendChild(ch);
+    left.appendChild(el('p', 'home-hello', 'こんにちは、' + p.nickname + '！'));
+    var cards = el('div', 'home-cards');
     var all = [];
-    function playBtn(label, run) {
-      var go = button("btn-big btn-play", function () {
+    // 遊びのカード：色と絵で見分けられるようにする（字が読めなくても選べる）
+    function playCard(label, kind, run) {
+      var go = button('home-card hc-' + kind, function () {
         if (go.disabled) return;
         all.forEach(function (b) { b.disabled = true; });
-        play("tap");
+        play('tap');
         if (audioReady && C.storage.getSettings().bgmOn) C.sfx.startBgm();
         run();
       });
-      go.setAttribute("aria-label", label);
-      go.appendChild(svg(ICO.play));
-      go.appendChild(el("span", null, label));
+      go.setAttribute('aria-label', label);
+      go.appendChild(svg(HOME_ICO[kind], 'hc-pic'));
+      go.appendChild(el('span', 'hc-name', label));
       all.push(go);
-      btns.appendChild(go);
+      cards.appendChild(go);
     }
-    playBtn("ひらがな", function () { C.game.start(p.id); });
-    playBtn("かず", function () { C.kazu.start(p.id); });
-    playBtn("とけい", function () { C.tokei.start(p.id); });
-    playBtn("いろ・かたち", function () { C.iro.start(p.id); });
-    playBtn("まちがいさがし", function () { C.machigai.start(p.id); });
-    playBtn("おかいもの", function () { C.okaimono.start(p.id); });
-    playBtn("どうとく", function () { C.chiikuDoutoku.start(p.id); });
-    right.appendChild(btns);
+    playCard('ひらがな', 'hira', function () { C.game.start(p.id); });
+    playCard('かず', 'kazu', function () { C.kazu.start(p.id); });
+    playCard('とけい', 'tokei', function () { C.tokei.start(p.id); });
+    playCard('いろ・かたち', 'iro', function () { C.iro.start(p.id); });
+    playCard('まちがいさがし', 'machi', function () { C.machigai.start(p.id); });
+    playCard('おかいもの', 'kai', function () { C.okaimono.start(p.id); });
+    playCard('どうとく', 'dou', function () { C.chiikuDoutoku.start(p.id); });
     body.appendChild(left);
-    body.appendChild(right);
+    body.appendChild(cards);
     app.appendChild(body);
   }
 

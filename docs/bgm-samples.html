@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BGM の聞き比べ</title>
+<style>
+  body { margin:0; padding:20px 16px 40px; background:#fff8e7; color:#3a3a3a; font-family: system-ui, "Yu Gothic UI", sans-serif; }
+  h1 { font-size:24px; margin:0 0 6px; }
+  p { margin:0 0 14px; font-size:15px; line-height:1.6; }
+  .list { display:grid; gap:14px; max-width:720px; }
+  .item { background:#fff; border-radius:18px; padding:14px 16px; box-shadow:0 2px 8px rgba(0,0,0,.08); display:flex; align-items:center; gap:14px; }
+  .item b { font-size:19px; display:block; margin-bottom:2px; }
+  .item span { font-size:14px; color:#666; }
+  button { font:inherit; font-size:18px; font-weight:bold; border:0; border-radius:14px; padding:12px 18px; color:#fff; background:#ff8a3d; cursor:pointer; min-width:96px; flex-shrink:0; }
+  button.on { background:#4cb8c4; }
+  .stop { background:#888; margin-top:18px; }
+</style>
+</head>
+<body>
+<h1>BGM の聞き比べ</h1>
+<p>「▶ きく」を押すと流れます。もう一度押すと止まります。どれも、このページの中で音を作っています（ファイルは使っていません）。<br>
+アプリでは、読み上げの声が出ている間、BGM は小さくなります。</p>
+
+<div class="list">
+  <div class="item"><button data-song="now">▶ きく</button><div><b>0. 今のBGM</b><span>ドレミの16音をくり返すだけ</span></div></div>
+  <div class="item"><button data-song="poka">▶ きく</button><div><b>1. ぽかぽか（ワルツ）</b><span>オルゴールのような音。ゆったり3拍子。のんびり・やさしい</span></div></div>
+  <div class="item"><button data-song="waku">▶ きく</button><div><b>2. わくわく（おさんぽ）</b><span>はずむリズム＋ベース＋小さなシャカシャカ。いちばん元気</span></div></div>
+  <div class="item"><button data-song="fuwa">▶ きく</button><div><b>3. ふわふわ（マリンバ）</b><span>木琴のようなやわらかい音。ゆっくり。集中のじゃまをしにくい</span></div></div>
+</div>
+<button class="stop" id="stop">■ とめる</button>
+
+<script>
+(function () {
+  'use strict';
+  var ac = null, bus = null, timer = null, cur = null;
+
+  function midi(n) {   // 'C5' 'F#4' 'Bb3' → 周波数
+    var m = /^([A-G])([#b]?)(-?\d)$/.exec(n);
+    var k = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 }[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+    return 440 * Math.pow(2, ((+m[3] + 1) * 12 + k - 69) / 12);
+  }
+  function env(g, t, vol, atk, dur) {
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + atk);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  }
+  function osc(type, f, t, dur, vol, atk, dest) {
+    var o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    env(g, t, vol, atk, dur); o.connect(g); g.connect(dest || bus);
+    o.start(t); o.stop(t + dur + 0.05);
+  }
+  // 楽器
+  var INST = {
+    sine: function (f, t, d, v) { osc('sine', f, t, Math.min(d, 0.4), v, 0.02); },
+    bell: function (f, t, d, v) {          // オルゴール
+      osc('sine', f, t, 1.2, v, 0.005); osc('sine', f * 2, t, 0.5, v * 0.25, 0.005); osc('sine', f * 3.01, t, 0.25, v * 0.08, 0.005);
+    },
+    lead: function (f, t, d, v) {          // やわらかい笛
+      var o = ac.createOscillator(), g = ac.createGain(), lp = ac.createBiquadFilter();
+      o.type = 'triangle'; o.frequency.setValueAtTime(f, t);
+      lp.type = 'lowpass'; lp.frequency.value = 2200;
+      var len = Math.max(0.12, d * 0.9);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.02);
+      g.gain.setValueAtTime(v * 0.8, t + len * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + len + 0.08);
+      o.connect(lp); lp.connect(g); g.connect(bus); o.start(t); o.stop(t + len + 0.12);
+    },
+    pluck: function (f, t, d, v) {         // ウクレレのような はじく音
+      var o = ac.createOscillator(), g = ac.createGain(), lp = ac.createBiquadFilter();
+      o.type = 'sawtooth'; o.frequency.setValueAtTime(f, t);
+      lp.type = 'lowpass'; lp.frequency.setValueAtTime(2400, t); lp.frequency.exponentialRampToValueAtTime(500, t + 0.25);
+      env(g, t, v, 0.004, 0.35); o.connect(lp); lp.connect(g); g.connect(bus); o.start(t); o.stop(t + 0.4);
+    },
+    marimba: function (f, t, d, v) {       // 木琴
+      osc('sine', f, t, 0.7, v, 0.004); osc('sine', f * 4, t, 0.08, v * 0.3, 0.002);
+    },
+    bass: function (f, t, d, v) { osc('triangle', f, t, Math.min(Math.max(d * 0.9, 0.2), 0.9), v, 0.01); },
+    shaker: function (f, t, d, v) {        // シャカシャカ（ノイズ）
+      var len = 0.05, buf = ac.createBuffer(1, Math.floor(ac.sampleRate * len), ac.sampleRate), ch = buf.getChannelData(0);
+      for (var i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / ch.length);
+      var s = ac.createBufferSource(), hp = ac.createBiquadFilter(), g = ac.createGain();
+      s.buffer = buf; hp.type = 'highpass'; hp.frequency.value = 6000; g.gain.value = v;
+      s.connect(hp); hp.connect(g); g.connect(bus); s.start(t);
+    }
+  };
+
+  // メロディの書き方： '音名:拍' をスペースで区切る（r は休み）
+  function mel(s) { return s.trim().split(/\s+/).map(function (x) { var p = x.split(':'); return [p[0], +p[1]]; }); }
+  var CH = { C:['C3','E4','G4'], Dm:['D3','F4','A4'], Em:['E3','G4','B4'], F:['F3','A4','C5'], G:['G2','B3','D4'], Am:['A2','C4','E4'], Bb:['Bb2','D4','F4'], Gm:['G2','Bb3','D4'], D:['D3','F#4','A4'] };
+
+  var SONGS = {
+    now: { bpm: 133, bar: 4, inst: 'sine', vol: 0.30,
+      mel: mel('C5:1 D5:1 E5:1 G5:1 E5:1 D5:1 C5:1 r:1 D5:1 E5:1 G5:1 A5:1 G5:1 E5:1 D5:1 r:1'), chords: [], acc: 'none' },
+    poka: { bpm: 112, bar: 3, inst: 'bell', vol: 0.20,
+      mel: mel('A4:2 C5:1 F5:2 E5:1 D5:1 C5:1 A4:1 C5:3 Bb4:2 D5:1 G5:2 F5:1 E5:1 D5:1 C5:1 C5:3 ' +
+               'A4:2 C5:1 F5:2 A5:1 G5:1 F5:1 E5:1 D5:3 Bb4:1 D5:1 F5:1 E5:2 G5:1 G5:1 E5:1 C5:1 F5:3'),
+      chords: ['F','Dm','Bb','C','Bb','Gm','C','C','F','Dm','C','Gm','Bb','C','C','F'], acc: 'waltz' },
+    waku: { bpm: 116, bar: 4, inst: 'lead', vol: 0.16,
+      mel: mel('E5:.5 G5:.5 E5:.5 C5:.5 D5:1 E5:1 F5:.5 A5:.5 F5:.5 D5:.5 E5:1 C5:1 D5:.5 E5:.5 F5:.5 G5:.5 A5:1 G5:1 E5:1.5 D5:.5 C5:2 ' +
+               'A4:.5 C5:.5 E5:.5 A5:.5 G5:1 E5:1 F5:.5 E5:.5 D5:.5 C5:.5 D5:1 F5:1 E5:.5 D5:.5 C5:.5 D5:.5 B4:1 G4:1 C5:2 r:2'),
+      chords: ['C','F','G','C','Am','F','G','C'], acc: 'pop' },
+    fuwa: { bpm: 84, bar: 4, inst: 'marimba', vol: 0.22,
+      mel: mel('B4:1 D5:1 G5:1.5 E5:.5 D5:1 B4:1 G4:2 A4:1 B4:1 D5:1 E5:1 D5:3 r:1 ' +
+               'G5:1 E5:1 D5:1.5 B4:.5 E5:1 D5:1 B4:2 A4:1 B4:1 D5:1 A4:1 G4:3 r:1'),
+      chords: ['G','Em','C','D','G','C','D','G'], acc: 'arp' }
+  };
+
+  // 1回分（＝1ループ）の音を、時刻つきの一覧にする。
+  // 構成：メロディ → メロディ（2回目は上に小さく飾りの音）→ 伴奏だけ4小節（ひと休み）
+  function build(s) {
+    var spb = 60 / s.bpm, ev = [], t = 0, bars = s.chords.length;
+    function addMel(start, sparkle) {
+      var tt = start;
+      s.mel.forEach(function (n) {
+        if (n[0] !== 'r') {
+          ev.push([tt, s.inst, midi(n[0]), n[1] * spb, s.vol]);
+          if (sparkle && n[1] >= 1) ev.push([tt, 'bell', midi(n[0]) * 2, n[1] * spb, s.vol * 0.18]);
+        }
+        tt += n[1] * spb;
+      });
+      return tt;
+    }
+    function addAcc(start, nbars) {
+      for (var b = 0; b < nbars; b++) {
+        var c = CH[s.chords[b % bars]], t0 = start + b * s.bar * spb, i;
+        if (s.acc === 'waltz') {
+          ev.push([t0, 'bass', midi(c[0]), spb, 0.20]);
+          for (i = 1; i < 3; i++) { ev.push([t0 + i * spb, 'bell', midi(c[1]), spb, 0.06]); ev.push([t0 + i * spb, 'bell', midi(c[2]), spb, 0.06]); }
+        } else if (s.acc === 'pop') {
+          ev.push([t0, 'bass', midi(c[0]), spb, 0.24]);
+          ev.push([t0 + 2 * spb, 'bass', midi(c[0]) * 1.5, spb, 0.20]);
+          [1, 3].forEach(function (k) { ev.push([t0 + k * spb, 'pluck', midi(c[1]), spb, 0.05]); ev.push([t0 + k * spb, 'pluck', midi(c[2]), spb, 0.05]); });
+          for (i = 0; i < 8; i++) ev.push([t0 + i * spb / 2, 'shaker', 0, 0, i % 2 ? 0.05 : 0.025]);
+        } else if (s.acc === 'arp') {
+          ev.push([t0, 'bass', midi(c[0]), s.bar * spb, 0.16]);
+          var arp = [c[0], c[1], c[2], c[1]];
+          for (i = 0; i < 8; i++) ev.push([t0 + i * spb / 2, 'marimba', midi(arp[i % 4]) * (i % 4 === 0 ? 2 : 1), spb, 0.07]);
+        }
+      }
+    }
+    if (!bars) { t = addMel(0, false); return { ev: ev, len: t }; }
+    var secLen = bars * s.bar * spb;
+    addMel(0, false); addAcc(0, bars);
+    addMel(secLen, true); addAcc(secLen, bars);
+    addAcc(secLen * 2, 4);
+    return { ev: ev, len: secLen * 2 + 4 * s.bar * spb };
+  }
+
+  // 先読みしながら鳴らす（0.2秒先までを予約）
+  function start(name) {
+    stop();
+    if (!ac) {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      var comp = ac.createDynamicsCompressor(); bus = ac.createGain(); bus.gain.value = 1;
+      bus.connect(comp); comp.connect(ac.destination);
+    }
+    if (ac.state === 'suspended') ac.resume();
+    var song = build(SONGS[name]), base = ac.currentTime + 0.1, idx = 0;
+    song.ev.sort(function (a, b) { return a[0] - b[0]; });
+    cur = name;
+    timer = setInterval(function () {
+      var until = ac.currentTime + 0.2;
+      while (true) {
+        if (idx >= song.ev.length) { idx = 0; base += song.len; }
+        var e = song.ev[idx], at = base + e[0];
+        if (at > until) break;
+        if (at >= ac.currentTime - 0.02) INST[e[1]](e[2], at, e[3], e[4]);
+        idx++;
+      }
+    }, 40);
+  }
+  function stop() {
+    if (timer) clearInterval(timer); timer = null; cur = null;
+    document.querySelectorAll('[data-song]').forEach(function (b) { b.classList.remove('on'); b.textContent = '▶ きく'; });
+  }
+  document.querySelectorAll('[data-song]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var n = b.getAttribute('data-song');
+      if (cur === n) { stop(); return; }
+      start(n); b.classList.add('on'); b.textContent = '■ とめる';
+    });
+  });
+  document.getElementById('stop').addEventListener('click', stop);
+})();
+</script>
+</body>
+</html>

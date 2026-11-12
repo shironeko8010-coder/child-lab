@@ -58,6 +58,24 @@
     C.sfx._reset();
   });
 
+  C.test('sfx: BGMは3曲（ぽかぽか・わくわく・ふわふわ）を この順で流す', function () {
+    C.assertEq(C.sfx._songNames().join(','), 'poka,waku,fuwa');
+    C.sfx._reset();
+    C.assertEq(C.sfx._songIdx(), 0);
+  });
+
+  C.test('sfx: どの曲も、拍がそろっていて 時間の順に並び、20秒より長い', function () {
+    [0, 1, 2].forEach(function (i) {
+      var s = C.sfx._buildSong(i);
+      if (!(s.len > 20)) throw new Error(i + ': len ' + s.len);
+      for (var k = 1; k < s.ev.length; k++) if (s.ev[k][0] < s.ev[k - 1][0]) throw new Error(i + ': 順番');
+      s.ev.forEach(function (e) {
+        if (!(e[0] >= 0 && e[0] < s.len)) throw new Error(i + ': 時刻 ' + e[0]);
+        if (e[1] !== 'shaker' && !(e[2] > 50 && e[2] < 4000)) throw new Error(i + ': 音の高さ ' + e[2]);
+      });
+    });
+  });
+
   C.test('sfx: BGM鳴動中にduckしても例外が出ず、_resetでduck解除', function () {
     C.sfx._reset();
     C.sfx.setBgmOn(true);

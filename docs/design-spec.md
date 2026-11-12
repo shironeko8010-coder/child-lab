@@ -66,3 +66,4 @@ chiid-lab/
 | 知育 | おかいもの（硬貨をトレーに入れて、値段どおりに払う） | `docs/superpowers/specs/2026-11-12-chiiku-okaimono-design.md` |
 | 知育 | しりとり（ひよこと交代で、絵カードを選んでつなぐ） | `docs/superpowers/specs/2026-11-12-chiiku-shiritori-design.md` |
 | 勉強 | 長さ・かさ（ものさし・ますを読む、単位をかえる・えらぶ） | `docs/superpowers/specs/2026-11-12-benkyo-nagasa-design.md` |
+| 勉強 | はんたい ことば（反対の意味のことば・文を4つから選ぶ） | `docs/superpowers/specs/2026-11-12-benkyo-hantai-design.md` |

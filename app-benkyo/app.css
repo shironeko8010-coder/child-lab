@@ -1191,3 +1191,71 @@ ruby rt { font-size: .42em; font-weight: bold; }
   .ng-body { flex-direction: column; gap: 24px; justify-content: flex-start; padding-top: 16px; }
   .ng-left { flex: 0 0 auto; width: 100%; max-width: none; }
 }
+
+/* ==================== はんたい ことば（hantai-screen.js） ==================== */
+.subject-card[data-subject="hantai"] .sc-name { font-size: min(30px, calc(var(--vh) * 4.6)); line-height: 1.1; white-space: normal; text-align: center; }   /* 2行（はんたい／ことば）で おさめる */
+.ht-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: 6px; width: 100%; max-width: 980px; margin: 0 auto; }
+.ht-ask { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 6px 14px; text-align: center; }
+.ht-word { font-size: clamp(48px, 6.5vw, 80px); font-weight: bold; color: var(--c-primary-dark); }
+.ht-ask-tail { font-size: clamp(26px, 3.2vw, 38px); font-weight: bold; }
+.ht-sentence { font-size: clamp(34px, 4.6vw, 56px); font-weight: bold; background: var(--c-surface); border-radius: 22px; padding: 10px 24px; box-shadow: 0 5px 0 var(--c-line); }
+.ht-sentence b { color: #e2483d; }
+.ht-ask.k-sentence { flex-direction: column; align-items: center; }
+.ht-talk { flex: 0 0 auto; }
+.ht-choices { flex: 1 1 auto; min-height: 0; width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-content: center; }
+.ht-choices.k-sentence { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ht-choice {
+  min-height: 96px; padding: 8px 14px; font-family: inherit; font-size: clamp(30px, 3.8vw, 46px); font-weight: bold; cursor: pointer;
+  border: 0; border-radius: 22px; background: var(--c-surface); color: var(--c-text); box-shadow: 0 6px 0 var(--c-line);
+}
+.ht-choices.k-sentence .ht-choice { font-size: clamp(22px, 2.8vw, 34px); }
+.ht-choice:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--c-line); }
+.ht-choice.tried { opacity: .4; }
+.ht-choice.right { background: #eef9ef; color: #2f8a3c; box-shadow: 0 6px 0 var(--c-good), 0 0 0 6px var(--c-good); }
+.ht-body.is-wait .ht-choice:not(.right) { opacity: .45; }
+.ht-foot { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 24px; width: 100%; }
+.ht-next { visibility: hidden; }
+
+@media (orientation: landscape) and (max-height: 700px) {
+  .ht-body { gap: 6px; padding-top: 0; }
+  .ht-word { font-size: 56px; }
+  .ht-ask-tail { font-size: 30px; }
+  .ht-sentence { font-size: 38px; padding: 6px 20px; }
+  .ht-talk .chara { width: 64px; height: 64px; }
+  .ht-choice { min-height: 66px; }
+  .ht-next { min-height: 56px; padding: 4px 20px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .ht-body { gap: calc(var(--vh) * 1.5); padding-top: 2px; }
+  .ht-word { font-size: calc(var(--vh) * 12); }
+  .ht-ask-tail { font-size: calc(var(--vh) * 6); }
+  .ht-sentence { font-size: calc(var(--vh) * 8); padding: 4px 16px; border-radius: 16px; }
+  .ht-talk { display: none; }
+  .ht-choices { gap: 8px; }
+  .ht-choice { min-height: calc(var(--vh) * 15); font-size: calc(var(--vh) * 7); padding: 4px 10px; border-radius: 16px; }
+  .ht-choices.k-sentence .ht-choice { font-size: calc(var(--vh) * 5.4); }
+  .ht-next { min-height: 48px; padding: 4px 18px; font-size: 22px; }
+}
+@media (orientation: portrait) {
+  .ht-choices.k-sentence { grid-template-columns: 1fr; }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .ht-body { gap: 10px; }
+  .ht-talk .chara { width: 56px; height: 56px; }
+  .ht-foot { gap: 10px; flex-wrap: nowrap; }
+  .ht-foot .kk-prog { flex: 1 1 auto; min-width: 0; }
+  .ht-next { min-height: 52px; padding: 4px 14px; font-size: 20px; flex: 0 0 auto; }
+  .ht-word { font-size: clamp(36px, 11vw, 56px); }
+  .ht-ask-tail { font-size: clamp(20px, 6vw, 28px); }
+  .ht-sentence { font-size: clamp(22px, 6.6vw, 32px); padding: 8px 14px; }
+  .ht-choices { gap: 10px; }
+  .ht-choice { min-height: clamp(64px, calc(var(--vh) * 11), 96px); font-size: clamp(22px, 7vw, 34px); }
+  .ht-choices.k-sentence .ht-choice { font-size: clamp(18px, 5.4vw, 26px); min-height: clamp(52px, calc(var(--vh) * 8), 80px); }
+}
+
+/* トップ：たて向きは 教科カード10まいが 3まい×4だん。画面の高さに合わせて カードとキャラを縮める */
+@media (orientation: portrait) {
+  .home-hello { display: none; }
+  .home-chara .chara { width: min(26vw, calc(var(--vh) * 11), 200px); height: min(26vw, calc(var(--vh) * 11), 200px); }
+  .subject-card[data-subject="hantai"] .sc-name { font-size: min(30px, 6vw); }
+}

@@ -259,3 +259,27 @@
     });
   });
 })();
+
+/* ずかん：きらきらのページを もう一度やって まちがえたとき */
+(function () {
+  'use strict';
+  var C = window.Chiid;
+  var S = function () { return C.benkyo.zukanScreen; };
+  C.test('zukanScreen: きらきらのページで まちがえても、きらきらのまま（got は keep、きらきらの文）', function () {
+    C.storage._forceMemory(true);
+    return C.storage.init().then(function () { return C.storage.resetAll(); }).then(function () {
+      var pid = C.storage.addProfile('はなこ', 'benkyo');
+      C.storage.setActive(pid);
+      C.zukan.pagesOf('doubutsu').forEach(function (p) { C.storage.logAnswer({ profileId: pid, area: 'zukan', itemId: p.id, correct: true, level: 1 }); });
+      return S().show({ profileId: pid, rng: function () { return 0; } });
+    }).then(function () {
+      S()._theme('doubutsu'); S()._ready();
+      var s = S()._state(), w = s.answer === 0 ? 1 : 0;
+      S()._choose(w); S()._choose(s.answer); S()._flush();
+      S()._choose(S()._state().answer); S()._flush();
+      s = S()._state();
+      C.assertEq(s.phase, 'card'); C.assertEq(s.got, 'keep');
+      C.assertEq(C.zukan.TEXT.keep, 'きらきらカードは そのままだよ');
+    }).then(function () { C.storage._forceMemory(false); }, function (e) { C.storage._forceMemory(false); throw e; });
+  });
+})();

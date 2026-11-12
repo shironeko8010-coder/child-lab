@@ -226,6 +226,16 @@
       C.assertEq(s.level, 3); C.assertEq(s.kind, 'sentence');
     });
   });
+  nt('答えを見せる ふきだしは、かっこの中に「。」を入れない', function () {
+    var seed = []; for (var i = 0; i < 3; i++) seed.push({ itemId: 's:biru', correct: true, level: 3 });
+    return open(seed).then(function () {
+      var s = S()._state(), w1 = wrongIndex(s);
+      S()._choose(w1); S()._choose(wrongIndex(s, [w1]));
+      s = S()._state();
+      C.assertEq(s.phase, 'reveal');
+      C.assertEq(/。」/.test(s.message), false);
+    });
+  });
   C.test('hantai: 親画面に「はんたい ことば」の名前がある', function () {
     return fetch('../shared/parent.js').then(function (r) { return r.text(); }).then(function (t) {
       C.assertEq(/hantai: 'はんたい ことば'/.test(t), true);

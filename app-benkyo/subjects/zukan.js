@@ -7,7 +7,7 @@
 
   var AREA = 'zukan';
   var PAGES_PER_ROUND = 3;
-  var TEXT = { card: 'カードを ゲット！', kira: 'きらきらカード ゲット！', ready: '{読|よ}めた！' };
+  var TEXT = { card: 'カードを ゲット！', kira: 'きらきらカード ゲット！', keep: 'きらきらカードは そのままだよ', ready: '{読|よ}めた！' };
 
   function D() { return C.zukanData; }
   function pagesOf(themeId) { return D().PAGES.filter(function (p) { return p.theme === themeId; }); }

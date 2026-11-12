@@ -37,11 +37,13 @@
     };
     pendingFn = null;
     view = null;
+    var sid = B.ui && B.ui.screenId ? B.ui.screenId() : null;   // 記録を読むあいだに ほかの画面へ行ったら、開かない
     return Promise.resolve()
       .then(function () { return C.storage.getLogs(pid); })
       .then(function (logs) { return logs || []; }, function () { return []; })
       .then(function (logs) {
         if (st !== run) return;
+        if (sid !== null && B.ui.screenId() !== sid) { st = null; return; }
         st.cards = Z().cardsFromLogs(logs);
         goThemes();
       });
@@ -137,17 +139,20 @@
       var r = C.storage.logAnswer({ profileId: st.profileId, area: Z().AREA, itemId: p.id, correct: kira, level: 1 });
       if (r && r.catch) r.catch(function () {});
     } catch (e) { /* 保存できなくても続ける */ }
+    var had = st.cards[p.id];
     if (kira) st.cards[p.id] = 'kira';
-    else if (!st.cards[p.id]) st.cards[p.id] = 'card';
-    st.got = kira ? 'kira' : 'card';
+    else if (!had) st.cards[p.id] = 'card';
+    // got：'kira'（きらきら）／'card'（ふつう）／'keep'（前から きらきら。今回まちがえても そのまま）
+    st.got = kira ? 'kira' : (had === 'kira' ? 'keep' : 'card');
     st.pagesDone++;
     st.phase = 'card';
     pendingFn = afterCard;
     pendSeq++;
     renderCard();
     play('star');
-    speak(kira ? Z().TEXT.kira : Z().TEXT.card);
+    speak(gotText());
   }
+  function gotText() { return st.got === 'kira' ? Z().TEXT.kira : st.got === 'keep' ? Z().TEXT.keep : Z().TEXT.card; }
   function afterCard() {
     if (st.pagesDone >= Z().PAGES_PER_ROUND) { showReward(); return; }
     nextPage();
@@ -398,12 +403,12 @@
     var app = ui.newScreen('zukan');
     app.appendChild(ui.topBar({ home: true }));
     var body = ui.el('div', 'zk-get');
-    var card = ui.el('div', 'zk-card big' + (st.got === 'kira' ? ' kira' : ''));
+    var card = ui.el('div', 'zk-card big' + (st.got === 'card' ? '' : ' kira'));
     card.appendChild(picNode(p, 'zk-card-pic'));
     card.appendChild(ui.elR('div', 'zk-card-name', p.name));
     body.appendChild(card);
     var side = ui.el('div', 'zk-get-side');
-    side.appendChild(ui.el('p', 'zk-get-msg', st.got === 'kira' ? Z().TEXT.kira : Z().TEXT.card));
+    side.appendChild(ui.el('p', 'zk-get-msg', gotText()));
     var next = ui.button('btn-big zk-next', function () {
       if (next.disabled) return;
       next.disabled = true;

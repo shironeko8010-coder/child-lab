@@ -36,11 +36,13 @@
     };
     pendingFn = null;
     view = null;
+    var sid = B.ui && B.ui.screenId ? B.ui.screenId() : null;   // 記録を読むあいだに ほかの画面へ行ったら、開かない
     return Promise.resolve()
       .then(function () { return C.storage.getLogs(pid); })
       .then(function (logs) { return logs || []; }, function () { return []; })
       .then(function (logs) {
         if (st !== run) return;
+        if (sid !== null && B.ui.screenId() !== sid) { st = null; return; }
         var p = H().progressFromLogs(logs);
         st.level = p.level;
         st.recent = p.recent;
@@ -94,7 +96,7 @@
     }
     // 2回目のまちがい：答えを見せて「つぎへ」を待つ
     st.revealed = true;
-    st.message = '{答|こた}えは「' + st.q.choices[st.q.answer].t + '」だよ。つぎは できるよ！';
+    st.message = '{答|こた}えは「' + st.q.choices[st.q.answer].t.replace(/。$/, '') + '」だよ。つぎは できるよ！';
     st.mood = 'normal';
     play('oops');
     finish(false);
@@ -213,7 +215,9 @@
     var right = bar.querySelector('.tb-right');
     if (hasVoice) {
       var sp = ui.button('icon-btn kk-speak', function () {
-        if (st && st.q && st.phase === 'question') { ui.play('tap'); ui.speak(H().speakText(st.q)); }
+        if (!st || !st.q) return;
+        if (st.phase === 'question') { ui.play('tap'); ui.speak(H().speakText(st.q)); }
+        else if (st.phase === 'reveal') { ui.play('tap'); ui.speak(H().answerText(st.q)); }   // 答えを見せている間は、答えを聞き直せる
       });
       sp.setAttribute('aria-label', 'もういちど きく');
       sp.appendChild(ui.svg(ui.ICO.speaker));

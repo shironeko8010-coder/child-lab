@@ -1208,7 +1208,7 @@ ruby rt { font-size: .42em; font-weight: bold; }
   min-height: 96px; padding: 8px 14px; font-family: inherit; font-size: clamp(30px, 3.8vw, 46px); font-weight: bold; cursor: pointer;
   border: 0; border-radius: 22px; background: var(--c-surface); color: var(--c-text); box-shadow: 0 6px 0 var(--c-line);
 }
-.ht-choices.k-sentence .ht-choice { font-size: clamp(22px, 2.8vw, 34px); }
+.ht-choices.k-sentence .ht-choice { font-size: clamp(20px, 2.3vw, 28px); white-space: nowrap; }
 .ht-choice:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--c-line); }
 .ht-choice.tried { opacity: .4; }
 .ht-choice.right { background: #eef9ef; color: #2f8a3c; box-shadow: 0 6px 0 var(--c-good), 0 0 0 6px var(--c-good); }
@@ -1230,7 +1230,8 @@ ruby rt { font-size: .42em; font-weight: bold; }
   .ht-word { font-size: calc(var(--vh) * 12); }
   .ht-ask-tail { font-size: calc(var(--vh) * 6); }
   .ht-sentence { font-size: calc(var(--vh) * 8); padding: 4px 16px; border-radius: 16px; }
-  .ht-talk { display: none; }
+  .ht-talk .kk-who { display: none; }
+  .ht-talk .kk-msg { font-size: calc(var(--vh) * 4.4); padding: 2px 12px; min-height: 0; }   /* ふきだしは小さく残す（声だけにしない） */
   .ht-choices { gap: 8px; }
   .ht-choice { min-height: calc(var(--vh) * 15); font-size: calc(var(--vh) * 7); padding: 4px 10px; border-radius: 16px; }
   .ht-choices.k-sentence .ht-choice { font-size: calc(var(--vh) * 5.4); }
@@ -1369,7 +1370,8 @@ ruby rt { font-size: .42em; font-weight: bold; }
   .zk-page-side { gap: 6px; }
   .zk-ready { min-height: 48px; padding: 4px 20px; font-size: 22px; }
   .zk-quiz { gap: 4px; }
-  .zk-talk { display: none; }
+  .zk-talk .kk-who { display: none; }
+  .zk-talk .kk-msg { font-size: calc(var(--vh) * 4.4); padding: 2px 12px; min-height: 0; }
   .zk-ask { font-size: calc(var(--vh) * 6.4); }
   .zk-choices { gap: 6px; }
   .zk-choice { min-height: calc(var(--vh) * 15); font-size: calc(var(--vh) * 5.6); border-radius: 14px; }
@@ -1397,7 +1399,8 @@ ruby rt { font-size: .42em; font-weight: bold; }
   .zk-choice { min-height: 64px; font-size: clamp(16px, 4.8vw, 24px); }
   .zk-pic.small { width: 80px; }
   .zk-pic.small .zk-emoji { font-size: 52px; }
-  .zk-talk { display: none; }
+  .zk-talk .kk-who { display: none; }
+  .zk-talk .kk-msg { font-size: 16px; padding: 4px 12px; min-height: 0; }
   .zk-grid { gap: 6px; }
   .zk-card-pic .zk-emoji { font-size: 34px; }
 }

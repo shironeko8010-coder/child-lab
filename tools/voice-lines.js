@@ -196,6 +196,7 @@
     });
     add(ZK.TEXT.card);
     add(ZK.TEXT.kira);
+    add(ZK.TEXT.keep);
 
     where = 'ごほうび（べんきょう）';
     add('よく がんばったね！');

@@ -510,6 +510,7 @@
     newScreen: newScreen, chara: chara, topBar: topBar,
     play: play, speak: speak, ICO: ICO, STAR: STAR,
     profileId: function () { return st.profileId; },
-    hasApp: function () { return !!app; }   // 起動前（テスト）は false：描画しない
+    hasApp: function () { return !!app; },   // 起動前（テスト）は false：描画しない
+    screenId: function () { return token; }  // 画面が変わったか（newScreen のたびに変わる）を見るため
   };
 })();

@@ -941,7 +941,6 @@
   .home-side .home-chara .chara { width: min(26vw, calc(var(--vh) * 16), 180px); height: min(26vw, calc(var(--vh) * 16), 180px); }
   .home-side .home-hello { display: none; }
   .home-cards { flex: 0 0 auto; width: min(100%, 640px); grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .home-card:last-child:nth-child(3n+1) { grid-column: 2; }   /* 最後に1まいだけ のこったら まんなかに */
 }
 @media (orientation: portrait) and (max-width: 520px) {
   .home-ask { font-size: clamp(20px, 6.4vw, 28px); padding: 8px 14px; }
@@ -950,4 +949,81 @@
   .home-card .hc-pic { width: min(19vw, calc(var(--vh) * 10)); height: min(19vw, calc(var(--vh) * 10)); padding: 8px; }
   .home-card .hc-name { font-size: clamp(14px, 4.6vw, 22px); }
   .home-card.hc-machi .hc-name { font-size: clamp(11px, 3.5vw, 18px); }
+}
+
+/* ===== しりとり（shiritori.js）===== */
+.sr-wrap { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.sr-chain { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 112px; flex-wrap: nowrap; max-width: 100%; }
+.sr-link { display: flex; flex-direction: column; align-items: center; background: var(--c-surface); border-radius: 20px; padding: 6px 12px 8px; box-shadow: 0 4px 0 #ecd3b4; min-width: 86px; }
+.sr-lpic { font-size: 52px; line-height: 1.1; }
+.sr-lword { font-size: 22px; font-weight: bold; white-space: nowrap; }
+.sr-last { color: #e2483d; font-size: 1.25em; }
+.sr-arrow { font-size: 34px; font-weight: bold; color: var(--c-primary); }
+.sr-pop { animation: mg-pop .35s ease; }
+.sr-talk { flex: 0 0 auto; flex-wrap: nowrap; margin: 0; }
+.sr-bubble { font-size: 30px; }
+.sr-kana { display: inline-block; font-size: 1.8em; line-height: 1; color: #e2483d; margin-right: 4px; vertical-align: -0.1em; }
+.sr-cards { flex: 1 1 auto; min-height: 0; display: flex; flex-wrap: nowrap; gap: 20px; align-items: center; justify-content: center; }
+.sr-card { width: 210px; min-height: 230px; }
+.sr-cards.n4 .sr-card { width: 190px; min-height: 210px; }
+.sr-pic { font-size: 104px; line-height: 1.1; }
+.sr-name { font-size: 34px; font-weight: bold; white-space: nowrap; }
+.sr-name.len5 { font-size: 28px; }
+.sr-name.len6 { font-size: 24px; }
+.sr-card.sr-tried { opacity: .35; box-shadow: none; }
+.sr-card.sr-hint { animation: pulse 1s ease infinite; box-shadow: 0 8px 0 #ecd3b4, 0 0 0 8px var(--c-star); }
+.sr-card.sr-good { box-shadow: 0 8px 0 #3e9b4b, 0 0 0 8px var(--c-good); transform: scale(1.06); animation: none; }   /* 光る動きを止めて、大きくなるのを見せる */
+
+@media (orientation: landscape) and (max-height: 700px) {
+  .sr-chain { min-height: 92px; }
+  .sr-lpic { font-size: 40px; }
+  .sr-card, .sr-cards.n4 .sr-card { min-height: 180px; }
+  .sr-pic { font-size: 84px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .sr-wrap { gap: 4px; }
+  .sr-chain { min-height: 0; gap: 4px; }
+  .sr-link { padding: 2px 8px 4px; min-width: 64px; border-radius: 14px; }
+  .sr-lpic { font-size: calc(var(--vh) * 9); }
+  .sr-lword { font-size: calc(var(--vh) * 4.2); }
+  .sr-arrow { font-size: 22px; }
+  .sr-talk .q-chara .chara { width: calc(var(--vh) * 14); height: calc(var(--vh) * 14); }
+  .sr-bubble { font-size: clamp(16px, calc(var(--vh) * 5.4), 26px); }
+  .sr-cards { gap: 10px; }
+  .sr-card, .sr-cards.n4 .sr-card { width: min(170px, 21vw); min-height: 0; height: calc(var(--vh) * 40); padding: 4px; gap: 2px; }
+  .sr-pic { font-size: calc(var(--vh) * 18); }
+  .sr-name { font-size: clamp(14px, calc(var(--vh) * 6), 28px); }
+  .sr-name.len5, .sr-name.len6 { font-size: clamp(12px, calc(var(--vh) * 4.6), 22px); }
+}
+@media (orientation: portrait) {
+  .sr-chain { flex-wrap: wrap; }
+  .sr-talk { flex-wrap: wrap; }
+  .sr-cards { flex-wrap: wrap; align-content: center; }
+  .sr-cards.n4 { display: grid; grid-template-columns: repeat(2, minmax(0, 220px)); }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .sr-link { min-width: 0; padding: 4px 6px; }
+  .sr-lpic { font-size: 30px; }
+  .sr-lword { font-size: 14px; }
+  .sr-arrow { font-size: 18px; }
+  .sr-chain { gap: 3px; min-height: 0; }
+  .sr-bubble { font-size: clamp(18px, 5.6vw, 26px); }
+  .sr-cards { gap: 12px; }
+  .sr-talk { flex-wrap: nowrap; gap: 6px; }
+  .sr-talk .q-chara .chara { width: min(18vw, calc(var(--vh) * 10)); height: min(18vw, calc(var(--vh) * 10)); }
+  .sr-talk .speak-btn { flex: 0 0 auto; }
+  .sr-cards.n3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
+  .sr-card, .sr-cards.n4 .sr-card { width: 100%; min-height: clamp(110px, calc(var(--vh) * 19), 230px); }
+  .sr-pic { font-size: min(18vw, calc(var(--vh) * 9)); }
+  .sr-name { font-size: clamp(18px, 6vw, 30px); }
+  .sr-name.len5, .sr-name.len6 { font-size: clamp(14px, 4.4vw, 24px); }
+}
+
+/* ホーム：しりとりのカード（8まい目）。たて向きは6列にして、最後の段を まんなかに寄せる */
+.hc-sr { background: #d9822b; }
+@media (orientation: portrait) {
+  .home-cards { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .home-card { grid-column: span 2; }
+  .home-card:last-child:nth-child(3n+1) { grid-column: 3 / span 2; }
+  .home-card:nth-last-child(2):nth-child(3n+1) { grid-column: 2 / span 2; }
 }

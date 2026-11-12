@@ -84,6 +84,14 @@
     O.COINS.forEach(function (n) { add(O.coinText(n)); });
     Object.keys(O.TEXT).forEach(function (k) { add(O.TEXT[k]); });
 
+    where = 'ちいく しりとり';
+    var SR = C.shiritori;
+    SR.WORDS.forEach(function (w) { add(w.word + '。'); });
+    SR.linkKana().forEach(function (k) { add(SR.speakAsk(k, 1)); add(SR.speakWrong(k)); });
+    add(SR.TEXT.start + '｜' + SR.WORDS[0].word + '。');
+    add(SR.TEXT.reply + '｜' + SR.WORDS[0].word + '。');
+    ['ask', 'n', 'hint', 'giveup', 'goal'].forEach(function (k) { add(SR.TEXT[k]); });
+
     where = 'ちいく どうとく';
     var D = C.chiikuDoutoku;
     D.SCENES.concat(D.OPEN).forEach(function (sc) {
@@ -173,7 +181,7 @@
   }
 
   /* ---------- ソースに直接書いてある文（speak('…') / speakThen('…', …)） ---------- */
-  var SOURCES = ['app-chiiku/game.js', 'app-chiiku/kazu.js', 'app-chiiku/tokei.js', 'app-chiiku/iro.js', 'app-chiiku/machigai.js', 'app-chiiku/doutoku.js', 'app-chiiku/okaimono.js',
+  var SOURCES = ['app-chiiku/game.js', 'app-chiiku/kazu.js', 'app-chiiku/tokei.js', 'app-chiiku/iro.js', 'app-chiiku/machigai.js', 'app-chiiku/doutoku.js', 'app-chiiku/okaimono.js', 'app-chiiku/shiritori.js',
     'app-benkyo/main.js', 'app-benkyo/kuku-screen.js', 'app-benkyo/keisan-screen.js', 'app-benkyo/kanji-screen.js',
     'app-benkyo/doutoku-screen.js', 'app-benkyo/japan-screen.js', 'app-benkyo/world-screen.js', 'app-benkyo/nagasa-screen.js'];
   function literals() {

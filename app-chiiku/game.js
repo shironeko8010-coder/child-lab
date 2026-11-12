@@ -304,6 +304,7 @@
     iro: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="20" cy="22" r="13" fill="#ff5a5a"/><path d="M44 8l14 24H30z" fill="#4f8fe8"/><rect x="22" y="38" width="20" height="20" rx="3" fill="#ffc83d"/></svg>',
     machi: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="27" cy="27" r="17" fill="#e8f7fa" stroke="#8a6fe0" stroke-width="6"/><path d="M40 40l16 16" stroke="#8a6fe0" stroke-width="9" stroke-linecap="round"/><text x="27" y="35" font-size="22" font-weight="900" text-anchor="middle" fill="#e06f20">?</text></svg>',
     kai: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M18 26a14 14 0 0 1 28 0" fill="none" stroke="#b07a3a" stroke-width="5"/><circle cx="24" cy="22" r="7" fill="#ff5a5a"/><circle cx="40" cy="21" r="7" fill="#ffc83d"/><path d="M8 26h48l-6 28H14z" fill="#e0a45a"/><path d="M20 32v16M32 32v16M44 32v16" stroke="#b07a3a" stroke-width="3"/></svg>',
+    sr: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="17" cy="45" r="12" fill="#ffe08a"/><circle cx="47" cy="19" r="12" fill="#bfe8f0"/><path d="M26 37 L38 27" stroke="#3a3a3a" stroke-width="5" stroke-linecap="round"/><path d="M31 25 L40 25 L39 34" fill="none" stroke="#3a3a3a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     dou: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 56S8 41 8 24a12 12 0 0 1 24-4 12 12 0 0 1 24 4c0 17-24 32-24 32z" fill="#ff6f91"/><path d="M22 26q3-6 8-4" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/></svg>'
   };
   function showHome() {
@@ -342,6 +343,7 @@
     playCard('いろ・かたち', 'iro', function () { C.iro.start(p.id); });
     playCard('まちがいさがし', 'machi', function () { C.machigai.start(p.id); });
     playCard('おかいもの', 'kai', function () { C.okaimono.start(p.id); });
+    playCard('しりとり', 'sr', function () { C.shiritori.start(p.id); });
     playCard('どうとく', 'dou', function () { C.chiikuDoutoku.start(p.id); });
     body.appendChild(left);
     body.appendChild(cards);
@@ -753,7 +755,8 @@
     el: el, svg: svg, button: button, later: later, bubble: bubble,
     newScreen: newScreen, chara: chara, topBar: topBar,
     play: play, speak: speak, speakThen: speakThen, ICO: ICO, STAR: STAR,
-    showHome: showHome, showRest: showRest
+    showHome: showHome, showRest: showRest,
+    screenId: function () { return token; }   // 画面が変わったか（newScreen のたびに変わる）を見るため
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

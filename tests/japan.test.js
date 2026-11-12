@@ -226,7 +226,7 @@
 
   C.test('japan: 声の文は すき間なし・ふりがななし。正解では おまけも読む', function () {
     var q = J().makeQuestion(3, 'meibutsu', 'aichi', rnd(4));
-    C.assertEq(J().speakText(q), '自動車を日本一たくさん作っているのはどこ？');
+    C.assertEq(J().speakText(q), '自動車を日本一たくさん作っているのはどこかな？');
     C.assertEq(J().replyText(q, { kind: 'good' }), '愛知県は自動車づくりが日本一！ ここちゃんえまちゃんが住んでいる県だね！');
     C.assertEq(J().replyText(q, { kind: 'retry' }), 'もういっかいやってみよう！');
   });

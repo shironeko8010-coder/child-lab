@@ -120,16 +120,16 @@
     if (!q) return '';
     if (q.type === 'flag') return 'この {国|こっ}きは どこの {国|くに}？';
     if (q.type === 'pick') return nameOf('pick', q.id) + 'の {国|こっ}きは どれ？';
-    if (q.type === 'map') return '{光|ひか}って いる {国|くに}は どこ？';
-    return '{光|ひか}って いる 大りくは どこ？';
+    if (q.type === 'map') return '{光|ひか}って いる {国|くに}は どこかな？';
+    return '{光|ひか}って いる 大りくは どこかな？';
   }
   // 声（「国旗」「大陸」は漢字で渡して、読みまちがいを防ぐ）
   function askSay(q) {
     if (!q) return '';
     if (q.type === 'flag') return 'この国旗は、どこの国？';
     if (q.type === 'pick') return sayName('pick', q.id) + 'の国旗は、どれ？';
-    if (q.type === 'map') return '光っている国は、どこ？';
-    return '光っている大陸は、どこ？';
+    if (q.type === 'map') return '光っている国は、どこかな？';
+    return '光っている大陸は、どこかな？';
   }
   function factOf(q) {
     if (!q) return '';

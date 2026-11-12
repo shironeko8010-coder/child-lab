@@ -3,7 +3,7 @@
    中身は docs/superpowers/specs/2026-11-11-benkyo-chizu-japan-design.md（やまとさん承認済み）を正本にする。
    - レベル1＝8つの地方（3択）、レベル2＝有名な15の都道府県（3択）、レベル3＝47都道府県（4択）。
      Chiid.adaptive.nextLevel で上がり下がりする（九九と同じ。レベルは記録から出す）。
-   - 問題の種類：atete（光っている所は どこ？）／meibutsu（特産物）／kencho（県庁所在地）／touch（地図を押す）。
+   - 問題の種類：atete（光っている所は どこかな？）／meibutsu（特産物）／kencho（県庁所在地）／touch（地図を押す）。
      レベル1は atete と touch だけ（地方）。
    - まちがえたら もう一度。2回まちがえたら答えを見せて、押すと次へ（記録は「1回目で正解」かどうか）。
    記録：area 'chizuJ'。itemId は「青森県・ばしょ」「青森県・名ぶつ」「青森県・けんちょう」「青森県・タッチ」
@@ -238,7 +238,7 @@
     var notWith = null;
     if (level <= 1) {
       var r = region(target);
-      q.ask = kind === 'touch' ? r.name + 'は どこ？ {地図|ちず}を おしてね。' : '{光|ひか}って いるのは どの {地方|ちほう}？';
+      q.ask = kind === 'touch' ? r.name + 'は どこかな？ {地図|ちず}を おしてね。' : '{光|ひか}って いるのは どの {地方|ちほう}？';
       q.fact = r.fact;
       q.extra = null;
     } else {
@@ -247,10 +247,10 @@
       var prod = p.products[Math.max(0, Math.min(p.products.length - 1, pi))];
       q.product = prod;
       q.extra = p.extra;
-      if (kind === 'atete') { q.ask = '{光|ひか}って いるのは どこ？'; q.fact = p.products[0].fact; }
+      if (kind === 'atete') { q.ask = '{光|ひか}って いるのは どこかな？'; q.fact = p.products[0].fact; }
       else if (kind === 'meibutsu') { q.ask = prod.q; q.fact = prod.fact; notWith = prod.notWith; }
       else if (kind === 'kencho') { q.ask = p.name + 'の ' + p.office + 'が ある {市|し}は？'; q.fact = p.name + 'の ' + p.office + 'は ' + p.capital + 'に あるよ！'; }
-      else { q.ask = p.name + 'は どこ？ {地図|ちず}を おしてね。'; q.fact = p.products[0].fact; }
+      else { q.ask = p.name + 'は どこかな？ {地図|ちず}を おしてね。'; q.fact = p.products[0].fact; }
     }
     if (kind !== 'touch') {
       var ids = [target].concat(pickDistractors(level, kind, target, choiceCount(level) - 1, notWith, rng));

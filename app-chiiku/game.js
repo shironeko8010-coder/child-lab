@@ -329,6 +329,7 @@
     playBtn("とけい", function () { C.tokei.start(p.id); });
     playBtn("いろ・かたち", function () { C.iro.start(p.id); });
     playBtn("まちがいさがし", function () { C.machigai.start(p.id); });
+    playBtn("おかいもの", function () { C.okaimono.start(p.id); });
     playBtn("どうとく", function () { C.chiikuDoutoku.start(p.id); });
     right.appendChild(btns);
     body.appendChild(left);

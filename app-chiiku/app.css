@@ -809,3 +809,61 @@
 @media (prefers-reduced-motion: reduce) {
   .dt-pick { transition: none; }
 }
+
+/* ---------- おかいもの（okaimono.js） ---------- */
+.ok-body { flex: 1 1 auto; display: grid; grid-template-columns: minmax(220px, 34%) minmax(0, 1fr); gap: 20px; min-height: 0; }
+.ok-shop {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  background: var(--c-surface); border: 6px solid var(--c-primary); border-radius: 32px; box-shadow: 0 6px 0 var(--c-soft); padding: 12px;
+}
+.ok-shop .speak-btn { position: absolute; right: 8px; top: 8px; }
+.ok-pic { font-size: 120px; line-height: 1.1; }
+.ok-word { font-size: 32px; color: var(--c-text-sub, #666); }
+.ok-price { color: var(--c-primary-dark); font-weight: bold; line-height: 1; }
+.ok-price-n { font-size: 84px; }
+.ok-yen { font-size: 40px; margin-left: 4px; }
+.ok-right { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.ok-talk { display: flex; align-items: center; gap: 12px; }
+.ok-talk .q-chara .chara { width: 96px; height: 96px; }
+.ok-tray {
+  flex: 1 1 auto; min-height: 150px; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; align-items: center; gap: 6px;
+  background: #fff8e8; border: 5px dashed #e0b25a; border-radius: 28px; padding: 10px;
+}
+.ok-tray-empty { font-size: 26px; color: #b8913e; }
+.ok-total { text-align: right; font-size: 30px; }
+.ok-total-n { font-size: 52px; font-weight: bold; color: var(--c-primary-dark); }
+.ok-bottom { display: flex; align-items: center; gap: 16px; margin-top: 14px; }
+.ok-wallet { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 14px; background: var(--c-surface); border-radius: 28px; padding: 8px 12px; box-shadow: 0 4px 0 var(--c-soft); }
+.ok-coin { background: none; border: 0; padding: 4px; border-radius: 50%; min-width: var(--tap-min); min-height: var(--tap-min); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.ok-coin svg { display: block; }
+.ok-coin:active { transform: scale(.92); }
+.ok-tray .ok-coin svg { width: 58px; height: 58px; }
+.ok-coin.ok-hint { animation: ok-glow 1s ease-in-out infinite; }
+@keyframes ok-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 196, 0, .0); } 50% { box-shadow: 0 0 0 10px rgba(255, 196, 0, .75); } }
+.ok-buy { position: relative; font-size: 44px; min-width: 180px; min-height: 110px; }
+.ok-buy.wiggle { animation: wiggle .5s ease; }
+.scr-okaimono.settled .ok-coin { pointer-events: none; }
+
+@media (orientation: landscape) and (max-height: 700px) {
+  .ok-pic { font-size: 88px; }
+  .ok-price-n { font-size: 64px; }
+  .ok-word { font-size: 26px; }
+  .ok-tray { min-height: 110px; }
+  .ok-tray .ok-coin svg { width: 48px; height: 48px; }
+  .ok-buy { min-height: 90px; font-size: 38px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .ok-pic { font-size: calc(var(--vh) * 16); }
+  .ok-price-n { font-size: calc(var(--vh) * 12); }
+  .ok-yen, .ok-word { font-size: calc(var(--vh) * 6); }
+  .ok-talk .q-chara { display: none; }
+  .ok-tray { min-height: 0; }
+  .ok-tray .ok-coin svg { width: calc(var(--vh) * 9); height: calc(var(--vh) * 9); }
+  .ok-coin svg { width: calc(var(--vh) * 14); height: calc(var(--vh) * 14); }
+  .ok-bottom { margin-top: 6px; }
+  .ok-buy { min-height: calc(var(--vh) * 18); font-size: calc(var(--vh) * 8); min-width: 120px; }
+}
+@media (orientation: portrait) {
+  .ok-body { grid-template-columns: 1fr; }
+  .ok-bottom { flex-wrap: wrap; justify-content: center; }
+}

@@ -69,6 +69,21 @@
     where = 'ちいく ごほうび';
     add('すごい！ 5もん できたね');
 
+    where = 'ちいく おかいもの';
+    var O = C.okaimono;
+    O.ITEMS.forEach(function (it) {
+      var seen = {};
+      [1, 2, 3].forEach(function (lv) {
+        O.pricesFor(it, lv).forEach(function (p) {
+          if (seen[p]) return;
+          seen[p] = 1;
+          add(O.speakText({ item: it, price: p }));
+        });
+      });
+    });
+    O.COINS.forEach(function (n) { add(O.coinText(n)); });
+    Object.keys(O.TEXT).forEach(function (k) { add(O.TEXT[k]); });
+
     where = 'ちいく どうとく';
     var D = C.chiikuDoutoku;
     D.SCENES.concat(D.OPEN).forEach(function (sc) {
@@ -148,7 +163,7 @@
   }
 
   /* ---------- ソースに直接書いてある文（speak('…') / speakThen('…', …)） ---------- */
-  var SOURCES = ['app-chiiku/game.js', 'app-chiiku/kazu.js', 'app-chiiku/tokei.js', 'app-chiiku/iro.js', 'app-chiiku/machigai.js', 'app-chiiku/doutoku.js',
+  var SOURCES = ['app-chiiku/game.js', 'app-chiiku/kazu.js', 'app-chiiku/tokei.js', 'app-chiiku/iro.js', 'app-chiiku/machigai.js', 'app-chiiku/doutoku.js', 'app-chiiku/okaimono.js',
     'app-benkyo/main.js', 'app-benkyo/kuku-screen.js', 'app-benkyo/keisan-screen.js', 'app-benkyo/kanji-screen.js',
     'app-benkyo/doutoku-screen.js', 'app-benkyo/japan-screen.js', 'app-benkyo/world-screen.js'];
   function literals() {

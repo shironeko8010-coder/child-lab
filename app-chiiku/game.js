@@ -331,7 +331,7 @@
         if (audioReady && C.storage.getSettings().bgmOn) C.sfx.startBgm();
         run();
       });
-      go.setAttribute('aria-label', label);
+      go.setAttribute('aria-label', label.replace(/​/g, ''));   // ​ は 2行に分ける所（読み上げには入れない）
       go.appendChild(svg(HOME_ICO[kind], 'hc-pic'));
       go.appendChild(el('span', 'hc-name', label));
       all.push(go);
@@ -340,8 +340,8 @@
     playCard('ひらがな', 'hira', function () { C.game.start(p.id); });
     playCard('かず', 'kazu', function () { C.kazu.start(p.id); });
     playCard('とけい', 'tokei', function () { C.tokei.start(p.id); });
-    playCard('いろ・かたち', 'iro', function () { C.iro.start(p.id); });
-    playCard('まちがいさがし', 'machi', function () { C.machigai.start(p.id); });
+    playCard('いろ・​かたち', 'iro', function () { C.iro.start(p.id); });
+    playCard('まちがい​さがし', 'machi', function () { C.machigai.start(p.id); });
     playCard('おかいもの', 'kai', function () { C.okaimono.start(p.id); });
     playCard('しりとり', 'sr', function () { C.shiritori.start(p.id); });
     playCard('どうとく', 'dou', function () { C.chiikuDoutoku.start(p.id); });

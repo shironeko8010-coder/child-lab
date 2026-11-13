@@ -1027,3 +1027,49 @@
   .home-card:last-child:nth-child(3n+1) { grid-column: 3 / span 2; }
   .home-card:nth-last-child(2):nth-child(3n+1) { grid-column: 2 / span 2; }
 }
+
+/* ===== スマホで見やすく（2026-11）=====
+   決まり：主な字 18px 以上・補足の字 16px 以上・ボタン 56px 以上（とても低い横向きは 48px）。
+   入りきらないときは、字を小さくせずに 並べ方を変える。 */
+.home-card .hc-name { white-space: normal; word-break: keep-all; text-align: center; }   /* 長い名前は 決めた所（game.js の ​）で 2行に */
+@media (orientation: landscape) and (max-height: 520px) {
+  .home-card .hc-name, .home-card.hc-machi .hc-name { font-size: clamp(18px, calc(var(--vh) * 5.2), 24px); line-height: 1.1; }
+  .sr-lword { font-size: max(16px, calc(var(--vh) * 4.4)); }
+  .dt-pick { min-height: 64px; padding-right: 70px; }
+  .dt-say { width: 56px; height: 56px; min-width: 56px; min-height: 56px; right: 4px; }
+}
+@media (orientation: landscape) and (max-height: 340px) {
+  .dt-pick { min-height: 56px; padding-right: 60px; }
+  .dt-say { width: 48px; height: 48px; min-width: 48px; min-height: 48px; }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .home-card .hc-name, .home-card.hc-machi .hc-name { font-size: clamp(18px, 5vw, 22px); line-height: 1.1; }
+  .sr-lword { font-size: 16px; }
+
+  /* おかいもの：お店の絵とねだんを横に並べ、全体を1画面に収める */
+  .scr-okaimono .ok-body { gap: 10px; flex: 1 1 auto; grid-template-rows: auto minmax(0, 1fr); }
+  .ok-shop { display: grid; grid-template-columns: auto auto; grid-template-areas: "pic price" "pic word"; justify-content: center; align-items: center; column-gap: 16px; row-gap: 0; padding: 6px 64px 6px 12px; border-width: 4px; border-radius: 22px; }
+  .ok-pic { grid-area: pic; font-size: min(22vw, calc(var(--vh) * 11)); }
+  .ok-word { grid-area: word; font-size: 22px; }
+  .ok-price { grid-area: price; }
+  .ok-price-n { font-size: min(14vw, calc(var(--vh) * 8)); }
+  .ok-yen { font-size: 26px; }
+  .ok-right { gap: 8px; min-height: 0; }
+  .ok-talk { gap: 8px; }
+  .ok-talk .q-chara .chara { width: min(16vw, 64px); height: min(16vw, 64px); }
+  .ok-talk .bubble { font-size: clamp(18px, 5vw, 24px); padding: 8px 14px; }
+  .ok-tray { min-height: calc(var(--vh) * 12); padding: 6px; border-width: 4px; border-radius: 20px; }
+  .ok-tray .ok-coin svg { width: 44px; height: 44px; }
+  .ok-tray-empty { font-size: 18px; }
+  .ok-total { font-size: 22px; }
+  .ok-total-n { font-size: 36px; }
+  .ok-bottom { margin-top: 8px; gap: 8px; }
+  .ok-wallet { gap: 4px; padding: 6px; border-radius: 22px; }
+  .ok-wallet .ok-coin.c1 svg { width: 48px; height: 48px; }
+  .ok-wallet .ok-coin.c5 svg { width: 51px; height: 51px; }
+  .ok-wallet .ok-coin.c10 svg { width: 54px; height: 54px; }
+  .ok-wallet .ok-coin.c50 svg { width: 56px; height: 56px; }
+  .ok-wallet .ok-coin.c100 svg { width: 59px; height: 59px; }
+  .ok-wallet .ok-coin.c500 svg { width: 63px; height: 63px; }
+  .ok-buy { min-height: 72px; font-size: 32px; min-width: 160px; }
+}

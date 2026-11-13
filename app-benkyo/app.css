@@ -62,7 +62,7 @@
 .btn-big .ico svg { width: 36px; height: 36px; display: block; }
 .btn-big { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
 
-ruby rt { font-size: .42em; font-weight: bold; }
+ruby rt { font-size: .5em; font-weight: bold; }   /* .5em：本文 18px で ふりがな 9px（それより小さいと読めない） */
 
 /* ---------- キャラクター ---------- */
 .chara { display: inline-block; line-height: 0; }
@@ -1426,4 +1426,184 @@ ruby rt { font-size: .42em; font-weight: bold; }
   .zk-theme-name { font-size: calc(var(--vh) * 4.4); white-space: normal; line-height: 1.05; }
   .zk-theme-count { font-size: calc(var(--vh) * 3.4); }
   .zk-book-btn { min-height: 44px; font-size: 18px; }
+}
+
+/* ===== スマホで見やすく（2026-11）=====
+   決まり：主な字 18px 以上・補足の字 16px 以上・ふりがな 9px 以上・ボタン 56px 以上（とても低い横向きは 48px）。
+   入りきらないときは、字を小さくせずに 並べ方を変える・出すものを減らす。
+   トップは .scr-home を付けて、上の方のトップ用の指定（いくつも重なっている）より強くする。 */
+@media (orientation: landscape) and (max-height: 520px) {
+  /* トップ：じゅんび中のカードは出さず、10まいを 5×2 に。下の説明は 九九の2まい（見分けに要る）だけ */
+  .scr-home .home-hello { display: none; }
+  .scr-home .home-main { display: flex; flex-direction: column; min-height: 0; align-self: stretch; }
+  .scr-home .subject-card.soon { display: none; }
+  .scr-home .subjects { flex: 1 1 auto; min-height: 0; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 8px; width: 100%; }
+  .scr-home .subject-card { height: auto; min-height: 0; padding: 4px; gap: 2px; }
+  .scr-home .sc-ico svg { width: calc(var(--vh) * 11); height: calc(var(--vh) * 11); }
+  .scr-home .subject-card .sc-name, .scr-home .subject-card[data-subject] .sc-name { font-size: clamp(18px, calc(var(--vh) * 5.4), 26px); line-height: 1.1; white-space: normal; text-align: center; transform: none; }
+  .scr-home .sc-sub { display: none; }
+  .scr-home .subject-card[data-subject^="kuku"] .sc-sub { display: block; font-size: 16px; line-height: 1.15; white-space: normal; text-align: center; }
+
+  .kk-dt-caret { font-size: 16px; }
+  .dt-choice { min-height: 56px; font-size: clamp(16px, calc(var(--vh) * 4.8), 20px); }
+  .jp-choice { min-height: 56px; font-size: clamp(16px, calc(var(--vh) * 5), 22px); }
+  .wd-choice { min-height: 56px; font-size: clamp(16px, calc(var(--vh) * 5), 22px); }
+  .wd-msg { font-size: clamp(16px, calc(var(--vh) * 4.4), 18px); }
+  .ht-choice { min-height: 56px; }
+  .zk-theme-count { font-size: 16px; }
+  .zk-book-btn, .zk-ready { min-height: 56px; }
+}
+@media (orientation: landscape) and (max-height: 340px) {
+  .dt-choice, .jp-choice, .wd-choice, .ht-choice, .zk-book-btn, .zk-ready { min-height: 48px; }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  /* トップ：じゅんび中のカードは出さず、10まいを 3列に。キャラは小さく、あいさつは出さない */
+  .scr-home .home-hello { display: none; }
+  .scr-home .home-body { gap: 8px; }
+  .scr-home .home-chara .chara { width: min(24vw, calc(var(--vh) * 12)); height: min(24vw, calc(var(--vh) * 12)); }
+  .scr-home .subject-card.soon { display: none; }
+  .scr-home .subjects { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .scr-home .subject-card { height: auto; min-height: 0; padding: 8px 4px; gap: 4px; }
+  .scr-home .sc-ico svg { width: min(13vw, 56px); height: min(13vw, 56px); }
+  .scr-home .subject-card .sc-name, .scr-home .subject-card[data-subject] .sc-name { font-size: clamp(18px, 5.4vw, 24px); line-height: 1.1; white-space: normal; text-align: center; transform: none; }
+  .scr-home .sc-sub { display: none; }
+  .scr-home .subject-card[data-subject^="kuku"] .sc-sub { display: block; font-size: 16px; line-height: 1.15; white-space: normal; text-align: center; }
+
+  .kk-dan small { font-size: 16px; }
+  .dt-choice { font-size: clamp(16px, 4.6vw, 20px); }
+  .jp-choice { min-height: 56px; font-size: clamp(16px, 4.8vw, 20px); }
+  .wd-msg { font-size: clamp(16px, 4.4vw, 18px); }
+
+  /* 長さ・かさ：上下に並ぶので、絵と答えを少し小さく、単位のボタンは横に並べる */
+  .ng-body { gap: 12px; padding-top: 8px; }
+  .ng-left { gap: 8px; }
+  .ng-pic { min-height: 0; }
+  .ng-cup { height: calc(var(--vh) * 22); }
+  .ng-boxes { font-size: clamp(40px, 12vw, 56px); }
+  .ng-units { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 10px; }
+  .ng-unit { min-width: 120px; min-height: 72px; font-size: 36px; }
+}
+/* たてが短いスマホ（375×667 など）：九九・長さ・かさの すき間を つめる */
+@media (orientation: portrait) and (max-width: 520px) and (max-height: 700px) {
+  .kk-body { gap: 8px; padding-top: 6px; }
+  .kk-q { gap: 6px; }
+  .kk-who .chara { width: min(16vw, 60px); height: min(16vw, 60px); }
+  .kk-pad { grid-auto-rows: 56px; gap: 8px; }
+  .kk-dans { gap: 4px; }
+}
+/* スマホ：ふりがなは 9px より小さくしない（上の .5em の指定があっても） */
+@media (orientation: landscape) and (max-height: 520px), (orientation: portrait) and (max-width: 520px) {
+  ruby rt, .dt-text rt, .dt-choice rt, .dt-msg rt, .jp-ask rt, .jp-hint rt, .jp-choice rt, .jp-msg rt, .wd-msg rt, .wd-choice rt { font-size: max(9px, .5em); }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .ht-talk .kk-msg { font-size: max(16px, calc(var(--vh) * 4.4)); }
+  .zk-theme-name { font-size: max(16px, calc(var(--vh) * 5)); }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  /* トップ：キャラを「何を やる？」の横に置いて、カードに高さを回す（.home-main の中身を じかに並べる） */
+  .scr-home .home-body { display: grid; grid-template-columns: auto auto; grid-template-areas: "chara title" "cards cards"; justify-content: center; align-items: center; align-content: start; gap: 8px 10px; }
+  .scr-home .home-main { display: contents; }
+  .scr-home .home-chara { grid-area: chara; }
+  .scr-home .home-title { grid-area: title; }
+  .scr-home .subjects { grid-area: cards; width: calc(100vw - 24px - var(--safe-l) - var(--safe-r)); }
+  .scr-home .home-chara .chara { width: min(15vw, calc(var(--vh) * 8)); height: min(15vw, calc(var(--vh) * 8)); }
+}
+@media (orientation: portrait) and (max-width: 520px) and (max-height: 700px) {
+  /* かん字の読み（かなのキー）：すき間とキーを少しずつ つめる */
+  .kj-body { gap: 6px; padding-top: 4px; }
+  .kj-big { font-size: clamp(48px, calc(var(--vh) * 9), 80px); }
+  .kj-q .kk-who .chara { width: 44px; height: 44px; }
+  .kp-row { height: 58px; }
+  .kp-chars { min-height: 64px; }
+  .kp-char { height: 56px; }
+  .kp-act { height: 56px; }
+}
+/* 小さめのタブレット横向き（1024×600 など）：長さ・かさの「かさ」の絵で 少しはみ出すので つめる */
+@media (orientation: landscape) and (max-height: 700px) and (min-height: 521px) {
+  .ng-cup { height: calc(var(--vh) * 26); }
+  .scr-nagasa .kk-talk { min-height: 0; }
+}
+/* スマホ：「つぎへ」「もどる」などのボタンも 56px に（とても低い横向きは 48px） */
+@media (orientation: landscape) and (max-height: 520px), (orientation: portrait) and (max-width: 520px) {
+  .dt-next, .jp-next, .jp-all, .wd-next, .ht-next, .zk-next, .zk-back, .zk-book-btn, .zk-ready { min-height: 56px; }
+  /* わたしのずかん：テーマのボタンは 56px。カードの名前は 16px（長い名前は 2行） */
+  .zk-book .zk-tab { width: 56px; height: 56px; font-size: 26px; border-radius: 14px; }
+  .zk-book .zk-card-name { font-size: 16px; line-height: 1.15; word-break: break-all; }
+}
+@media (orientation: landscape) and (max-height: 340px) {
+  .dt-next, .jp-next, .jp-all, .wd-next, .ht-next, .zk-next, .zk-back, .zk-book-btn, .zk-ready { min-height: 48px; }
+  .zk-book .zk-tab { width: 48px; height: 48px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .zk-book-title { font-size: 20px; line-height: 1.2; }
+  .zk-book .zk-grid { flex: 1 1 auto; min-height: 0; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 6px; }
+  .zk-book .zk-grid .zk-card { aspect-ratio: auto; padding: 2px; }
+  .zk-book .zk-card-pic { width: auto; height: 60%; }
+  .zk-book .zk-card-pic .zk-emoji { font-size: calc(var(--vh) * 9); }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .is-think .dt-ask { font-size: clamp(16px, 4.2vw, 18px); }
+  .zk-book .zk-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .zk-book .zk-grid .zk-card { aspect-ratio: auto; padding: 4px 2px; }
+  .zk-book .zk-card-pic { width: 44px; }
+  .zk-book .zk-card-pic .zk-emoji { font-size: 32px; }
+}
+/* せかいの国：答えのあとの長い文が ふきだしの中で切れないように（横向き）・国旗3まいは横1列に（たて向き） */
+@media (orientation: landscape) and (max-height: 520px) {
+  .wd-stage { max-height: calc(var(--vh) * 44); }
+  .wd-msg { max-height: calc(var(--vh) * 34); }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .wd-choices.is-flags.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+/* どうとく：字の下限をそろえる。たてが短いスマホは 絵を少し小さく */
+@media (orientation: landscape) and (max-height: 520px) {
+  .dt-text { font-size: clamp(16px, calc(var(--vh) * 4.8), 20px); }
+  .dt-msg { font-size: clamp(16px, calc(var(--vh) * 4.4), 18px); }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .dt-text { font-size: clamp(16px, 4.6vw, 20px); }
+  .dt-msg { font-size: clamp(16px, 4.4vw, 18px); }
+}
+@media (orientation: portrait) and (max-width: 520px) and (max-height: 700px) {
+  .dt-pic { max-height: calc(var(--vh) * 28); }
+}
+@media (orientation: portrait) and (max-width: 520px) and (max-height: 700px) {
+  .scr-home .sc-ico svg { width: 38px; height: 38px; }
+  .scr-home .subject-card { padding: 6px 4px; }
+}
+/* 日本の地図：字の下限。たて向きも、正解のあとは地図で答えが分かるので えらぶボタンを しまう */
+@media (orientation: landscape) and (max-height: 520px) {
+  .jp-ask { font-size: clamp(16px, calc(var(--vh) * 5), 22px); }
+  .jp-hint { font-size: 16px; }
+  .jp-msg { font-size: clamp(16px, calc(var(--vh) * 4.2), 18px); }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .jp-hint { font-size: 16px; }
+  .jp-msg { font-size: clamp(16px, 4.4vw, 18px); }
+  .is-wait .jp-choices { display: none; }
+}
+@media (orientation: portrait) and (max-width: 520px) and (max-height: 700px) {
+  .ng-cup { height: calc(var(--vh) * 19.5); }
+  .ng-boxes { font-size: 44px; }
+  .scr-nagasa .kk-talk { min-height: 0; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .is-think .dt-ask { font-size: clamp(16px, calc(var(--vh) * 4.4), 20px); }
+  .zk-talk .kk-msg { font-size: max(16px, calc(var(--vh) * 4.4)); }
+  .zk-choice { min-height: max(56px, calc(var(--vh) * 15)); }
+}
+@media (orientation: landscape) and (max-height: 340px) {
+  .zk-choice { min-height: 48px; }
+}
+@media (orientation: portrait) and (max-width: 520px) and (max-height: 700px) {
+  .kp-row { height: 56px; }
+  .kp-rows, .kp-chars, .kp-acts { gap: 4px; }
+  .kj-q { gap: 4px; }
+}
+/* 「つぎへ」の字が折れて ボタンが縦にのびないように（どの画面の大きさでも） */
+.dt-next, .jp-next, .wd-next, .ht-next, .zk-next { white-space: nowrap; flex: 0 0 auto; }
+/* 日本の地図：たてが短いスマホは、まちがえたときの ふきだしの分だけ 地図を小さく */
+@media (orientation: portrait) and (max-width: 520px) and (max-height: 700px) {
+  .jp-map { flex: 0 0 auto; height: calc(var(--vh) * 39); }
 }

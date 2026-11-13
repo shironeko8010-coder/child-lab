@@ -52,4 +52,22 @@
       }));
     });
   });
+
+  // 公開（.github/workflows/pages.yml）は、決めたファイル・フォルダだけをコピーする。
+  // PRECACHE にあるのに公開されないファイルがあると、実機では読めない（top.js で起きた）
+  C.test('precache: PRECACHE のファイルは、すべて GitHub Pages に公開される', function () {
+    if (!isHttp) return;
+    return Promise.all([loadPrecache(), fetch('../.github/workflows/pages.yml').then(function (r) { return r.text(); })]).then(function (v) {
+      var m = /cp -r ([^\n]*?) _site\//.exec(v[1]);
+      if (!m) throw new Error('pages.yml に cp -r … _site/ が見つからない');
+      var copied = m[1].trim().split(/\s+/);
+      var missing = v[0].map(norm).filter(function (u) {
+        if (u === '' || u === './') return false;
+        if (/^voice\/z\//.test(u)) return false;      // 音声は別の行でコピーする
+        var top = u.split('/')[0];
+        return copied.indexOf(u) < 0 && copied.indexOf(top) < 0;
+      });
+      if (missing.length) throw new Error('公開されないファイル: ' + missing.join(', '));
+    });
+  });
 })();

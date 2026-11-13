@@ -48,6 +48,8 @@
   function boot() {
     scene = document.querySelector('[data-top]');
     if (!scene) return;           // テストなど、トップのページでないとき
+    // 「タッチしてね」は、このスクリプトが動いたときだけ出す（読めなかったときに 画面が止まらないように）
+    document.documentElement.classList.add('js');
     try { C.storage.init().catch(function () {}); } catch (e) {}
     scene.addEventListener('click', function (ev) {
       if (ev.target.closest('[data-start]')) { start(); return; }

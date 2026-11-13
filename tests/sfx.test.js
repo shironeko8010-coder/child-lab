@@ -86,4 +86,43 @@
     C.sfx._reset();
     C.assertEq(C.sfx._isDucked(), false);
   });
+
+  C.test('sfx: トップの曲（はじまりの うた）は拍がそろい、時間の順に並び、20秒より長い', function () {
+    var s = C.sfx._buildTopSong();
+    if (!(s.len > 20)) throw new Error('len ' + s.len);
+    for (var k = 1; k < s.ev.length; k++) if (s.ev[k][0] < s.ev[k - 1][0]) throw new Error('順番');
+    var chug = 0;
+    s.ev.forEach(function (e) {
+      if (!(e[0] >= 0 && e[0] < s.len)) throw new Error('時刻 ' + e[0]);
+      if (e[1] === 'chug') { chug++; return; }
+      if (!(e[2] > 50 && e[2] < 4000)) throw new Error('音の高さ ' + e[2]);
+    });
+    if (!chug) throw new Error('がたん ごとん が無い');
+  });
+
+  C.test('sfx: startTopBgm でトップの曲だけ、startBgm で ふだんの3曲に もどる', function () {
+    C.sfx._reset();
+    C.sfx.setBgmOn(true);
+    C.sfx.startTopBgm();
+    C.assertEq(C.sfx._listNames().join(','), 'hajimari');
+    C.sfx.startBgm();
+    C.assertEq(C.sfx._listNames().join(','), 'poka,waku,fuwa');
+    C.assertEq(C.sfx.isBgmPlaying(), true);
+    C.sfx._reset();
+    C.assertEq(C.sfx._listNames().join(','), 'poka,waku,fuwa');
+  });
+
+  C.test('sfx: BGMがOFFなら startTopBgm でも鳴らさない', function () {
+    C.sfx._reset();
+    C.sfx.setBgmOn(false);
+    C.sfx.startTopBgm();
+    C.assertEq(C.sfx.isBgmPlaying(), false);
+    C.sfx._reset();
+  });
+
+  C.test('sfx: 汽笛（whistle）を鳴らしても例外が出ない', function () {
+    C.sfx._reset();
+    C.sfx.play('whistle');
+    C.sfx._reset();
+  });
 })();

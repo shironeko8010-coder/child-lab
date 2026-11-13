@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>トップ画面（どれで あそぶ？）の見本</title>
+<style>
+  /* 見本ページ。アプリ本体には まだ入れていない。外の画像・音・フォントは使わない。 */
+  :root { --text:#3a3a3a; --dark:#e06f20; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:16px; background:#eee7da; font-family:"Hiragino Maru Gothic ProN","Meiryo","Yu Gothic UI",sans-serif; color:var(--text); }
+  h1 { font-size:22px; margin:0 0 6px; }
+  p.lead { margin:0 0 12px; font-size:15px; line-height:1.6; }
+  .ctrl { display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center; margin:8px 0 10px; }
+  .ctrl .grp { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .ctrl b { font-size:14px; }
+  .ctrl button { font:inherit; font-size:15px; font-weight:bold; border:0; border-radius:12px; padding:9px 14px; background:#fff; color:var(--text); box-shadow:0 3px 0 #d7c9b0; cursor:pointer; }
+  .ctrl button.on { background:#ff8a3d; color:#fff; box-shadow:0 3px 0 #c25a17; }
+  .desc { background:#fff; border-radius:14px; padding:10px 14px; margin:0 0 12px; font-size:15px; line-height:1.6; max-width:980px; }
+  .desc strong { color:var(--dark); }
+  .stage-wrap { position:relative; }
+  .frame { position:absolute; left:0; top:0; transform-origin:0 0; border-radius:20px; overflow:hidden; box-shadow:0 6px 20px rgba(0,0,0,.18); container-type:size; background:#fff8e7; user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent; }
+  .again { margin-top:10px; font:inherit; font-size:14px; border:0; background:none; color:#7a6a52; text-decoration:underline; cursor:pointer; }
+
+  /* ===== 共通（どの案も） ===== */
+  .scene { position:absolute; inset:0; overflow:hidden; }
+  .title { position:absolute; left:0; right:0; top:4cqh; text-align:center; margin:0; z-index:5;
+    font-size:clamp(24px, 9cqmin, 54px); font-weight:900; color:var(--dark); letter-spacing:.04em; white-space:nowrap; }
+  .title span { display:inline-block; text-shadow:0 3px 0 #fff, 0 -2px 0 #fff, 3px 0 0 #fff, -3px 0 0 #fff; }
+  .started .title span { animation:t-hop 2.4s ease-in-out infinite; animation-delay:calc(var(--i) * .12s); }
+  @keyframes t-hop { 0%, 60%, 100% { transform:translateY(0); } 30% { transform:translateY(-14%); } }
+  .lbl { font-size:clamp(22px, 8.4cqmin, 46px); font-weight:900; color:#3a3a3a; white-space:nowrap; line-height:1.1; }
+  .chara { display:block; width:100%; height:100%; overflow:visible; }
+  .eyes { animation:blink 4s infinite; transform-origin:center 45%; transform-box:fill-box; }
+  @keyframes blink { 0%, 92%, 100% { transform:scaleY(1); } 95% { transform:scaleY(.1); } }
+  .tapped .jumper { animation:jump .7s cubic-bezier(.3,1.5,.5,1); }
+  @keyframes jump { 0% { transform:translateY(0) scale(1); } 25% { transform:translateY(4%) scale(1.08,.9); } 55% { transform:translateY(-22%) scale(.95,1.06); } 100% { transform:translateY(0) scale(1); } }
+  .burst { position:absolute; left:50%; top:40%; width:0; height:0; pointer-events:none; z-index:9; }
+  .burst i { position:absolute; left:-9px; top:-9px; width:18px; height:18px; background:#ffd23f; clip-path:polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); animation:fly .8s ease-out forwards; }
+  @keyframes fly { from { transform:translate(0,0) scale(.4); opacity:1; } to { transform:translate(var(--x), var(--y)) scale(1.3) rotate(160deg); opacity:0; } }
+
+  /* はじめの「タッチしてね」：さわると音楽が はじまる */
+  .start { position:absolute; inset:0; z-index:20; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2cqmin;
+    background:rgba(255,248,231,.55); cursor:pointer; transition:opacity .45s; }
+  .started .start { opacity:0; pointer-events:none; }
+  .start .s-chick { width:clamp(90px, 34cqmin, 230px); height:clamp(90px, 34cqmin, 230px); animation:s-bob 1.1s ease-in-out infinite; }
+  @keyframes s-bob { 0%, 100% { transform:translateY(0) rotate(-4deg); } 50% { transform:translateY(-8%) rotate(4deg); } }
+  .start .s-say { background:#fff; border-radius:999px; padding:1.6cqmin 5cqmin; font-size:clamp(22px, 8cqmin, 48px); font-weight:900; color:var(--dark); box-shadow:0 4px 0 #ecd3b4; animation:s-pulse 1.1s ease-in-out infinite; }
+  @keyframes s-pulse { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.08); } }
+
+  .opt { cursor:pointer; position:relative; -webkit-tap-highlight-color:transparent; }
+
+  /* ===== 案A：おひさま広場 ===== */
+  .sA { background:linear-gradient(#9fd8f5 0%, #c9ecfb 52%, #fff6d8 100%); }
+  .sA .sun { position:absolute; left:3cqw; top:3cqh; width:24cqmin; height:24cqmin; z-index:1; }
+  .sA .sun .rays { transform-origin:50% 50%; transform-box:fill-box; animation:spin 24s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .sA .cloud { position:absolute; width:22cqmin; height:12cqmin; z-index:1; animation:drift linear infinite; }
+  .sA .c1 { top:6cqh; animation-duration:46s; animation-delay:-8s; }
+  .sA .c2 { top:20cqh; width:16cqmin; animation-duration:62s; animation-delay:-30s; }
+  .sA .c3 { top:12cqh; width:28cqmin; animation-duration:80s; animation-delay:-55s; }
+  @keyframes drift { from { left:110cqw; } to { left:-35cqw; } }
+  .sA .hills { position:absolute; left:0; right:0; bottom:0; height:34cqh; z-index:1; }
+  .sA .flower { position:absolute; bottom:4cqh; width:7cqmin; height:10cqmin; z-index:2; transform-origin:50% 100%; animation:sway 2.6s ease-in-out infinite; }
+  @keyframes sway { 0%, 100% { transform:rotate(-8deg); } 50% { transform:rotate(8deg); } }
+  .sA .bub { position:absolute; bottom:-10cqmin; width:6cqmin; height:6cqmin; border-radius:50%; border:2px solid rgba(255,255,255,.9); background:rgba(255,255,255,.25); z-index:2; animation:rise linear infinite; }
+  @keyframes rise { from { transform:translateY(0) translateX(0); opacity:0; } 10% { opacity:1; } to { transform:translateY(-110cqh) translateX(6cqw); opacity:0; } }
+  .sA .choices { position:absolute; left:0; right:0; top:21cqh; bottom:5cqh; display:flex; gap:7cqw; justify-content:center; align-items:center; z-index:4; }
+  .sA .opt { width:min(36cqw, 68cqh); height:min(68cqh, 44cqw); transform:scale(0); }
+  .started.sA .opt { animation:pop .7s cubic-bezier(.3,1.6,.5,1) forwards; }
+  .started.sA .opt:nth-child(2) { animation-delay:.18s; }
+  @keyframes pop { to { transform:scale(1); } }
+  .sA .card { width:100%; height:100%; border-radius:8cqmin; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1cqmin;
+    box-shadow:0 2cqmin 0 var(--edge), 0 3cqmin 5cqmin rgba(0,0,0,.12); border:1.4cqmin solid var(--ring); animation:float 3.2s ease-in-out infinite; }
+  .sA .opt:nth-child(2) .card { animation-delay:-1.6s; }
+  @keyframes float { 0%, 100% { transform:translateY(0); } 50% { transform:translateY(-2.5%); } }
+  .sA .opt:active .card { transform:translateY(3%); }
+  .sA .ch { width:58%; height:58%; }
+  .sA .k1 { --ring:#ffd36b; --edge:#e8a92d; }
+  .sA .k2 { --ring:#9cc7f2; --edge:#4f8fe8; }
+  @container (orientation: portrait) {
+    .sA .choices { flex-direction:column; top:15cqh; bottom:4cqh; gap:4cqh; }
+    .sA .opt { width:min(76cqw, 52cqh); height:min(37cqh, 60cqw); }
+    .sA .card { flex-direction:row; gap:5cqw; }
+    .sA .ch { width:auto; height:72%; aspect-ratio:1; }
+    .sA .sun { width:22cqmin; height:22cqmin; }
+  }
+
+  /* ===== 案B：のりもの（汽車） ===== */
+  .sB { background:linear-gradient(#a8dcf7 0%, #d8f0fb 60%, #fff6d8 100%); }
+  .sB .mt { position:absolute; left:0; right:0; bottom:20cqh; height:34cqh; z-index:1; }
+  .sB .cloud { position:absolute; width:20cqmin; height:11cqmin; z-index:1; animation:drift linear infinite; }
+  .sB .c1 { top:7cqh; animation-duration:50s; animation-delay:-20s; }
+  .sB .c2 { top:16cqh; width:15cqmin; animation-duration:70s; animation-delay:-50s; }
+  .sB .ground { position:absolute; left:0; right:0; bottom:0; height:22cqh; background:#8fd16b; z-index:1; }
+  .sB .rows { position:absolute; left:0; right:0; top:18cqh; bottom:4cqh; display:flex; z-index:4; }
+  .sB .row { flex:1 1 0; position:relative; display:flex; align-items:flex-end; justify-content:center; padding-bottom:5cqmin; }
+  .sB .rail { position:absolute; left:0; right:0; bottom:2cqmin; height:3.2cqmin;
+    background:linear-gradient(#7b6a5c, #7b6a5c) top/100% 26% no-repeat, linear-gradient(#7b6a5c, #7b6a5c) bottom/100% 26% no-repeat,
+    repeating-linear-gradient(90deg, #a0846a 0 1.4cqmin, transparent 1.4cqmin 4.4cqmin); }
+  .sB .train { position:relative; display:flex; align-items:flex-end; height:min(54cqh, 24cqw); transform:translateX(120cqw); }
+  .started.sB .train { animation:arrive 2.6s cubic-bezier(.2,.75,.3,1) forwards; }
+  .started.sB .row:nth-child(2) .train { animation-delay:.5s; }
+  @keyframes arrive { to { transform:translateX(0); } }
+  .sB .eng { height:78%; aspect-ratio:.95; position:relative; }
+  .sB .car { height:100%; aspect-ratio:1.18; margin-left:1.2cqmin; border-radius:4cqmin 4cqmin 2cqmin 2cqmin; background:var(--body); position:relative;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.8cqmin; padding:2.4cqmin 2cqmin 5.4cqmin; box-shadow:inset 0 -2.2cqmin 0 rgba(0,0,0,.14); }
+  .sB .car::before { content:""; position:absolute; left:-1.2cqmin; bottom:4.4cqmin; width:1.4cqmin; height:1.4cqmin; background:#555; }
+  .sB .win { flex:1 1 auto; min-height:0; aspect-ratio:1.25; background:#fffaf0; border-radius:3cqmin; display:flex; align-items:flex-end; justify-content:center; overflow:hidden; border:.9cqmin solid rgba(0,0,0,.12); }
+  .sB .win .ch { height:92%; aspect-ratio:1; }
+  .sB .plate { background:#fff; border-radius:999px; padding:.3cqmin 3cqmin; }
+  .sB .plate .lbl { font-size:clamp(18px, 6.6cqmin, 40px); }
+  .sB .wheel { position:absolute; bottom:-2.2cqmin; width:6.4cqmin; height:6.4cqmin; border-radius:50%; background:radial-gradient(#ddd 22%, #444 24% 34%, #666 36%); border:.8cqmin solid #333; }
+  .sB .wheel::after { content:""; position:absolute; left:45%; top:0; width:10%; height:100%; background:#333; }
+  .started.sB .wheel { animation:roll .5s linear 5; }
+  .started.sB .row:nth-child(2) .wheel { animation-delay:.5s; }
+  @keyframes roll { to { transform:rotate(-360deg); } }
+  .sB .smoke { position:absolute; left:18%; top:-4%; width:0; height:0; }
+  .sB .smoke i { position:absolute; width:6cqmin; height:6cqmin; border-radius:50%; background:rgba(255,255,255,.95); animation:puff 2.4s ease-out infinite; opacity:0; }
+  .sB .smoke i:nth-child(2) { animation-delay:.8s; } .sB .smoke i:nth-child(3) { animation-delay:1.6s; }
+  @keyframes puff { 0% { transform:translate(-50%, 0) scale(.4); opacity:.9; } 100% { transform:translate(30%, -260%) scale(1.6); opacity:0; } }
+  .sB .k1 { --body:#ff8a5b; } .sB .k2 { --body:#5aa2ea; }
+  .sB .opt.tapped .car { animation:bounce .5s ease; }
+  @keyframes bounce { 30% { transform:translateY(-6%); } 60% { transform:translateY(1%); } }
+  @container (orientation: portrait) {
+    .sB .rows { flex-direction:column; top:14cqh; bottom:3cqh; }
+    .sB .train { height:min(34cqh, 46cqw); }
+    .sB .mt { bottom:auto; top:34cqh; height:26cqh; }
+    .sB .ground { height:auto; top:58cqh; }
+    .sB .row:first-child { background:linear-gradient(transparent 70%, #8fd16b 70%); }
+  }
+
+  /* ===== 案C：おうちの ドア ===== */
+  .sC { background:linear-gradient(#bfe6fa 0%, #e6f6fd 58%, #fff6d8 100%); }
+  .sC .ground { position:absolute; left:0; right:0; bottom:0; height:16cqh; background:#9bd77a; border-radius:50% 50% 0 0 / 30% 30% 0 0; z-index:1; }
+  .sC .tree { position:absolute; bottom:8cqh; width:16cqmin; height:28cqmin; z-index:2; }
+  .sC .cloud { position:absolute; width:20cqmin; height:11cqmin; z-index:1; animation:drift linear infinite; top:6cqh; animation-duration:58s; animation-delay:-25s; }
+  .sC .houses { position:absolute; left:0; right:0; top:17cqh; bottom:5cqh; display:flex; gap:8cqw; justify-content:center; align-items:flex-end; z-index:4; }
+  .sC .opt { height:min(76cqh, 38cqw); aspect-ratio:1.02; display:flex; flex-direction:column; }
+  .sC .roof { flex:0 0 34%; background:var(--roof); clip-path:polygon(50% 0, 104% 100%, -4% 100%); position:relative; }
+  .sC .chim { position:absolute; right:18%; top:-6%; width:11%; height:40%; background:#a0715a; z-index:-1; }
+  .sC .wall { flex:1 1 auto; margin:0 6%; background:var(--wall); border-radius:0 0 2cqmin 2cqmin; display:flex; align-items:flex-end; justify-content:space-around; padding:0 4% 0; position:relative; box-shadow:inset 0 -1.6cqmin 0 rgba(0,0,0,.1); }
+  .sC .sign { position:absolute; left:50%; top:4%; transform:translateX(-50%); background:#fff; border-radius:2cqmin; padding:.4cqmin 3cqmin; box-shadow:0 1cqmin 0 rgba(0,0,0,.12); z-index:3; }
+  .sC .sign .lbl { font-size:clamp(18px, 6.6cqmin, 40px); }
+  .sC .window { width:38%; aspect-ratio:1; margin-bottom:24%; background:#fffaf0; border:1.2cqmin solid #fff; outline:.6cqmin solid rgba(0,0,0,.15); border-radius:2cqmin; overflow:hidden; display:flex; align-items:flex-end; justify-content:center; }
+  .sC .window .ch { width:96%; height:96%; animation:peek 2.8s ease-in-out infinite; }
+  .sC .opt:nth-child(2) .window .ch { animation-delay:-1.4s; }
+  @keyframes peek { 0%, 100% { transform:translateY(34%); } 40%, 60% { transform:translateY(4%); } }
+  .sC .doorway { width:36%; height:62%; background:#ffe9a8; border-radius:40% 40% 0 0 / 22% 22% 0 0; perspective:400px; position:relative; overflow:visible; }
+  .sC .doorway .inside { position:absolute; inset:18% 10% 0; display:flex; align-items:flex-end; justify-content:center; }
+  .sC .doorway .inside .ch { width:100%; height:auto; aspect-ratio:1; }
+  .sC .door { position:absolute; inset:0; background:var(--door); border-radius:inherit; transform-origin:0 50%; transition:transform .55s cubic-bezier(.3,1.2,.5,1); box-shadow:inset 0 0 0 .8cqmin rgba(0,0,0,.12); }
+  .sC .door::after { content:""; position:absolute; right:14%; top:52%; width:12%; aspect-ratio:1; border-radius:50%; background:#ffd23f; }
+  .sC .opt.open .door { transform:rotateY(-105deg); }
+  .sC .k1 { --roof:#ff7a59; --wall:#ffe1c2; --door:#e8823c; }
+  .sC .k2 { --roof:#4f8fe8; --wall:#dcebfb; --door:#3d7bd0; }
+  .sC .smoke { position:absolute; right:22%; top:-14%; width:0; height:0; }
+  .sC .smoke i { position:absolute; width:5cqmin; height:5cqmin; border-radius:50%; background:rgba(255,255,255,.95); animation:puff 3s ease-out infinite; opacity:0; }
+  .sC .smoke i:nth-child(2) { animation-delay:1.5s; }
+  .sC .opt { transform:translateY(130%); }
+  .started.sC .opt { animation:up .8s cubic-bezier(.3,1.3,.5,1) forwards; }
+  .started.sC .opt:nth-child(2) { animation-delay:.2s; }
+  @keyframes up { to { transform:translateY(0); } }
+  @container (orientation: portrait) {
+    .sC .houses { flex-direction:column; align-items:center; top:13cqh; bottom:4cqh; gap:2cqh; }
+    .sC .opt { height:min(40cqh, 60cqw); aspect-ratio:1.5; }
+    .sC .roof { flex-basis:30%; }
+  }
+</style>
+</head>
+<body>
+<h1>トップ画面（どれで あそぶ？）の見本</h1>
+<p class="lead">3つの案を、そのまま動かせる見本にしました。<b>画面のどこかを さわると音楽が はじまり</b>、カードが出てきます。カードを さわると、キャラが よろこびます（見本なので、アプリには進みません）。<br>
+「スマホ よこ」「スマホ たて」「タブレット」で、大きさを切りかえて見られます。</p>
+
+<div class="ctrl">
+  <div class="grp"><b>案：</b>
+    <button data-s="A" class="on">A おひさま広場</button>
+    <button data-s="B">B のりもの</button>
+    <button data-s="C">C おうちの ドア</button>
+  </div>
+  <div class="grp"><b>大きさ：</b>
+    <button data-z="land" class="on">スマホ よこ</button>
+    <button data-z="port">スマホ たて</button>
+    <button data-z="tab">タブレット</button>
+  </div>
+  <div class="grp"><b>音：</b><button id="mute">音を けす</button></div>
+</div>
+<div class="desc" id="desc"></div>
+<div class="stage-wrap" id="wrap"><div class="frame" id="frame"></div></div>
+<button class="again" id="again">はじめから もういちど見る</button>
+
+<script>
+(function () {
+  'use strict';
+  var SIZES = { land: [812, 375], port: [375, 740], tab: [1280, 800] };
+  var DESC = {
+    A: '<strong>A おひさま広場</strong>：空に雲が流れ、おひさまが回り、草原に花がゆれます。ひよこ（ちいく）と 本くん（べんきょう）のカードが ぽんっと出て、ふわふわ ゆれて待っています。さわると ジャンプして 星が とびます。',
+    B: '<strong>B のりもの</strong>：「ぽっぽー」と汽車が2台 走ってきて止まります。車両の窓に キャラが のっています。さわると 汽笛が鳴って、車両が はねます。音楽に「がたんごとん」の リズムが入ります。',
+    C: '<strong>C おうちの ドア</strong>：2けんの おうちが ぴょこっと出てきて、窓から キャラが のぞきます。ドアを さわると ドアが ひらいて、中で キャラが よろこびます。音楽は オルゴールのような 音です。'
+  };
+  var cur = { s: 'A', z: 'land' };
+  var frame = document.getElementById('frame'), wrap = document.getElementById('wrap');
+
+  /* ---------- キャラ（SVG） ---------- */
+  function chick() {
+    return '<svg class="chara" viewBox="0 0 120 120" aria-hidden="true"><g class="jumper" style="transform-origin:60px 110px">' +
+      '<ellipse cx="60" cy="112" rx="30" ry="5" fill="rgba(0,0,0,.08)"/>' +
+      '<path d="M24 44 Q14 30 30 34" fill="#ffc93d"/><path d="M96 44 Q106 30 90 34" fill="#ffc93d"/>' +
+      '<ellipse cx="60" cy="62" rx="44" ry="46" fill="#ffd84d"/><ellipse cx="60" cy="76" rx="28" ry="25" fill="#fff0b3"/>' +
+      '<path d="M54 16 Q60 4 66 16" fill="none" stroke="#ffc93d" stroke-width="5" stroke-linecap="round"/>' +
+      '<g class="eyes"><circle cx="44" cy="52" r="6.5" fill="#3a3a3a"/><circle cx="76" cy="52" r="6.5" fill="#3a3a3a"/><circle cx="46" cy="50" r="2" fill="#fff"/><circle cx="78" cy="50" r="2" fill="#fff"/></g>' +
+      '<ellipse cx="31" cy="66" rx="7" ry="4.5" fill="#ff9fb0"/><ellipse cx="89" cy="66" rx="7" ry="4.5" fill="#ff9fb0"/>' +
+      '<path d="M52 63 L68 63 L60 73 Z" fill="#ff8a3d"/></g></svg>';
+  }
+  function book() {
+    return '<svg class="chara" viewBox="0 0 120 120" aria-hidden="true"><g class="jumper" style="transform-origin:60px 110px">' +
+      '<ellipse cx="60" cy="112" rx="32" ry="5" fill="rgba(0,0,0,.08)"/>' +
+      '<rect x="26" y="14" width="70" height="92" rx="10" fill="#fff" stroke="#d8e2ec" stroke-width="3"/>' +
+      '<rect x="20" y="10" width="72" height="94" rx="10" fill="#5b9be0"/><rect x="20" y="10" width="14" height="94" rx="7" fill="#3f7fc8"/>' +
+      '<rect x="44" y="20" width="38" height="10" rx="5" fill="#fff" opacity=".85"/>' +
+      '<g class="eyes"><circle cx="50" cy="58" r="6.5" fill="#3a3a3a"/><circle cx="76" cy="58" r="6.5" fill="#3a3a3a"/><circle cx="52" cy="56" r="2" fill="#fff"/><circle cx="78" cy="56" r="2" fill="#fff"/></g>' +
+      '<ellipse cx="42" cy="72" rx="6" ry="4" fill="#ff9fb0"/><ellipse cx="85" cy="72" rx="6" ry="4" fill="#ff9fb0"/>' +
+      '<path d="M55 72 Q63 81 71 72" fill="none" stroke="#3a3a3a" stroke-width="4" stroke-linecap="round"/>' +
+      '<path d="M20 70 Q8 62 12 50" fill="none" stroke="#3f7fc8" stroke-width="6" stroke-linecap="round"/><path d="M92 70 Q106 60 104 48" fill="none" stroke="#3f7fc8" stroke-width="6" stroke-linecap="round"/></g></svg>';
+  }
+  function cloud() { return '<svg viewBox="0 0 100 55" aria-hidden="true"><path d="M18 50 Q0 50 4 36 Q6 24 20 26 Q22 8 42 10 Q56 0 68 14 Q86 10 88 28 Q100 32 96 44 Q94 50 82 50 Z" fill="#fff"/></svg>'; }
+  function title() {
+    return '<h2 class="title">' + 'どれで あそぶ？'.split('').map(function (c, i) { return c === ' ' ? ' ' : '<span style="--i:' + i + '">' + c + '</span>'; }).join('') + '</h2>';
+  }
+  function startCover() { return '<div class="start" data-start>' + '<div class="s-chick">' + chick() + '</div><div class="s-say">タッチしてね</div></div>'; }
+
+  /* ---------- 3つの案 ---------- */
+  function sceneA() {
+    var flowers = '', bubs = '', fx = [6, 18, 30, 70, 82, 93], fc = ['#ff6f91', '#ffc83d', '#ffffff', '#ff9a3d', '#b48cf0', '#ff6f91'];
+    fx.forEach(function (x, i) {
+      flowers += '<svg class="flower" style="left:' + x + 'cqw;animation-delay:' + (-i * .4) + 's" viewBox="0 0 40 60" aria-hidden="true"><path d="M20 60 V26" stroke="#4fa64a" stroke-width="4"/><path d="M20 44 Q30 36 34 42 Q28 48 20 46" fill="#5cbf55"/>' +
+        '<g fill="' + fc[i] + '"><circle cx="20" cy="10" r="8"/><circle cx="30" cy="18" r="8"/><circle cx="26" cy="29" r="8"/><circle cx="14" cy="29" r="8"/><circle cx="10" cy="18" r="8"/></g><circle cx="20" cy="20" r="6" fill="#ffd23f"/></svg>';
+    });
+    for (var b = 0; b < 6; b++) bubs += '<i class="bub" style="left:' + (8 + b * 16) + 'cqw;animation-duration:' + (9 + b % 3 * 3) + 's;animation-delay:' + (-b * 2.3) + 's"></i>';
+    return '<div class="scene sA" data-scene>' +
+      '<svg class="sun" viewBox="0 0 100 100" aria-hidden="true"><g class="rays" fill="#ffc83d">' +
+      [0, 45, 90, 135, 180, 225, 270, 315].map(function (a) { return '<rect x="46" y="2" width="8" height="18" rx="4" transform="rotate(' + a + ' 50 50)"/>'; }).join('') +
+      '</g><circle cx="50" cy="50" r="27" fill="#ffd84d"/><circle cx="41" cy="47" r="3.5" fill="#3a3a3a"/><circle cx="59" cy="47" r="3.5" fill="#3a3a3a"/><path d="M41 57 Q50 65 59 57" fill="none" stroke="#3a3a3a" stroke-width="3" stroke-linecap="round"/><ellipse cx="34" cy="56" rx="4" ry="2.5" fill="#ff9fb0"/><ellipse cx="66" cy="56" rx="4" ry="2.5" fill="#ff9fb0"/></svg>' +
+      '<div class="cloud c1">' + cloud() + '</div><div class="cloud c2">' + cloud() + '</div><div class="cloud c3">' + cloud() + '</div>' +
+      '<svg class="hills" viewBox="0 0 400 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 40 Q60 0 130 30 T260 26 T400 34 V100 H0 Z" fill="#a8e07f"/><path d="M0 64 Q90 30 190 58 T400 52 V100 H0 Z" fill="#86cf63"/></svg>' +
+      flowers + bubs + title() +
+      '<div class="choices">' +
+      '<div class="opt k1" data-kind="chick"><div class="card"><div class="ch">' + chick() + '</div><span class="lbl">ちいく</span></div></div>' +
+      '<div class="opt k2" data-kind="book"><div class="card"><div class="ch">' + book() + '</div><span class="lbl">べんきょう</span></div></div>' +
+      '</div>' + startCover() + '</div>';
+  }
+  function engine(color) {
+    return '<svg viewBox="0 0 100 105" aria-hidden="true" style="width:100%;height:100%;display:block;overflow:visible"><rect x="10" y="10" width="20" height="36" rx="4" fill="#555"/><rect x="4" y="4" width="32" height="10" rx="4" fill="#444"/>' +
+      '<rect x="4" y="40" width="64" height="52" rx="10" fill="' + color + '"/><rect x="50" y="18" width="46" height="74" rx="10" fill="' + color + '"/><rect x="58" y="28" width="30" height="24" rx="6" fill="#fffaf0"/>' +
+      '<rect x="0" y="86" width="100" height="10" rx="4" fill="rgba(0,0,0,.18)"/><circle cx="8" cy="66" r="7" fill="#ffd23f"/></svg>';
+  }
+  function trainRow(kind, cls, label, color) {
+    return '<div class="row"><div class="rail"></div><div class="train"><div class="eng"><div class="smoke"><i></i><i></i><i></i></div>' + engine(color) +
+      '<i class="wheel" style="left:12%"></i><i class="wheel" style="left:58%"></i></div>' +
+      '<div class="opt car ' + cls + '" data-kind="' + kind + '"><div class="win"><div class="ch">' + (kind === 'chick' ? chick() : book()) + '</div></div><div class="plate"><span class="lbl">' + label + '</span></div>' +
+      '<i class="wheel" style="left:12%"></i><i class="wheel" style="right:12%"></i></div></div></div>';
+  }
+  function sceneB() {
+    return '<div class="scene sB" data-scene>' +
+      '<svg class="mt" viewBox="0 0 400 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 100 L60 30 L110 80 L180 10 L250 76 L310 36 L400 90 V100 Z" fill="#b9d9b0"/><path d="M180 10 L196 26 L186 30 L176 24 L166 24 Z" fill="#fff"/></svg>' +
+      '<div class="cloud c1">' + cloud() + '</div><div class="cloud c2">' + cloud() + '</div><div class="ground"></div>' + title() +
+      '<div class="rows">' + trainRow('chick', 'k1', 'ちいく', '#e0623a') + trainRow('book', 'k2', 'べんきょう', '#3d7bd0') + '</div>' + startCover() + '</div>';
+  }
+  function house(kind, cls, label) {
+    return '<div class="opt ' + cls + '" data-kind="' + kind + '"><div class="roof"><span class="chim"></span></div><div class="smoke"><i></i><i></i></div>' +
+      '<div class="wall"><div class="sign"><span class="lbl">' + label + '</span></div>' +
+      '<div class="window"><div class="ch">' + (kind === 'chick' ? chick() : book()) + '</div></div>' +
+      '<div class="doorway"><div class="inside"><div class="ch">' + (kind === 'chick' ? chick() : book()) + '</div></div><div class="door"></div></div></div></div>';
+  }
+  function sceneC() {
+    var tree = '<svg viewBox="0 0 60 100" aria-hidden="true"><rect x="25" y="55" width="10" height="45" fill="#a0715a"/><circle cx="30" cy="38" r="26" fill="#6cc25a"/><circle cx="18" cy="50" r="16" fill="#5cb54b"/><circle cx="44" cy="48" r="16" fill="#5cb54b"/><circle cx="22" cy="34" r="4" fill="#ff6f6f"/><circle cx="40" cy="28" r="4" fill="#ff6f6f"/></svg>';
+    return '<div class="scene sC" data-scene><div class="cloud">' + cloud() + '</div><div class="ground"></div>' +
+      '<div class="tree" style="left:2cqw">' + tree + '</div><div class="tree" style="right:2cqw">' + tree + '</div>' + title() +
+      '<div class="houses">' + house('chick', 'k1', 'ちいく') + house('book', 'k2', 'べんきょう') + '</div>' + startCover() + '</div>';
+  }
+
+  /* ---------- 音（WebAudio。外のファイルは使わない） ---------- */
+  var ac = null, master = null, muted = false, timer = null, nextT = 0, step = 0, style = 'A';
+  function N(n) { var m = /^([A-G])(#?)(\d)$/.exec(n); var k = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] ? 1 : 0); return 440 * Math.pow(2, ((+m[3] + 1) * 12 + k - 69) / 12); }
+  function tone(f, t, dur, vol, type, atk) {
+    var o = ac.createOscillator(), g = ac.createGain();
+    o.type = type || 'triangle'; o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + (atk || 0.008)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.05);
+  }
+  function noise(t, dur, vol, hp) {
+    var len = Math.floor(ac.sampleRate * dur), buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    var s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    s.buffer = buf; f.type = 'highpass'; f.frequency.value = hp || 6000; g.gain.value = vol;
+    s.connect(f); f.connect(g); g.connect(master); s.start(t);
+  }
+  // 「はじまりの うた」（このアプリのための曲）：8小節。8分音符ごと、'-' はのばす／休み
+  var MEL = ('C5 E5 G5 E5 C6 - G5 - | A5 G5 E5 G5 F5 - D5 - | E5 F5 G5 A5 G5 E5 C5 E5 | D5 - G4 - C5 - - - | ' +
+             'E5 G5 C6 G5 A5 - G5 - | F5 A5 G5 F5 E5 - C5 - | D5 E5 F5 G5 A5 G5 F5 D5 | G5 - B4 - C5 - - -').replace(/\|/g, '').trim().split(/\s+/);
+  var BASS = ['C3', 'C3', 'F3', 'G3', 'C3', 'A2', 'G2', 'C3', 'C3', 'A2', 'F2', 'C3', 'D3', 'G2', 'G2', 'C3'];   // 半小節ごと
+  var CHORD = { C3: ['E4', 'G4'], F3: ['A4', 'C5'], G3: ['B4', 'D5'], A2: ['C5', 'E4'], G2: ['B4', 'D5'], F2: ['A4', 'C5'], D3: ['F4', 'A4'] };
+  function bpm() { return style === 'C' ? 100 : 120; }
+  function playStep(i, t) {
+    var e = 60 / bpm() / 2, n = MEL[i % MEL.length], half = Math.floor((i % 64) / 4);
+    if (n !== '-') {
+      var len = (MEL[(i + 1) % MEL.length] === '-' ? 2 : 1) * e;
+      if (style === 'C') { tone(N(n), t, len * 2.2, 0.16, 'sine', 0.004); tone(N(n) * 2, t, len * 1.2, 0.05, 'sine', 0.004); }
+      else { tone(N(n), t, len * 1.4, 0.14, 'triangle'); tone(N(n) * 2, t, len * 0.6, 0.035, 'sine'); }
+    }
+    if (i % 4 === 0) { var b = BASS[half % BASS.length]; tone(N(b), t, e * 3, style === 'C' ? 0.10 : 0.16, 'sine', 0.01); }
+    if (i % 4 === 2 && style !== 'C') { var c = CHORD[BASS[half % BASS.length]] || ['E4', 'G4']; tone(N(c[0]), t, e * 1.2, 0.04, 'triangle'); tone(N(c[1]), t, e * 1.2, 0.04, 'triangle'); }
+    if (style === 'A' && i % 2 === 1) noise(t, 0.05, 0.05, 7000);
+    if (style === 'B') { noise(t, 0.07, i % 2 ? 0.035 : 0.07, i % 2 ? 6000 : 2500); }   // がたん ごとん
+  }
+  function tick() {
+    while (nextT < ac.currentTime + 0.25) { playStep(step, nextT); nextT += 60 / bpm() / 2; step++; }
+  }
+  function ensureAc() {
+    if (!ac) {
+      var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
+      ac = new AC(); master = ac.createGain(); master.gain.value = muted ? 0 : 0.7;
+      var comp = ac.createDynamicsCompressor(); master.disconnect(); master.connect(comp); comp.connect(ac.destination);
+    }
+    if (ac.state === 'suspended') ac.resume();
+    return true;
+  }
+  function startMusic() {
+    if (!ensureAc()) return;
+    stopMusic(); style = cur.s; step = 0; nextT = ac.currentTime + 0.1;
+    if (style === 'B') whistle(ac.currentTime + 0.05);
+    timer = setInterval(tick, 50); tick();
+  }
+  function stopMusic() { if (timer) { clearInterval(timer); timer = null; } }
+  function whistle(t) {
+    [0, 0.42].forEach(function (d, k) {
+      var o = ac.createOscillator(), o2 = ac.createOscillator(), g = ac.createGain();
+      o.type = 'sine'; o2.type = 'sine'; o.frequency.setValueAtTime(880, t + d); o2.frequency.setValueAtTime(1108, t + d);
+      g.gain.setValueAtTime(0.0001, t + d); g.gain.exponentialRampToValueAtTime(0.12, t + d + 0.05); g.gain.setValueAtTime(0.12, t + d + (k ? 0.5 : 0.25)); g.gain.exponentialRampToValueAtTime(0.0001, t + d + (k ? 0.7 : 0.35));
+      o.connect(g); o2.connect(g); g.connect(master); o.start(t + d); o2.start(t + d); o.stop(t + d + 0.8); o2.stop(t + d + 0.8);
+    });
+  }
+  function tapSound(kind) {
+    if (!ensureAc()) return;
+    var t = ac.currentTime + 0.01;
+    if (cur.s === 'B') { whistle(t); return; }
+    if (cur.s === 'C') { tone(N('G4'), t, 0.12, 0.12, 'square'); }
+    (kind === 'chick' ? ['C6', 'E6', 'G6', 'C7'] : ['G5', 'B5', 'D6', 'G6']).forEach(function (n, i) { tone(N(n), t + 0.06 + i * 0.07, 0.3, 0.12, 'triangle'); });
+  }
+
+  /* ---------- 画面 ---------- */
+  function fit() {
+    var s = SIZES[cur.z], avail = wrap.clientWidth, maxH = Math.max(320, window.innerHeight * 0.78);
+    var k = Math.min(1, avail / s[0], maxH / s[1]);
+    frame.style.width = s[0] + 'px'; frame.style.height = s[1] + 'px'; frame.style.transform = 'scale(' + k + ')';
+    wrap.style.height = Math.ceil(s[1] * k) + 'px';
+  }
+  function render() {
+    stopMusic();
+    frame.innerHTML = cur.s === 'A' ? sceneA() : cur.s === 'B' ? sceneB() : sceneC();
+    document.getElementById('desc').innerHTML = DESC[cur.s];
+    fit();
+  }
+  frame.addEventListener('click', function (ev) {
+    var sc = frame.querySelector('[data-scene]');
+    if (ev.target.closest('[data-start]')) { sc.classList.add('started'); startMusic(); return; }
+    var o = ev.target.closest('.opt'); if (!o || !sc.classList.contains('started')) return;
+    tapSound(o.getAttribute('data-kind'));
+    if (cur.s === 'C') { o.classList.add('open'); setTimeout(function () { o.classList.remove('open'); }, 1800); }
+    o.classList.remove('tapped'); void o.offsetWidth; o.classList.add('tapped');
+    var bu = document.createElement('div'); bu.className = 'burst';
+    for (var i = 0; i < 8; i++) { var s = document.createElement('i'); var a = i / 8 * Math.PI * 2; s.style.setProperty('--x', Math.cos(a) * 90 + 'px'); s.style.setProperty('--y', Math.sin(a) * 90 + 'px'); bu.appendChild(s); }
+    o.appendChild(bu); setTimeout(function () { bu.remove(); }, 900);
+  });
+  document.querySelectorAll('[data-s]').forEach(function (b) { b.addEventListener('click', function () { cur.s = b.getAttribute('data-s'); mark('s'); render(); }); });
+  document.querySelectorAll('[data-z]').forEach(function (b) { b.addEventListener('click', function () { cur.z = b.getAttribute('data-z'); mark('z'); fit(); }); });
+  function mark(k) { document.querySelectorAll('[data-' + k + ']').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-' + k) === cur[k]); }); }
+  document.getElementById('again').addEventListener('click', render);
+  document.getElementById('mute').addEventListener('click', function () {
+    muted = !muted; this.textContent = muted ? '音を だす' : '音を けす';
+    if (master) master.gain.value = muted ? 0 : 0.7;
+  });
+  window.addEventListener('resize', fit);
+  render();
+})();
+</script>
+</body>
+</html>

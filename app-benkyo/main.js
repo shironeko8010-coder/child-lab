@@ -218,6 +218,12 @@
     if (s.sfxOn) play('tap');          // ここで AudioContext ができる
     if (s.bgmOn && !st.resting) { try { C.sfx.startBgm(); } catch (e) {} }
   }
+  // 選択画面に着いたら、すぐ BGM を始めてみる。端末が まださわっていない扱いで音を止めているときは、
+  // 最初に どこかを さわったとき（unlockAudio）に 鳴りはじめる
+  function homeBgm() {
+    if (st.resting) return;
+    try { if (C.storage.getSettings().bgmOn) C.sfx.startBgm(); } catch (e) {}
+  }
   function applySettings() {
     var s = C.storage.getSettings();
     try { C.sfx.setSfxOn(s.sfxOn); C.sfx.setBgmOn(s.bgmOn); } catch (e) {}
@@ -292,6 +298,7 @@
     }
     newScreen('home');
     st.resting = false;
+    homeBgm();
     app.appendChild(topBar({ gear: true, entry: true }));
     var body = el('div', 'home-body');
     var left = el('div', 'home-chara');

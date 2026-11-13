@@ -82,7 +82,9 @@
     correct: [[523, 0, 0.15, 0.2, 'triangle'], [659, 0.12, 0.15, 0.2, 'triangle'], [784, 0.24, 0.3, 0.2, 'triangle']],
     // やわらかい2音（低く叱る音にしない）
     oops: [[440, 0, 0.2, 0.15, 'sine'], [392, 0.2, 0.3, 0.15, 'sine']],
-    star: [[880, 0, 0.1, 0.15, 'sine'], [1175, 0.08, 0.1, 0.15, 'sine'], [1568, 0.16, 0.25, 0.15, 'sine']]
+    star: [[880, 0, 0.1, 0.15, 'sine'], [1175, 0.08, 0.1, 0.15, 'sine'], [1568, 0.16, 0.25, 0.15, 'sine']],
+    // 汽笛「ぽっぽー」（トップ画面の汽車）
+    whistle: [[880, 0, 0.3, 0.13, 'sine'], [1108, 0, 0.3, 0.1, 'sine'], [880, 0.4, 0.6, 0.13, 'sine'], [1108, 0.4, 0.6, 0.1, 'sine']]
   };
 
   function play(name) {
@@ -139,6 +141,9 @@
       osc(ac, 'sine', f, t, 0.7, v, 0.004); osc(ac, 'sine', f * 4, t, 0.08, v * 0.3, 0.002);
     },
     bass: function (ac, f, t, d, v) { osc(ac, 'triangle', f, t, Math.min(Math.max(d * 0.9, 0.2), 0.9), v, 0.01); },
+    chug: function (ac, f, t, d, v) {          // がたん（低めのノイズ）。f は高さの目安（Hz）
+      INST.shaker(ac, 0, t, d, v, f || 2500);
+    },
     shaker: function (ac, f, t, d, v) {        // シャカシャカ（ノイズ）
       if (!noiseBuf) {
         noiseBuf = ac.createBuffer(1, Math.floor(ac.sampleRate * 0.05), ac.sampleRate);
@@ -146,7 +151,7 @@
         for (var i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / ch.length);
       }
       var s = ac.createBufferSource(), hp = ac.createBiquadFilter(), g = ac.createGain();
-      s.buffer = noiseBuf; hp.type = 'highpass'; hp.frequency.value = 6000; g.gain.value = v;
+      s.buffer = noiseBuf; hp.type = 'highpass'; hp.frequency.value = arguments[5] || 6000; g.gain.value = v;
       s.connect(hp); hp.connect(g); g.connect(bgmBus || ac.destination); s.start(t);
     }
   };
@@ -169,6 +174,13 @@
                'G5:1 E5:1 D5:1.5 B4:.5 E5:1 D5:1 B4:2 A4:1 B4:1 D5:1 A4:1 G4:3 r:1'),
       chords: ['G', 'Em', 'C', 'D', 'G', 'C', 'D', 'G'] }
   ];
+  // トップ画面（どれで あそぶ？）だけで流す曲。汽車の「がたん ごとん」つき
+  var TOP_SONG = { name: 'hajimari', bpm: 120, bar: 4, inst: 'lead', vol: 0.16, acc: 'train',   // はじまりの うた
+    mel: mel('C5:.5 E5:.5 G5:.5 E5:.5 C6:1 G5:1 A5:.5 G5:.5 E5:.5 G5:.5 F5:1 D5:1 E5:.5 F5:.5 G5:.5 A5:.5 G5:.5 E5:.5 C5:.5 E5:.5 D5:1 G4:1 C5:2 ' +
+             'E5:.5 G5:.5 C6:.5 G5:.5 A5:1 G5:1 F5:.5 A5:.5 G5:.5 F5:.5 E5:1 C5:1 D5:.5 E5:.5 F5:.5 G5:.5 A5:.5 G5:.5 F5:.5 D5:.5 G5:1 B4:1 C5:2'),
+    chords: ['C', 'F', 'C', 'G', 'C', 'F', 'G', 'C'] };
+  var TOP_LIST = [TOP_SONG];
+  var list = SONGS;        // いま流している曲の並び（ふだんは3曲、トップは1曲）
 
   // 1曲分の音を、時刻（曲の始めからの秒）つきの一覧にする：[秒, 楽器, 周波数, 長さ, 音量]
   function buildSong(s) {
@@ -194,6 +206,11 @@
           ev.push([t0 + 2 * spb, 'bass', midi(c[0]) * 1.5, spb, 0.20]);
           for (i = 1; i < 4; i += 2) { ev.push([t0 + i * spb, 'pluck', midi(c[1]), spb, 0.05]); ev.push([t0 + i * spb, 'pluck', midi(c[2]), spb, 0.05]); }
           for (i = 0; i < 8; i++) ev.push([t0 + i * spb / 2, 'shaker', 0, 0, i % 2 ? 0.05 : 0.025]);
+        } else if (s.acc === 'train') {   // がたん ごとん
+          ev.push([t0, 'bass', midi(c[0]), spb, 0.22]);
+          ev.push([t0 + 2 * spb, 'bass', midi(c[0]) * 1.5, spb, 0.18]);
+          for (i = 1; i < 4; i += 2) { ev.push([t0 + i * spb, 'pluck', midi(c[1]), spb, 0.045]); ev.push([t0 + i * spb, 'pluck', midi(c[2]), spb, 0.045]); }
+          for (i = 0; i < 8; i++) ev.push([t0 + i * spb / 2, 'chug', i % 2 ? 6000 : 2500, 0, i % 2 ? 0.03 : 0.06]);
         } else {   // arp
           ev.push([t0, 'bass', midi(c[0]), s.bar * spb, 0.16]);
           var arp = [c[0], c[1], c[2], c[1]];
@@ -212,7 +229,7 @@
   var songIdx = 0, song = null, songBase = 0, evIdx = 0;
   var LOOKAHEAD = 0.2, TICK_MS = 40;
   function nextSong(ac, at) {
-    song = buildSong(SONGS[songIdx % SONGS.length]);
+    song = buildSong(list[songIdx % list.length]);
     songBase = at; evIdx = 0;
   }
   function bgmTick() {
@@ -224,7 +241,7 @@
       var until = ac.currentTime + LOOKAHEAD;
       for (var guard = 0; guard < 400; guard++) {
         if (evIdx >= song.ev.length) {          // 1曲おわり → 次の曲
-          songIdx = (songIdx + 1) % SONGS.length;
+          songIdx = (songIdx + 1) % list.length;
           nextSong(ac, songBase + song.len);
         }
         var e = song.ev[evIdx], at = songBase + e[0];
@@ -235,8 +252,14 @@
     } catch (e) { /* 無視 */ }
   }
 
-  function startBgm() {
+  // ふだんの BGM（3曲を順番に）。トップの曲が流れていたら、切りかえる
+  function startBgm() { startList(SONGS); }
+  // トップ画面の曲（1曲をくりかえす）
+  function startTopBgm() { startList(TOP_LIST); }
+  function startList(l) {
     try {
+      if (bgmPlaying && list !== l) stopBgm();
+      if (list !== l) { list = l; songIdx = 0; }
       if (!bgmOn || bgmPlaying) return;
       if (disabled) return;
       bgmPlaying = true;
@@ -254,6 +277,7 @@
   C.sfx = {
     play: play,
     startBgm: startBgm,
+    startTopBgm: startTopBgm,
     stopBgm: stopBgm,
     duck: function (on) {
       ducked = !!on;
@@ -270,6 +294,8 @@
     // ---- テスト用 ----
     _bgmGainTarget: bgmGainTarget,
     _songNames: function () { return SONGS.map(function (s) { return s.name; }); },
+    _listNames: function () { return list.map(function (s) { return s.name; }); },
+    _buildTopSong: function () { return buildSong(TOP_SONG); },
     _buildSong: function (i) { return buildSong(SONGS[i]); },
     _songIdx: function () { return songIdx; },
     _isDucked: function () { return ducked; },
@@ -280,7 +306,7 @@
       if (ctx && ctx.close) { try { ctx.close(); } catch (e) {} }
       ctx = null;
       sfxBus = null; bgmBus = null; comp = null;
-      songIdx = 0; song = null;
+      songIdx = 0; song = null; list = SONGS;
       ducked = false;
       disabled = false;
       sfxOn = true;

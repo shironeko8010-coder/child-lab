@@ -206,7 +206,7 @@
   }
 
   /* ---------- ソースに直接書いてある文（speak('…') / speakThen('…', …)） ---------- */
-  var SOURCES = ['app-chiiku/game.js', 'app-chiiku/kazu.js', 'app-chiiku/tokei.js', 'app-chiiku/iro.js', 'app-chiiku/machigai.js', 'app-chiiku/doutoku.js', 'app-chiiku/okaimono.js', 'app-chiiku/shiritori.js',
+  var SOURCES = ['top.js', 'app-chiiku/game.js', 'app-chiiku/kazu.js', 'app-chiiku/tokei.js', 'app-chiiku/iro.js', 'app-chiiku/machigai.js', 'app-chiiku/doutoku.js', 'app-chiiku/okaimono.js', 'app-chiiku/shiritori.js',
     'app-benkyo/main.js', 'app-benkyo/kuku-screen.js', 'app-benkyo/keisan-screen.js', 'app-benkyo/kanji-screen.js',
     'app-benkyo/doutoku-screen.js', 'app-benkyo/japan-screen.js', 'app-benkyo/world-screen.js', 'app-benkyo/nagasa-screen.js', 'app-benkyo/hantai-screen.js', 'app-benkyo/zukan-screen.js'];
   function literals() {

@@ -3,6 +3,7 @@
   position: relative;
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: calc(var(--vh, 1dvh) * 100);   /* 実際に見えている高さ（core.js が決める） */
   display: flex;
   flex-direction: column;
   padding: calc(12px + var(--safe-t)) calc(20px + var(--safe-r)) calc(20px + var(--safe-b)) calc(20px + var(--safe-l));
@@ -1072,4 +1073,22 @@
   .ok-wallet .ok-coin.c100 svg { width: 59px; height: 59px; }
   .ok-wallet .ok-coin.c500 svg { width: 63px; height: 63px; }
   .ok-buy { min-height: 72px; font-size: 32px; min-width: 160px; }
+}
+/* おかいもの（たて向き）：トレーは のびないようにする。
+   のびると 画面の高さいっぱいになり、実機（アドレスバーなどで 使える高さが少し短い）では
+   硬貨と「かう」が 画面の外に はみ出した。あまった高さは 上下の まんなかに よせる */
+@media (orientation: portrait) {
+  .scr-okaimono .ok-body { grid-template-rows: auto auto; align-content: center; }
+  .scr-okaimono .ok-right { min-height: 0; }
+  .scr-okaimono .ok-tray { flex: 0 0 auto; height: auto; min-height: clamp(110px, calc(var(--vh) * 15), 170px); }   /* 硬貨が多いときだけ のびる */
+}
+/* たてが短いスマホ：お店の絵と ひよこを 少し小さくして、トレーに硬貨が2だん入っても 収まるように */
+@media (orientation: portrait) and (max-width: 520px) and (max-height: 700px) {
+  .ok-shop { padding: 4px 64px 4px 10px; }
+  .ok-pic { font-size: min(18vw, calc(var(--vh) * 9)); }
+  .ok-price-n { font-size: min(13vw, calc(var(--vh) * 7)); }
+  .ok-talk .q-chara { display: none; }
+  .scr-okaimono .ok-body { gap: 6px; }
+  .ok-total-n { font-size: 30px; }
+  .ok-bottom { margin-top: 4px; }
 }

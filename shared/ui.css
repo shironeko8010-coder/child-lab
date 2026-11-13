@@ -54,6 +54,7 @@ html, body {
 .screen {
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: calc(var(--vh, 1dvh) * 100);   /* 実際に見えている高さ（core.js が決める） */
   padding: calc(16px + var(--safe-t)) calc(24px + var(--safe-r)) calc(16px + var(--safe-b)) calc(24px + var(--safe-l));
   display: flex;
   flex-direction: row;

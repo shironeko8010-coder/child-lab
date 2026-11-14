@@ -118,6 +118,7 @@
       [1, 2, 3].forEach(function (lv) {
         for (var n = 0; n < 200; n++) {
           var q = e.makeKiku(lv, th, seeded(n + lv * 1000), {});
+          if (q.kind !== 'word') { if (th !== 'all') throw new Error(th + ' で ABC が出た'); continue; }
           var want = lv === 1 ? 3 : 4;
           if (q.cards.length !== want) throw new Error(th + ' lv' + lv + ' 枚数');
           if (q.cards.filter(function (c) { return c.id === q.answer.id; }).length !== 1) throw new Error('答えが1まいでない');
@@ -141,38 +142,36 @@
     C.assertEq(checked > 0, true);
   });
 
-  C.test('eigo: ぜんぶで10問 同じことばが出ない', function () {
+  C.test('eigo: ぜんぶで10問 同じ問題が出ない', function () {
     var e = E(), used = {}, rng = seeded(7);
     for (var i = 0; i < 10; i++) {
-      var q = e.makeKiku(2, 'all', rng, { used: used });
-      if (used[q.answer.id]) throw new Error('2回目 ' + q.answer.id);
-      used[q.answer.id] = 1;
+      var q = e.makeKiku(2, 'all', rng, { used: used }), id = e.itemIdOf(q);
+      if (used[id]) throw new Error('2回目 ' + id);
+      used[id] = 1;
     }
   });
 
-  C.test('eigo: makeYomi', function () {
+  C.test('eigo: きく の ABC', function () {
     var e = E();
-    [1, 2, 3, 4].forEach(function (lv) {
+    [1, 2, 3].forEach(function (lv) {
       for (var n = 0; n < 200; n++) {
-        var q = e.makeYomi(lv, seeded(n + lv * 777), {});
+        var q = e.makeKiku(lv, 'abc', seeded(n + lv * 777), {});
         if (q.choices.length !== 4) throw new Error('lv' + lv + ' 4つでない');
         var u = {}; q.choices.forEach(function (c) { if (u[c]) throw new Error('重なり'); u[c] = 1; });
         if (q.choices.filter(function (c) { return c === q.answer; }).length !== 1) throw new Error('答え');
-        var upper = lv === 1;
-        q.choices.forEach(function (c) { if (upper ? !/^[A-Z]$/.test(c) : !/^[a-z]$/.test(c)) throw new Error('lv' + lv + ' 文字の形 ' + c); });
+        q.choices.forEach(function (c) { if (lv === 1 ? !/^[A-Z]$/.test(c) : !/^[a-z]$/.test(c)) throw new Error('lv' + lv + ' 文字の形 ' + c); });
         if (lv === 1 && (q.kind !== 'upper' || q.say !== q.answer)) throw new Error('lv1');
-        if (lv === 2 && (q.kind !== 'lower' || q.say !== q.answer.toUpperCase())) throw new Error('lv2');   // 文字の名前は 大文字で読ませる（小文字の a を「ア」と読む声があるため）
-        if (lv === 3 && (q.kind !== 'match' || q.prompt !== q.answer.toUpperCase() || q.say)) throw new Error('lv3');
-        if (lv === 4 && (q.kind !== 'first' || / /.test(q.word.en) || q.answer !== q.word.en.charAt(0) || q.say !== q.word.en)) throw new Error('lv4');
+        if (lv === 2 && (q.kind !== 'lower' || q.say !== q.answer.toUpperCase())) throw new Error('lv2');   // 文字の名前は 大文字で読ませる
+        if (lv === 3 && (q.kind !== 'first' || / /.test(q.word.en) || q.answer !== q.word.en.charAt(0) || q.say !== q.word.en)) throw new Error('lv3');
       }
     });
   });
 
-  C.test('eigo: まぎらわしい文字', function () {
+  C.test('eigo: ABC の まぎらわしい文字', function () {
     var e = E(), checked = 0;
     [2, 3].forEach(function (lv) {
       for (var n = 0; n < 400; n++) {
-        var q = e.makeYomi(lv, seeded(n * 31 + lv), {});
+        var q = e.makeKiku(lv, 'abc', seeded(n * 31 + lv), {});
         if (q.answer !== 'b') continue;
         checked++;
         if (!q.choices.some(function (c) { return c === 'd' || c === 'p' || c === 'q'; })) throw new Error('lv' + lv + ' #' + n);
@@ -181,13 +180,37 @@
     C.assertEq(checked > 0, true);
   });
 
-  C.test('eigo: check・itemIdYomi', function () {
-    var e = E(), q = e.makeYomi(3, seeded(5), {});
-    C.assertEq(e.itemIdYomi(q), 'L3:' + q.answer);
-    C.assertEq(e.check(q, q.answer), true);
-    C.assertEq(e.check(q, q.choices.filter(function (c) { return c !== q.answer; })[0]), false);
+  C.test('eigo: ぜんぶに ABC も ことばも まざる', function () {
+    var e = E(), abc = 0, word = 0;
+    for (var n = 0; n < 300; n++) { var q = e.makeKiku(2, 'all', seeded(n * 7 + 3), {}); if (q.kind === 'word') word++; else abc++; }
+    C.assertEq(abc > 10 && word > abc, true);
+  });
+
+  C.test('eigo: よむ は つづりを読んで 絵を選ぶ', function () {
+    var e = E();
+    THEME_IDS.concat(['all']).forEach(function (th) {
+      [1, 2, 3].forEach(function (lv) {
+        for (var n = 0; n < 100; n++) {
+          var q = e.makeYomi(lv, th, seeded(n + lv * 500), {});
+          if (q.kind !== 'read') throw new Error('kind');
+          if (q.cards.length !== (lv === 1 ? 3 : 4)) throw new Error(th + ' lv' + lv + ' 枚数');
+          if (q.cards.filter(function (c) { return c.id === q.answer.id; }).length !== 1) throw new Error('答え');
+          if (th !== 'all' && q.answer.theme !== th) throw new Error('テーマちがい');
+          if (lv === 1 && (q.answer.en.length > 4 || / /.test(q.answer.en)) && e.wordsOf(th).some(function (w) { return w.en.length <= 4 && !/ /.test(w.en); })) throw new Error('lv1 は短いことば ' + q.answer.en);
+        }
+      });
+    });
+  });
+
+  C.test('eigo: check・itemIdOf', function () {
+    var e = E(), a = e.makeKiku(2, 'abc', seeded(5), {});
+    C.assertEq(e.itemIdOf(a), 'abc:lower:' + a.answer);
+    C.assertEq(e.check(a, a.answer), true);
+    C.assertEq(e.check(a, a.choices.filter(function (c) { return c !== a.answer; })[0]), false);
     var k = e.makeKiku(1, 'animal', seeded(5), {});
-    C.assertEq(e.check(k, k.answer), true);
+    C.assertEq(e.check(k, k.answer), true); C.assertEq(e.itemIdOf(k), k.answer.id);
+    var y = e.makeYomi(1, 'food', seeded(5), {});
+    C.assertEq(e.check(y, y.answer), true); C.assertEq(e.itemIdOf(y), y.answer.id);
   });
 
   C.test('eigo: progressFromLogs は きく・よむ 別々', function () {
@@ -273,26 +296,50 @@
     });
   });
 
-  C.test('eigoScreen: よむ レベル3は 声なしで 大文字を見せる', function () {
-    return withEnv([{ area: 'eigoYomi', itemId: 'L3:a', correct: false, level: 3 }], [US], function () {
+  C.test('eigoScreen: よむ は テーマを選び、つづりを見て 絵を選ぶ', function () {
+    return withEnv([], [US], function (saved) {
       return S().show({ profileId: 'p' }).then(function () {
-        S()._mode('yomi');
-        var s = S()._state();
-        C.assertEq(s.phase, 'question'); C.assertEq(s.q.kind, 'match');
+        S()._mode('yomi'); C.assertEq(S()._state().phase, 'theme');
+        S()._theme('animal');
+        var q = S()._state().q;
+        C.assertEq(q.kind, 'read'); C.assertEq(q.answer.theme, 'animal'); C.assertEq(q.cards.length, 3);
+        S()._choose(rightIndex(q));
+        C.assertEq(JSON.stringify([saved[0].area, saved[0].itemId, saved[0].correct]), JSON.stringify(['eigoYomi', q.answer.id, true]));
+      });
+    });
+  });
+
+  C.test('eigoScreen: きく の ABC テーマ', function () {
+    return withEnv([], [US], function (saved) {
+      return S().show({ profileId: 'p' }).then(function () {
+        S()._mode('kiku'); S()._theme('abc');
+        var q = S()._state().q;
+        C.assertEq(q.kind, 'upper');
+        S()._choose(rightIndex(q));
+        C.assertEq(JSON.stringify([saved[0].area, saved[0].itemId]), JSON.stringify(['eigoKiku', 'abc:upper:' + q.answer]));
+      });
+    });
+  });
+
+  C.test('eigoScreen: よむ に ABC のテーマは ない', function () {
+    return withEnv([], [US], function () {
+      return S().show({ profileId: 'p' }).then(function () {
+        S()._mode('yomi'); S()._theme('abc');
+        C.assertEq(S()._state().phase, 'theme');
       });
     });
   });
 
   C.test('eigoScreen: 声がない端末', function () {
-    return withEnv([], [], function (saved) {
+    return withEnv([{ area: 'eigoYomi', itemId: 'food:egg', correct: false, level: 2 }], [], function (saved) {
       return S().show({ profileId: 'p' }).then(function () {
         C.assertEq(S()._state().noVoice, true);
         S()._mode('kiku'); C.assertEq(S()._state().phase, 'mode');
-        S()._mode('yomi');
+        S()._mode('yomi'); S()._theme('all');
         var q = S()._state().q;
-        C.assertEq(q.kind, 'match');
+        C.assertEq(q.kind, 'read'); C.assertEq(q.cards.length, 4);   // よむ は声を使わないので、レベル2のまま遊べる
         S()._choose(rightIndex(q));
-        C.assertEq(saved[0].area, 'eigoYomi'); C.assertEq(saved[0].level, 3);
+        C.assertEq(saved[0].area, 'eigoYomi'); C.assertEq(saved[0].level, 2);
       });
     });
   });

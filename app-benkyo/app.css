@@ -1762,3 +1762,49 @@ ruby rt { font-size: .5em; font-weight: bold; }   /* .5em：本文 18px で ふ�
 @media (orientation: landscape) and (max-height: 520px), (orientation: portrait) and (max-width: 520px) {
   .eg-theme-name { font-size: 18px; line-height: 1.1; }
 }
+/* えい語 よむ：問題のつづりを大きく（声は出さない） */
+.eg-word { font-family: "Segoe UI", Roboto, Arial, sans-serif; font-size: clamp(44px, 6.5vw, 88px); font-weight: 800; line-height: 1.1; color: #2f6fdb; background: var(--c-surface); border-radius: 22px; padding: 2px 28px 6px; box-shadow: 0 5px 0 var(--c-line); white-space: nowrap; max-width: 100%; }
+@media (orientation: landscape) and (max-height: 520px) {
+  .eg-word { font-size: max(30px, calc(var(--vh) * 11)); padding: 0 18px 2px; border-radius: 16px; }
+}
+@media (orientation: landscape) and (max-height: 700px) and (min-height: 521px) {
+  .eg-word { font-size: calc(var(--vh) * 10); }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .eg-word { font-size: clamp(34px, 11vw, 56px); padding: 0 18px 4px; }
+}
+
+/* ---------- ずかん：まめちしき・スマホの2まい・3問の点（グレードアップ1回目） ---------- */
+.zk-mame { width: 100%; box-sizing: border-box; background: #fff8e1; border-radius: 20px; padding: 10px 18px 12px; box-shadow: 0 4px 0 #f0d58a; }
+.zk-mame-head { font-size: 18px; font-weight: bold; color: #9a6a00; }
+.zk-mame-text { margin: 2px 0 0; font-size: clamp(20px, 2.3vw, 28px); line-height: 1.6; }
+.zk-page.is-mame .zk-mame-text { font-size: clamp(22px, 2.6vw, 32px); line-height: 1.75; }
+.zk-to-mame { align-self: center; }
+.zk-q-line { display: flex; align-items: center; gap: 10px; }
+.zk-qdots { display: inline-flex; gap: 6px; }
+.zk-qdot { width: 14px; height: 14px; border-radius: 50%; background: #dfe5ec; }
+.zk-qdot.done { background: #f3c96b; }
+.zk-qdot.now { background: var(--c-primary); box-shadow: 0 0 0 3px #ffe08a; }
+.zk-book-btns { display: flex; gap: 12px; align-self: center; flex-wrap: wrap; justify-content: center; }
+@media (orientation: landscape) and (max-height: 700px) {
+  .zk-page:not(.is-two) .zk-text { font-size: 20px; line-height: 1.5; padding: 8px 16px; }
+  .zk-page:not(.is-two) .zk-mame { padding: 6px 16px 8px; }
+  .zk-page:not(.is-two) .zk-mame-text { font-size: 20px; line-height: 1.5; }
+  .zk-page:not(.is-two) .zk-page-side { gap: 8px; }
+  .zk-page:not(.is-two) .zk-name { font-size: 30px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .zk-mame { padding: 4px 12px 6px; border-radius: 14px; }
+  .zk-mame-head { font-size: 16px; }
+  .zk-page.is-mame .zk-mame-text, .zk-mame-text { font-size: max(18px, calc(var(--vh) * 4.8)); line-height: 1.5; }
+  .zk-to-mame, .zk-flip { min-height: 56px; padding: 4px 20px; font-size: 22px; }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .zk-mame { padding: 8px 14px 10px; }
+  .zk-mame-head { font-size: 16px; }
+  .zk-page.is-mame .zk-mame-text, .zk-mame-text { font-size: 18px; line-height: 1.6; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .zk-page.is-two .zk-text { font-size: max(18px, calc(var(--vh) * 4.8)); }
+  .zk-page .zk-ready, .zk-page .zk-flip { min-height: 56px; }
+}

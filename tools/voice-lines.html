@@ -18,7 +18,7 @@
     .concat(['storage', 'sfx', 'voice-clips', 'voice', 'gate', 'timer', 'adaptive', 'parent'].map(function (n) { return '../shared/' + n + '.js'; }))
     .concat(['data', 'glyphs', 'trace', 'game', 'kazu', 'tokei', 'iro', 'machigai', 'doutoku', 'okaimono', 'shiritori', 'meiro'].map(function (n) { return '../app-chiiku/' + n + '.js'; }))
     .concat(['subjects/kuku', 'main', 'kuku-screen', 'subjects/keisan', 'keisan-screen', 'subjects/kanji-data', 'subjects/kanji', 'kana-pad', 'kanji-screen',
-      'subjects/doutoku', 'doutoku-screen', 'subjects/japan-data', 'subjects/japan', 'japan-screen', 'subjects/world-data', 'subjects/world', 'world-screen', 'subjects/nagasa', 'nagasa-screen', 'subjects/hantai', 'hantai-screen', 'subjects/zukan-data', 'subjects/zukan', 'zukan-art', 'zukan-screen', 'subjects/eigo-data', 'subjects/eigo'].map(function (n) { return '../app-benkyo/' + n + '.js'; }))
+      'subjects/doutoku', 'doutoku-screen', 'subjects/japan-data', 'subjects/japan', 'japan-screen', 'subjects/world-data', 'subjects/world', 'world-screen', 'subjects/nagasa', 'nagasa-screen', 'subjects/hantai', 'hantai-screen', 'subjects/zukan-data', 'subjects/zukan-pages-1', 'subjects/zukan-pages-2', 'subjects/zukan-pages-3', 'subjects/zukan', 'zukan-art', 'zukan-screen', 'subjects/eigo-data', 'subjects/eigo'].map(function (n) { return '../app-benkyo/' + n + '.js'; }))
     .concat(['voice-lines.js']);
   var left = files.length;
   function done() { if (--left === 0) window.ChiidVoiceLines.run(); }

@@ -36,6 +36,8 @@
     });
   }
   function english() { return st && st.q ? (st.q.cards ? st.q.answer.en : st.q.say) : null; }
+  // 問題を出したときに読む英語：きく は英語、よむ は読まない（つづりを読んでわかる練習のため。答えたあとに読む）
+  function askEnglish() { return st.mode === 'yomi' ? null : english(); }
 
   /* ---------- 開く ---------- */
   function show(ctx) {
@@ -84,18 +86,16 @@
     if (m === 'kiku' && st.noVoice) return;          // 英語の声がない端末では「きく」は できない
     if (m !== 'kiku' && m !== 'yomi') return;
     st.mode = m;
-    if (m === 'kiku') { st.phase = 'theme'; st.message = E().TEXT.theme; buildTheme(); talk(E().TEXT.theme); return; }
-    st.theme = null;
-    startRound();
+    st.phase = 'theme'; st.message = E().TEXT.theme; buildTheme(); talk(E().TEXT.theme);   // きく・よむ どちらも テーマを選ぶ（ABC は きく だけ）
   }
   function pickTheme(id) {
     if (!st || st.phase !== 'theme') return;
-    if (id !== 'all' && !C.eigoData.THEMES.some(function (t) { return t.id === id; })) return;
+    var ok = id === 'all' || (id === 'abc' && st.mode === 'kiku') || C.eigoData.THEMES.some(function (t) { return t.id === id; });
+    if (!ok) return;
     st.theme = id;
     startRound();
   }
-  // よむ：英語の声がない端末は レベル3（大文字→小文字）だけ。レベルは上げ下げしない
-  function level() { return st.mode === 'yomi' && st.noVoice ? 3 : st.prog[st.mode].level; }
+  function level() { return st.prog[st.mode].level; }
 
   function startRound() {
     st.solved = 0; st.stars = 0; st.used = {}; st.first = true; pendingFn = null;
@@ -105,24 +105,21 @@
 
   function nextQuestion() {
     var p = st.prog[st.mode];
-    if (st.mode === 'kiku') {
-      st.q = E().makeKiku(level(), st.theme, st.rng, { used: st.used, missCounts: p.missCounts });
-      st.used[st.q.answer.id] = 1;
-    } else {
-      st.q = E().makeYomi(level(), st.rng, { used: st.used, missCounts: p.missCounts });
-      st.used[st.q.answer.toLowerCase()] = 1;
-    }
+    var make = st.mode === 'kiku' ? E().makeKiku : E().makeYomi;
+    st.q = make(level(), st.theme, st.rng, { used: st.used, missCounts: p.missCounts });
+    st.used[E().itemIdOf(st.q)] = 1;
     st.tries = 0; st.tried = []; st.revealed = false;
     st.phase = 'question'; st.mood = 'normal';
     st.message = askText();
     paint();
-    talk(st.first ? st.message : null, english());   // 説明は その回の1問目だけ。2問目からは英語だけ
+    talk(st.first ? st.message : null, askEnglish());   // 説明は その回の1問目だけ。2問目からは英語だけ
     st.first = false;
   }
   function askText() {
     var T = E().TEXT;
-    if (st.mode === 'kiku') return T.kiku;
-    return st.q.level === 4 ? T.yomi4 : st.q.level === 3 ? T.yomi3 : T.yomi12;
+    if (st.mode === 'yomi') return T.yomi;
+    if (st.q.kind === 'word') return T.kiku;
+    return st.q.kind === 'first' ? T.abcFirst : T.abc12;
   }
   function count() { return st.q.cards ? st.q.cards.length : st.q.choices.length; }
   function choiceAt(i) { return st.q.cards ? st.q.cards[i] : st.q.choices[i]; }
@@ -143,11 +140,11 @@
     }
     st.tries++; st.tried.push(i);
     if (st.tries < 2) {
-      st.message = st.mode === 'yomi' && st.q.level === 3 ? T.again3 : T.again;
+      st.message = st.mode === 'yomi' ? T.againRead : T.again;
       st.mood = 'think';
       play('oops');
       paint();
-      talk(st.message, english());
+      talk(st.message, askEnglish());
       return;
     }
     // 2回目のまちがい：答えを光らせて「つぎへ」を待つ
@@ -163,17 +160,15 @@
   // 1問おわり：記録（1問1件）・苦手・レベル・星
   function finish(correct) {
     var q = st.q, kiku = st.mode === 'kiku', p = st.prog[st.mode];
-    var itemId = kiku ? q.answer.id : E().itemIdYomi(q);
+    var itemId = E().itemIdOf(q);
     try {
       var r = C.storage.logAnswer({ profileId: st.profileId, area: kiku ? E().KIKU_AREA : E().YOMI_AREA, itemId: itemId, correct: correct, level: q.level });
       if (r && r.catch) r.catch(function () {});
     } catch (e) { /* 保存できなくても続ける */ }
     if (!correct) p.missCounts[itemId] = (p.missCounts[itemId] || 0) + 1;
-    if (!(st.mode === 'yomi' && st.noVoice)) {
-      p.recent.push(correct);
-      var nl = C.adaptive.nextLevel(p.recent, p.level, kiku ? E().KIKU_MAX : E().YOMI_MAX);
-      if (nl !== p.level) { p.level = nl; p.recent = []; }
-    }
+    p.recent.push(correct);
+    var nl = C.adaptive.nextLevel(p.recent, p.level, kiku ? E().KIKU_MAX : E().YOMI_MAX);
+    if (nl !== p.level) { p.level = nl; p.recent = []; }
     st.solved++;
     st.phase = 'feedback';
     if (st.solved % E().STAR_EVERY === 0) {
@@ -315,7 +310,9 @@
     var body = ui.el('div', 'eg-body eg-theme-body');
     body.appendChild(ui.elR('h2', 'eg-title', E().TEXT.theme));
     var grid = ui.el('div', 'eg-themes');
-    C.eigoData.THEMES.concat([{ id: 'all', name: 'ぜんぶ', pic: ALL_PIC }]).forEach(function (t) {
+    var list = C.eigoData.THEMES.slice();
+    if (st.mode === 'kiku') list.push({ id: 'abc', name: 'ABC', pic: '🔤' });   // 文字を聞いて選ぶ（きく だけ）
+    list.concat([{ id: 'all', name: 'ぜんぶ', pic: ALL_PIC }]).forEach(function (t) {
       var b = ui.button('eg-theme' + (t.id === 'all' ? ' eg-all' : ''), function () { ui.play('tap'); pickTheme(t.id); });
       b.appendChild(ui.el('span', 'eg-theme-ico', t.pic));
       b.appendChild(ui.el('span', 'eg-theme-name', t.name));
@@ -333,7 +330,7 @@
     var right = bar.querySelector('.tb-right');
     if (!st.noVoice) {
       var sp = ui.button('icon-btn kk-speak eg-speak', function () {
-        if (!st || !st.q || (st.phase !== 'question' && st.phase !== 'reveal')) return;
+        if (!st || !st.q || (st.phase !== 'question' && st.phase !== 'reveal') || !canReplay()) return;
         var en = english(); if (!en) return;
         talkSeq++; ui.play('tap'); C.voiceEn.speak(en);
       });
@@ -368,13 +365,14 @@
     view = v;
   }
 
+  // 「もういちど きく」：きく は いつでも、よむ は答えを見せたあとだけ（問題のあいだは声を出さない）
+  function canReplay() { return !!(st && st.q && english() && (st.mode === 'kiku' || st.phase !== 'question')); }
   function qKey(q) { return q.cards ? q.answer.id + '|' + q.cards.map(function (c) { return c.id; }).join(',') : q.kind + q.answer + q.choices.join(''); }
   function paintAsk(v, q) {
     var ui = U();
     v.ask.innerHTML = '';
     v.ask.className = 'eg-ask k-' + (q.kind || 'kiku');
-    if (q.kind === 'match') v.ask.appendChild(ui.el('span', 'eg-big-letter', q.prompt));
-    else if (q.kind === 'first') v.ask.appendChild(pictureOf(ui, q.word, 'eg-ask-pic'));
+    if (q.kind === 'read') v.ask.appendChild(ui.el('span', 'eg-word', q.answer.en));   // よむ：つづりを大きく
   }
   function paint() {
     if (!view || !st || !st.q || !drawing() || !view.choices) return;
@@ -418,7 +416,7 @@
     }
     v.next.style.visibility = st.phase === 'reveal' ? 'visible' : 'hidden';
     v.body.classList.toggle('is-wait', st.phase !== 'question');
-    if (v.speak) v.speak.style.visibility = english() ? 'visible' : 'hidden';
+    if (v.speak) v.speak.style.visibility = canReplay() ? 'visible' : 'hidden';
   }
 
   /* ---------- テスト用 ---------- */

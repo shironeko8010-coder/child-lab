@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ずかん 確認ページ</title>
+<style>
+  :root { --bg: #fffaf2; --card: #fff; --line: #e8dfcf; --ink: #2b2b2b; --sub: #6b6b6b; --new: #fff3c4; --newline: #e9c44a; --ok: #2f8a3c; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.7 system-ui, "Hiragino Sans", "Yu Gothic", sans-serif; }
+  header { position: sticky; top: 0; background: #fff; border-bottom: 1px solid var(--line); padding: 10px 16px; z-index: 2; }
+  h1 { margin: 0 0 4px; font-size: 20px; }
+  .lead { margin: 0; color: var(--sub); font-size: 14px; }
+  nav { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  nav a { text-decoration: none; background: #f3eee4; color: var(--ink); border-radius: 999px; padding: 2px 12px; font-size: 14px; }
+  main { max-width: 1100px; margin: 0 auto; padding: 8px 16px 40px; }
+  h2 { margin: 28px 0 10px; font-size: 22px; border-left: 6px solid #f0a020; padding-left: 10px; }
+  .page { display: grid; grid-template-columns: 72px 1fr; gap: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin: 10px 0; }
+  .pic { width: 72px; height: 72px; font-size: 52px; line-height: 72px; text-align: center; }
+  .pic svg { width: 72px; height: 72px; }
+  .name { font-weight: bold; font-size: 18px; }
+  .id { color: var(--sub); font-size: 12px; margin-left: 6px; }
+  .row { margin: 4px 0; }
+  .lab { display: inline-block; min-width: 5.5em; font-size: 13px; color: var(--sub); }
+  .new { background: var(--new); border-left: 4px solid var(--newline); border-radius: 6px; padding: 4px 8px; }
+  .q { font-size: 15px; }
+  .a { color: var(--ok); font-weight: bold; }
+  .w { color: var(--sub); }
+  .old .q { color: var(--sub); }
+  rt { font-size: 9px; color: #9a6a00; }
+  .tag { display: inline-block; font-size: 11px; background: var(--newline); color: #fff; border-radius: 4px; padding: 0 6px; margin-right: 6px; vertical-align: 2px; }
+  @media (max-width: 560px) { .page { grid-template-columns: 1fr; } .pic { margin: 0 auto; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>ずかん 確認ページ（グレードアップ 1回目）</h1>
+  <p class="lead">黄色の所（まめちしき・3問目）が、こんど足した中身です。<span class="a">緑</span>が答え、灰色が まちがいの選択肢。直したい所は、ページの名前と一緒に教えてください。</p>
+  <nav id="nav"></nav>
+</header>
+<main id="main"></main>
+
+<script src="../app-benkyo/subjects/zukan-data.js"></script>
+<script src="../app-benkyo/subjects/zukan-pages-1.js"></script>
+<script src="../app-benkyo/subjects/zukan-pages-2.js"></script>
+<script src="../app-benkyo/subjects/zukan-pages-3.js"></script>
+<script src="../app-benkyo/zukan-art.js"></script>
+<script>
+(function () {
+  'use strict';
+  var C = window.Chiid, D = C.zukanData;
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function ruby(s) { return esc(s).replace(/\{([^|{}]+)\|([^|{}]+)\}/g, '<ruby>$1<rt>$2</rt></ruby>'); }
+  function qHtml(q, n) {
+    return '<span class="lab">' + n + '問目</span>' + ruby(q.ask) + '　<span class="a">' + ruby(q.a) + '</span>　<span class="w">／ ' + q.wrong.map(ruby).join('・') + '</span>';
+  }
+  var nav = document.getElementById('nav'), main = document.getElementById('main'), total = 0;
+  D.THEMES.forEach(function (t) {
+    var pages = D.PAGES.filter(function (p) { return p.theme === t.id; });
+    nav.insertAdjacentHTML('beforeend', '<a href="#t-' + t.id + '">' + t.icon + ' ' + ruby(t.name) + '（' + pages.length + '）</a>');
+    var h = '<h2 id="t-' + t.id + '">' + t.icon + ' ' + ruby(t.name) + '</h2>';
+    pages.forEach(function (p) {
+      total++;
+      var pic = p.art ? (C.zukanArt && C.zukanArt[p.art]) || '' : esc(p.pic);
+      h += '<div class="page"><div class="pic">' + pic + '</div><div>' +
+        '<div><span class="name">' + ruby(p.name) + '</span><span class="id">' + esc(p.id) + '</span></div>' +
+        '<div class="row"><span class="lab">せつめい</span>' + ruby(p.text) + '</div>' +
+        '<div class="row old q">' + qHtml(p.qs[0], 1) + '</div>' +
+        '<div class="row old q">' + qHtml(p.qs[1], 2) + '</div>' +
+        '<div class="row new"><span class="tag">NEW</span><span class="lab">まめちしき</span>' + ruby(p.mame) + '</div>' +
+        '<div class="row new q"><span class="tag">NEW</span>' + qHtml(p.qs[2], 3) + '</div>' +
+        '</div></div>';
+    });
+    main.insertAdjacentHTML('beforeend', h);
+  });
+  document.querySelector('.lead').insertAdjacentHTML('beforeend', '（ぜんぶで ' + total + 'ページ）');
+})();
+</script>
+</body>
+</html>

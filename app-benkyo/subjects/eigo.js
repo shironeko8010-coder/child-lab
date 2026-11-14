@@ -1,91 +1,109 @@
 /* えい語の しくみ。Chiid.eigo
-   「きく」（英語を聞いて絵を選ぶ）と「よむ」（アルファベット）の問題作り・判定・レベル。画面には触らない（画面は eigo-screen.js）。
-   設計書：docs/superpowers/specs/2026-11-14-benkyo-eigo-design.md（3・4章） */
+   「きく」（英語を聞いて選ぶ：ことば→絵、ABC→文字）と「よむ」（つづりを見て絵を選ぶ）の問題作り・判定・レベル。
+   画面には触らない（画面は eigo-screen.js）。設計書：docs/superpowers/specs/2026-11-14-benkyo-eigo-design.md（3・4章） */
 (function () {
   'use strict';
   var C = (window.Chiid = window.Chiid || {});
 
   var KIKU_AREA = 'eigoKiku', YOMI_AREA = 'eigoYomi';
-  var KIKU_MAX = 3, YOMI_MAX = 4;
+  var KIKU_MAX = 3, YOMI_MAX = 3;
   var ROUND_SIZE = 10, STAR_EVERY = 5;
+  var SHORT = 4;             // よむ レベル1の「短いことば」の文字数
   // 画面の文（1年生の漢字はそのまま、2年生の漢字は {漢字|よみ}）
   var TEXT = {
     start: 'どっちで あそぶ？',
     theme: 'テーマを えらんでね',
     kiku: 'えい{語|ご}を きいて、{絵|え}を えらんでね',
-    yomi12: 'きこえた 文字を えらんでね',
-    yomi3: 'おなじ 文字の 小文字を えらんでね',
-    yomi4: 'さいしょの 文字を えらんでね',
+    abc12: 'きこえた 文字を えらんでね',
+    abcFirst: 'さいしょの 文字を えらんでね',
+    yomi: 'えい{語|ご}を よんで、{絵|え}を えらんでね',
     again: 'もういっかい きいてみよう',
-    again3: 'もういっかい みてみよう',
+    againRead: 'もういっかい よんでみよう',
     reveal: 'ひかっている ものだよ',
     noVoice: 'この たんまつでは えい{語|ご}の こえが でません'
   };
 
   function D() { return C.eigoData; }
-  function rnd(rng) { return (rng || Math.random)(); }
-  function shuffle(a, rng) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rnd(rng) * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-  function pick(a, rng) { return a[Math.floor(rnd(rng) * a.length)]; }
+  function rng0(rng) { return rng || Math.random; }
+  function shuffle(a, rng) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rng0(rng)() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function pick(a, rng) { return a[Math.floor(rng0(rng)() * a.length)]; }
   function byId(id) { return D().WORDS.filter(function (w) { return w.id === id; })[0] || null; }
 
   function wordsOf(themeId) { return themeId === 'all' ? D().WORDS.slice() : D().WORDS.filter(function (w) { return w.theme === themeId; }); }
   function firstLetter(word) { return String((word && word.en) || word || '').charAt(0); }
+  function itemIdOf(q) { return q.cards ? q.answer.id : 'abc:' + q.kind + ':' + q.answer; }
 
-  /* ---------- きく ---------- */
-  function makeKiku(level, themeId, rng, opts) {
-    opts = opts || {};
-    level = Math.max(1, Math.min(KIKU_MAX, Number(level) || 1));
-    var used = opts.used || {}, pool = wordsOf(themeId);
+  /* ---------- 絵のカードの問題（きく の ことば・よむ） ---------- */
+  // pool から答えを選び（used は出さない、苦手を多めに）、カード n まい（レベル3は 同じ文字で始まることばを できれば2まい）
+  function cardQuestion(kind, level, pool, rng, opts) {
+    var used = opts.used || {};
     var avail = pool.filter(function (w) { return !used[w.id]; });
     if (!avail.length) avail = pool;          // テーマのことばが全部出たら くり返してよい
-    var answer = byId(C.adaptive.pickWeighted(avail.map(function (w) { return w.id; }), opts.missCounts || {}, rng || Math.random));
+    var answer = byId(C.adaptive.pickWeighted(avail.map(function (w) { return w.id; }), opts.missCounts || {}, rng0(rng)));
     var n = level === 1 ? 3 : 4, others = [], taken = {}; taken[answer.id] = 1;
     function add(w) { if (others.length < n - 1 && !taken[w.id]) { taken[w.id] = 1; others.push(w); } }
-    if (level === 3) {   // 答えと同じ文字で始まることばを できれば2まい（どのテーマからでも）
-      shuffle(D().WORDS.filter(function (w) { return w.id !== answer.id && firstLetter(w) === firstLetter(answer); }), rng).slice(0, 2).forEach(add);
-    }
+    if (level === 3) shuffle(D().WORDS.filter(function (w) { return w.id !== answer.id && firstLetter(w) === firstLetter(answer); }), rng).slice(0, 2).forEach(add);
     shuffle(D().WORDS.filter(function (w) { return w.theme === answer.theme; }), rng).forEach(add);
-    return { answer: answer, cards: shuffle([answer].concat(others), rng), level: level };
+    return { kind: kind, level: level, answer: answer, cards: shuffle([answer].concat(others), rng) };
   }
 
-  /* ---------- よむ ---------- */
+  /* ---------- きく の ABC（文字を聞いて選ぶ） ---------- */
   function confuseOf(ch) {
     var out = [];
     D().CONFUSE.forEach(function (g) { if (g.indexOf(ch) >= 0) g.forEach(function (c) { if (c !== ch && out.indexOf(c) < 0) out.push(c); }); });
     return out;
   }
-  // 小文字4つ：答え＋（レベル2・3は まぎらわしい文字を1つ）＋ほか
+  // 小文字4つ：答え＋（まぎらわしい文字を1つ）＋ほか
   function lowerChoices(ans, withConfuse, rng) {
     var picks = [ans];
     if (withConfuse) { var cf = confuseOf(ans); if (cf.length) picks.push(pick(cf, rng)); }
     shuffle(D().LETTERS.split(''), rng).forEach(function (c) { if (picks.length < 4 && picks.indexOf(c) < 0) picks.push(c); });
     return shuffle(picks, rng);
   }
-  function makeYomi(level, rng, opts) {
-    opts = opts || {};
-    level = Math.max(1, Math.min(YOMI_MAX, Number(level) || 1));
+  function makeAbc(level, rng, opts) {
     var miss = opts.missCounts || {}, used = opts.used || {};
-    function pickLetter(letters) {
-      var ok = letters.filter(function (c) { return !used[c]; });
-      if (!ok.length) ok = letters;
-      var id = C.adaptive.pickWeighted(ok.map(function (c) { return 'L' + level + ':' + c; }), miss, rng || Math.random);
-      return id.split(':')[1];
+    var kind = level === 1 ? 'upper' : level === 2 ? 'lower' : 'first';
+    function pickLetter(letters) {   // 同じ回で出た文字は出さない。苦手な文字を多めに
+      var ids = letters.map(function (c) { return 'abc:' + kind + ':' + (kind === 'upper' ? c.toUpperCase() : c); });
+      var ok = ids.filter(function (id) { return !used[id]; });
+      if (!ok.length) ok = ids;
+      return C.adaptive.pickWeighted(ok, miss, rng0(rng)).split(':')[2].toLowerCase();
     }
-    if (level === 4) {
-      var single = D().WORDS.filter(function (w) { return w.en.indexOf(' ') < 0; });
-      var letters = [];
+    if (kind === 'first') {
+      var single = D().WORDS.filter(function (w) { return w.en.indexOf(' ') < 0; }), letters = [];
       single.forEach(function (w) { var c = firstLetter(w); if (letters.indexOf(c) < 0) letters.push(c); });
       var ch = pickLetter(letters);
       var word = pick(single.filter(function (w) { return firstLetter(w) === ch; }), rng);
-      return { kind: 'first', level: 4, prompt: '', say: word.en, answer: ch, choices: lowerChoices(ch, true, rng), word: word };
+      return { kind: 'first', level: 3, say: word.en, answer: ch, choices: lowerChoices(ch, true, rng), word: word };
     }
     var c0 = pickLetter(D().LETTERS.split(''));
-    if (level === 1) {
-      var up = c0.toUpperCase(), ch1 = lowerChoices(c0, false, rng).map(function (c) { return c.toUpperCase(); });
-      return { kind: 'upper', level: 1, prompt: '', say: up, answer: up, choices: ch1, word: null };
+    if (kind === 'upper') {
+      return { kind: 'upper', level: 1, say: c0.toUpperCase(), answer: c0.toUpperCase(),
+        choices: lowerChoices(c0, false, rng).map(function (c) { return c.toUpperCase(); }), word: null };
     }
-    if (level === 2) return { kind: 'lower', level: 2, prompt: '', say: c0.toUpperCase(), answer: c0, choices: lowerChoices(c0, true, rng), word: null };
-    return { kind: 'match', level: 3, prompt: c0.toUpperCase(), say: null, answer: c0, choices: lowerChoices(c0, true, rng), word: null };
+    // 文字の名前は 大文字で読ませる（小文字の a を「ア」と読む声があるため）
+    return { kind: 'lower', level: 2, say: c0.toUpperCase(), answer: c0, choices: lowerChoices(c0, true, rng), word: null };
+  }
+
+  /* ---------- きく ---------- */
+  var ABC_SHARE = 26 / (26 + 126);   // 「ぜんぶ」で ABC にする割合（文字26こ と ことば126こ から えらぶのと同じ）
+  function makeKiku(level, themeId, rng, opts) {
+    opts = opts || {};
+    level = Math.max(1, Math.min(KIKU_MAX, Number(level) || 1));
+    if (themeId === 'abc' || (themeId === 'all' && rng0(rng)() < ABC_SHARE)) return makeAbc(level, rng, opts);
+    return cardQuestion('word', level, wordsOf(themeId), rng, opts);
+  }
+
+  /* ---------- よむ（つづりを見て 絵を選ぶ） ---------- */
+  function makeYomi(level, themeId, rng, opts) {
+    opts = opts || {};
+    level = Math.max(1, Math.min(YOMI_MAX, Number(level) || 1));
+    var pool = wordsOf(themeId);
+    if (level === 1) {
+      var short = pool.filter(function (w) { return w.en.length <= SHORT && w.en.indexOf(' ') < 0; });
+      if (short.length) pool = short;
+    }
+    return cardQuestion('read', level, pool, rng, opts);
   }
 
   function check(q, choice) {
@@ -93,7 +111,6 @@
     if (q.cards) return !!choice && (choice.id || choice) === q.answer.id;
     return choice === q.answer;
   }
-  function itemIdYomi(q) { return 'L' + q.level + ':' + q.answer; }
 
   // 記録から、いまのレベルと直近の結果（きく・よむ 別々）
   function progressFromLogs(logs, area) {
@@ -115,6 +132,6 @@
   C.eigo = {
     KIKU_AREA: KIKU_AREA, YOMI_AREA: YOMI_AREA, KIKU_MAX: KIKU_MAX, YOMI_MAX: YOMI_MAX, ROUND_SIZE: ROUND_SIZE, STAR_EVERY: STAR_EVERY,
     TEXT: TEXT, wordsOf: wordsOf, firstLetter: firstLetter, makeKiku: makeKiku, makeYomi: makeYomi,
-    check: check, itemIdYomi: itemIdYomi, progressFromLogs: progressFromLogs
+    check: check, itemIdOf: itemIdOf, progressFromLogs: progressFromLogs
   };
 })();

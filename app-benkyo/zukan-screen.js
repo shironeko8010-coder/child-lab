@@ -562,7 +562,10 @@
     var title = ui.el('div', 'zk-book-title');
     title.appendChild(ui.elR('span', null, th.name));
     title.appendChild(ui.el('span', 'zk-book-count', '  ' + n.got + '/' + n.total + (n.kira ? '  ✨' + n.kira : '')));
-    body.appendChild(title);
+    var head = ui.el('div', 'zk-book-head');   // 名前と「もどる」を 1行に（16まいの カードが 入るように）
+    head.appendChild(title);
+    head.appendChild(backBtn());
+    tabs.appendChild(head);   // テーマのボタンの 行の あいた ところに ならべる（12テーマでも 入るように）
     var grid = ui.el('div', 'zk-grid');
     Z().pagesOf(st.bookTheme).forEach(function (p) {
       var got = st.cards[p.id];
@@ -580,7 +583,6 @@
       grid.appendChild(b);
     });
     body.appendChild(grid);
-    body.appendChild(backBtn());
     app.appendChild(body);
   }
 

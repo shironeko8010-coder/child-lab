@@ -18,14 +18,14 @@
   }
 
   // 回ごとに書きかえる（1回目：9テーマ×12ページ。2回目・3回目で ふえる）
-  var EXPECT = { themes: 9, perTheme: 12 };
+  var EXPECT = { themes: 12, perTheme: 16 };
   // はじめの108ページの id（記録をそのまま使うため、どの回でも 消さない）
   var OLD_IDS = 'lion kirin zou panda koara kangaru shimauma gorira tora usagi namakemono kaba penguin fukurou niwatori washi hato ahiru kujaku flamingo oumu hakuchou suzume hiyoko dangomushi semi kabutomushi tentoumushi chou ari mitsubachi batta kumo aomushi katatsumuri ka asagao himawari tulip sakura tanpopo saboten kinoko minitomato toumorokoshi ine momiji take zarigani medaka kame kujira iruka tako ika kani same fugu ebi rakko tirano burakio torikera sutego puterano ankiro supino raputoru futaba kaseki inseki kyoryu-tamago tsuki taiyou chikyu dosei nagareboshi hoshi niji kaminari yuki kumo-ten taifu tsuyu shinzou hone ha me mimi hana shita te ashi nou chi kushami shinkansen shoubousha kyukyusha patoka heri roketto fune hikouki densha basu jitensha torakuta'.split(' ');
 
   C.test('zukan-data: テーマとページの数（EXPECT）、id が重ならない、はじめの108ページが すべてある', function () {
     var d = D();
     C.assertEq(d.THEMES.length, EXPECT.themes);
-    C.assertEq(d.THEMES.slice(0, 9).map(function (t) { return t.id; }), ['doubutsu', 'tori', 'mushi', 'shokubutsu', 'mizu', 'kyoryu', 'uchu', 'karada', 'norimono']);
+    C.assertEq(d.THEMES.map(function (t) { return t.id; }), ['doubutsu', 'tori', 'mushi', 'shokubutsu', 'mizu', 'kyoryu', 'uchu', 'karada', 'norimono', 'tabemono', 'kisetsu', 'disney']);
     C.assertEq(d.PAGES.length, EXPECT.themes * EXPECT.perTheme);
     d.THEMES.forEach(function (t) { C.assertEq(d.PAGES.filter(function (p) { return p.theme === t.id; }).length, EXPECT.perTheme); });
     var ids = {};
@@ -44,7 +44,11 @@
       });
     });
     C.assertEq(D().PAGES.filter(function (p) { return p.art; }).map(function (p) { return p.art; }).sort(),
-      ['ankiro', 'asagao', 'dangomushi', 'futaba', 'kabutomushi', 'puterano', 'raputoru', 'semi', 'supino', 'sutego', 'torikera']);
+      ['ankiro', 'asagao', 'dachou', 'dangomushi', 'futaba', 'iguano', 'kabutomushi', 'karasu', 'kitsutsuki', 'kuwagata', 'mosasa', 'pakike', 'puterano', 'raputoru', 'semi', 'supino', 'sutego', 'tonbo', 'torikera', 'tsubame', 'hotaru', 'daizu'].sort());
+    D().THEMES.forEach(function (t) {   // 同じテーマの中で 同じ絵を2回使わない
+      var seen = {};
+      D().PAGES.filter(function (p) { return p.theme === t.id; }).forEach(function (p) { var k = p.pic || ('art:' + p.art); if (seen[k]) throw new Error(t.id + ' ' + p.id + ' ' + k); seen[k] = 1; });
+    });
   });
 
   C.test('zukan-data: 漢字は2年まで（ルビの中は2年の字だけ、外は1年の字だけ）', function () {
@@ -88,19 +92,20 @@
     var cards = z.cardsFromLogs([{ area: 'zukan', itemId: 'lion', correct: false }, { area: 'zukan', itemId: 'lion', correct: true },
       { area: 'zukan', itemId: 'kirin', correct: false }, { area: 'kanji', itemId: 'zou', correct: true }]);
     C.assertEq(cards, { lion: 'kira', kirin: 'card' });
-    C.assertEq(z.countFor('doubutsu', cards), { got: 2, kira: 1, total: 12 });
+    C.assertEq(z.countFor('doubutsu', cards), { got: 2, kira: 1, total: 16 });
   });
 
   C.test('zukan: pickPage は まだ → きらきらでない → どれでも の順、同じ回のページは出さない', function () {
     var z = Z(), ids = z.pagesOf('doubutsu').map(function (p) { return p.id; });
     var cards = {};
-    ids.slice(0, 11).forEach(function (id) { cards[id] = 'kira'; });
-    C.assertEq(z.pickPage('doubutsu', cards, [], Math.random).id, ids[11]);
+    var n = ids.length;
+    ids.slice(0, n - 1).forEach(function (id) { cards[id] = 'kira'; });
+    C.assertEq(z.pickPage('doubutsu', cards, [], Math.random).id, ids[n - 1]);
     ids.forEach(function (id) { cards[id] = 'kira'; });
     cards[ids[3]] = 'card';
     C.assertEq(z.pickPage('doubutsu', cards, [], Math.random).id, ids[3]);
     ids.forEach(function (id) { cards[id] = 'kira'; });
-    C.assertEq(z.pickPage('doubutsu', cards, ids.slice(0, 11), Math.random).id, ids[11]);
+    C.assertEq(z.pickPage('doubutsu', cards, ids.slice(0, n - 1), Math.random).id, ids[n - 1]);
     C.assertEq(!!z.pickPage('doubutsu', cards, ids, Math.random), true);   // 残りがなくても止まらない
   });
 
@@ -382,5 +387,29 @@
       C.assertEq(s.phase, 'card'); C.assertEq(s.got, 'keep');
       C.assertEq(C.zukan.TEXT.keep, 'きらきらカードは そのままだよ');
     }).then(function () { C.storage._forceMemory(false); S()._twoSheets(null); }, function (e) { C.storage._forceMemory(false); S()._twoSheets(null); throw e; });
+  });
+})();
+
+/* ずかん 3回目：ディズニーリゾートの決まり */
+(function () {
+  'use strict';
+  var C = window.Chiid;
+  var CHARA = ['ミッキー', 'ミニー', 'ドナルド', 'デイジー', 'グーフィー', 'プルート', 'プーさん', 'シンデレラ', 'アリエル', 'ラプンツェル', 'エルサ', 'アナ', 'スティッチ', 'ダッフィー'];
+  var PLACE = /(じょう|しろ|ハント|ハウス|マウンテン|ワールド|てつどう|ごう|火山)/;
+  function disney() { return C.zukanData.PAGES.filter(function (p) { return p.theme === 'disney'; }); }
+  C.test('zukan-data: ディズニー：キャラクターの名前だけの ページや絵文字がない', function () {
+    var bad = [];
+    disney().forEach(function (p) {
+      var name = String(p.name).replace(/\{([^|{}]+)\|[^|{}]+\}/g, '$1');
+      CHARA.forEach(function (c) { if (name.indexOf(c) >= 0 && !PLACE.test(name)) bad.push(p.id); });
+      if (['🐭', '🐁', '🦆', '🐶', '🐻', '🧜', '🧚', '👸', '🤴'].indexOf(p.pic) >= 0) bad.push(p.id + ' ' + p.pic);
+    });
+    if (bad.length) throw new Error(bad.join(' / '));
+  });
+  C.test('zukan-data: ディズニー：アトラクションが8ページ以上（ランドと シーの 両方）', function () {
+    var LAND = ['smallworld', 'bigthunder', 'caribbean', 'haunted', 'westernriver'], SEA = ['centerofearth', 'toweroft', 'soarin', 'gondola'];
+    var ids = disney().map(function (p) { return p.id; });
+    var land = LAND.filter(function (id) { return ids.indexOf(id) >= 0; }).length, sea = SEA.filter(function (id) { return ids.indexOf(id) >= 0; }).length;
+    C.assertEq(land + sea >= 8 && land >= 3 && sea >= 3, true);
   });
 })();

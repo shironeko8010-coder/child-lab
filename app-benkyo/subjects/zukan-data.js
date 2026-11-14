@@ -15,7 +15,10 @@
     { id: 'kyoryu', name: 'きょうりゅう', icon: '🦕' },
     { id: 'uchu', name: 'うちゅうと 天気', icon: '🪐' },
     { id: 'karada', name: 'からだ', icon: '💪' },
-    { id: 'norimono', name: 'のりもの', icon: '🚄' }
+    { id: 'norimono', name: 'のりもの', icon: '🚄' },
+    { id: 'tabemono', name: 'たべもの', icon: '🍙' },
+    { id: 'kisetsu', name: 'きせつと ぎょうじ', icon: '🎍' },
+    { id: 'disney', name: 'ディズニーリゾート', icon: '🏰' }
   ];
 
   var PAGES = [];

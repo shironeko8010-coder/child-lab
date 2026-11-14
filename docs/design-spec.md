@@ -69,7 +69,7 @@ chiid-lab/
 | 勉強 | えい語（きく：英語を聞いて絵を選ぶ・ABC は文字を選ぶ／よむ：つづりを見て絵を選ぶ。12テーマ126こ。英語は端末の英語の声）。あわせて勉強のトップを2ページに | `docs/superpowers/specs/2026-11-14-benkyo-eigo-design.md` |
 | 勉強 | 長さ・かさ（ものさし・ますを読む、単位をかえる・えらぶ） | `docs/superpowers/specs/2026-11-12-benkyo-nagasa-design.md` |
 | 勉強 | はんたい ことば（反対の意味のことば・文を4つから選ぶ） | `docs/superpowers/specs/2026-11-12-benkyo-hantai-design.md` |
-| 勉強 | ずかん（図鑑のページを読んで3問答え、カードを集める。9テーマ×12ページ。説明のあとに まめちしき。スマホでは 説明 → まめちしき の2まい） | `docs/superpowers/specs/2026-11-12-benkyo-zukan-design.md`・グレードアップ `docs/superpowers/specs/2026-11-14-benkyo-zukan-upgrade-design.md` |
+| 勉強 | ずかん（図鑑のページを読んで3問答え、カードを集める。12テーマ×16ページ（たべもの・きせつと ぎょうじ・ディズニーリゾートを足した）。説明のあとに まめちしき。スマホでは 説明 → まめちしき の2まい） | `docs/superpowers/specs/2026-11-12-benkyo-zukan-design.md`・グレードアップ `docs/superpowers/specs/2026-11-14-benkyo-zukan-upgrade-design.md` |
 
 ## 9. トップ画面と音楽（2026-11-13）
 | 項目 | 内容 |

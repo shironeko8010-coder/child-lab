@@ -1808,3 +1808,100 @@ ruby rt { font-size: .5em; font-weight: bold; }   /* .5em：本文 18px で ふ�
   .zk-page.is-two .zk-text { font-size: max(18px, calc(var(--vh) * 4.8)); }
   .zk-page .zk-ready, .zk-page .zk-flip { min-height: 56px; }
 }
+/* わたしのずかん：16まい（グレードアップ2回目）。名前と「もどる」を1行に。よこ向きの低い画面は 8列×2段 */
+.zk-book-head { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
+@media (orientation: landscape) and (max-height: 700px) and (min-height: 521px) {
+  .zk-grid { grid-template-columns: repeat(8, minmax(0, 104px)); }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .zk-book { gap: 2px; }
+  .zk-book .zk-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .zk-book .zk-card-pic { height: 34%; }
+  .zk-book .zk-card-pic .zk-emoji { font-size: calc(var(--vh) * 6.5); }
+  .zk-book .zk-card-name { line-height: 1.1; }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .zk-book { gap: 4px; }
+  .zk-book-title { font-size: 18px; }
+  .zk-book-count { font-size: 16px; }
+  .zk-book-head { gap: 10px; flex-wrap: nowrap; }
+  .zk-book-head .zk-back { padding: 4px 16px; }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .zk-book-head .zk-book-title { flex: 1 1 auto; min-width: 0; text-align: center; line-height: 1.25; }
+  .zk-book-head .zk-back { flex: 0 0 auto; white-space: nowrap; }
+  .zk-book .zk-card-pic { width: 36px; }
+  .zk-book .zk-card-pic .zk-emoji { font-size: 28px; }
+}
+/* ---------- ずかん：12テーマ（グレードアップ3回目）。よこ向きは 4列×3段、たて向きは 3列×4段 ---------- */
+@media (orientation: landscape) {
+  .zk-themes { grid-template-columns: repeat(4, minmax(0, 220px)); }
+}
+@media (orientation: landscape) and (max-height: 900px) {
+  .zk-theme { min-height: 0; height: calc(var(--vh) * 16); padding: 2px 8px; gap: 2px; }
+  .zk-theme-ico { font-size: min(44px, calc(var(--vh) * 5.5)); }
+}
+@media (orientation: landscape) and (max-height: 700px) {
+  .zk-themes { grid-template-columns: repeat(4, minmax(0, 210px)); gap: 8px; }
+  .zk-theme-name { font-size: 18px; white-space: normal; line-height: 1.1; text-align: center; }
+  .zk-theme-count { font-size: 16px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .zk-title { display: none; }   /* 入らないので 題の文は 出さない（声では読む） */
+  .zk-themes { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; max-width: 760px; }
+  .zk-theme { height: calc(var(--vh) * 19); flex-direction: row; gap: 6px; padding: 2px 8px; }
+  .zk-theme-ico { font-size: calc(var(--vh) * 7); }
+  .zk-theme-name { font-size: 18px; text-align: left; line-height: 1.05; }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .zk-themes-body { gap: 6px; }
+  .zk-themes { gap: 6px; }
+  .zk-theme { min-height: 0; height: auto; padding: 4px 2px; gap: 0; }
+  .zk-theme-ico { font-size: 28px; }
+  .zk-theme-name { font-size: 16px; line-height: 1.15; }
+  .zk-theme-count { font-size: 16px; }
+}
+/* わたしのずかん：テーマのボタン12こ。名前と「もどる」は ボタンの 行に ならべる */
+.zk-tabs .zk-book-head { flex: 0 1 auto; margin: 0 6px; }
+@media (orientation: landscape) and (max-height: 520px) {
+  .zk-theme-name { font-size: 16px; word-break: break-all; }
+  .zk-book .zk-tabs { gap: 3px; }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .zk-book .zk-tabs { gap: 4px 1px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .zk-book .zk-card-pic { height: 30%; }
+  .zk-book .zk-card-name { line-height: 1.05; }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  /* たて向きの スマホは 名前を出すと入らないので、わたしのずかんの カードは 絵だけ（さわると ページで 名前が出る） */
+  .zk-book .zk-tab { width: 55px; }
+  .zk-book .zk-grid .zk-card { aspect-ratio: 1 / 1; }
+  .zk-book .zk-grid .zk-card-name { display: none; }
+  .zk-book .zk-card-pic { width: 60%; }
+  .zk-book .zk-card-pic .zk-emoji { font-size: 36px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  /* 絵の よこに 名前と 数を 2行で（名前が せまく ならないように） */
+  .zk-theme { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; align-content: center; column-gap: 6px; row-gap: 0; }
+  .zk-theme-ico { grid-row: 1 / span 2; align-self: center; }
+  .zk-theme-name, .zk-theme-count { justify-self: start; text-align: left; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .zk-book .zk-card-pic { height: 22%; }
+  .zk-book .zk-card-pic .zk-emoji { font-size: calc(var(--vh) * 5); }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .zk-book .zk-card-name { line-height: 1; }
+}
+/* タブレット：説明と まめちしきを 1まいに 出すとき、長い ページでも 入るように */
+.zk-page:not(.is-two) .zk-text { font-size: clamp(20px, 2.1vw, 26px); line-height: 1.6; }
+.zk-page:not(.is-two) .zk-mame-text { font-size: clamp(20px, 1.9vw, 24px); line-height: 1.55; }
+@media (orientation: portrait) and (max-width: 520px) {
+  /* たて向きの スマホ：カードの名前は 小さい字で出す（やまとさん了承：入りきらないため 12px） */
+  .zk-book .zk-grid .zk-card { aspect-ratio: auto; padding: 3px 2px; gap: 1px; }
+  .zk-book .zk-grid .zk-card-name { display: block; font-size: 12px; line-height: 1.1; word-break: break-all; }
+  .zk-book .zk-card-pic { width: 34px; }
+  .zk-book .zk-card-pic .zk-emoji { font-size: 28px; }
+}

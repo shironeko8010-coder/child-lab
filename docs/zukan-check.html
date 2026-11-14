@@ -33,8 +33,8 @@
 </head>
 <body>
 <header>
-  <h1>ずかん 確認ページ（グレードアップ 1回目）</h1>
-  <p class="lead">黄色の所（まめちしき・3問目）が、こんど足した中身です。<span class="a">緑</span>が答え、灰色が まちがいの選択肢。直したい所は、ページの名前と一緒に教えてください。</p>
+  <h1>ずかん 確認ページ（グレードアップ 3回目：新しい3テーマ 48ページ）</h1>
+  <p class="lead">3回目で足した テーマだけを出しています（ページぜんぶを見るときは、アドレスの最後に #all）。黄色は まめちしき・3問目。<span class="a">緑</span>が答え、灰色が まちがいの選択肢。直したい所は、ページの名前と一緒に教えてください。</p>
   <nav id="nav"></nav>
 </header>
 <main id="main"></main>
@@ -53,19 +53,25 @@
   function qHtml(q, n) {
     return '<span class="lab">' + n + '問目</span>' + ruby(q.ask) + '　<span class="a">' + ruby(q.a) + '</span>　<span class="w">／ ' + q.wrong.map(ruby).join('・') + '</span>';
   }
+  // 1回目までの108ページ（この回では出さない）
+  var OLD = 'lion kirin zou panda koara kangaru shimauma gorira tora usagi namakemono kaba penguin fukurou niwatori washi hato ahiru kujaku flamingo oumu hakuchou suzume hiyoko dangomushi semi kabutomushi tentoumushi chou ari mitsubachi batta kumo aomushi katatsumuri ka asagao himawari tulip sakura tanpopo saboten kinoko minitomato toumorokoshi ine momiji take zarigani medaka kame kujira iruka tako ika kani same fugu ebi rakko tirano burakio torikera sutego puterano ankiro supino raputoru futaba kaseki inseki kyoryu-tamago tsuki taiyou chikyu dosei nagareboshi hoshi niji kaminari yuki kumo-ten taifu tsuyu shinzou hone ha me mimi hana shita te ashi nou chi kushami shinkansen shoubousha kyukyusha patoka heri roketto fune hikouki densha basu jitensha torakuta'.split(' ');
+  var showAll = location.hash === '#all';
   var nav = document.getElementById('nav'), main = document.getElementById('main'), total = 0;
   D.THEMES.forEach(function (t) {
+    var ROUND = ['tabemono', 'kisetsu', 'disney'];   // この回の テーマ
+    if (!showAll && ROUND.indexOf(t.id) < 0) return;
     var pages = D.PAGES.filter(function (p) { return p.theme === t.id; });
     nav.insertAdjacentHTML('beforeend', '<a href="#t-' + t.id + '">' + t.icon + ' ' + ruby(t.name) + '（' + pages.length + '）</a>');
     var h = '<h2 id="t-' + t.id + '">' + t.icon + ' ' + ruby(t.name) + '</h2>';
     pages.forEach(function (p) {
       total++;
+      var oc = OLD.indexOf(p.id) >= 0 ? 'row old q' : 'row q';
       var pic = p.art ? (C.zukanArt && C.zukanArt[p.art]) || '' : esc(p.pic);
       h += '<div class="page"><div class="pic">' + pic + '</div><div>' +
         '<div><span class="name">' + ruby(p.name) + '</span><span class="id">' + esc(p.id) + '</span></div>' +
         '<div class="row"><span class="lab">せつめい</span>' + ruby(p.text) + '</div>' +
-        '<div class="row old q">' + qHtml(p.qs[0], 1) + '</div>' +
-        '<div class="row old q">' + qHtml(p.qs[1], 2) + '</div>' +
+        '<div class="' + oc + '">' + qHtml(p.qs[0], 1) + '</div>' +
+        '<div class="' + oc + '">' + qHtml(p.qs[1], 2) + '</div>' +
         '<div class="row new"><span class="tag">NEW</span><span class="lab">まめちしき</span>' + ruby(p.mame) + '</div>' +
         '<div class="row new q"><span class="tag">NEW</span>' + qHtml(p.qs[2], 3) + '</div>' +
         '</div></div>';

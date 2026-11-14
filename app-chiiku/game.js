@@ -311,7 +311,18 @@
     machi: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="27" cy="27" r="17" fill="#e8f7fa" stroke="#8a6fe0" stroke-width="6"/><path d="M40 40l16 16" stroke="#8a6fe0" stroke-width="9" stroke-linecap="round"/><text x="27" y="35" font-size="22" font-weight="900" text-anchor="middle" fill="#e06f20">?</text></svg>',
     kai: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M18 26a14 14 0 0 1 28 0" fill="none" stroke="#b07a3a" stroke-width="5"/><circle cx="24" cy="22" r="7" fill="#ff5a5a"/><circle cx="40" cy="21" r="7" fill="#ffc83d"/><path d="M8 26h48l-6 28H14z" fill="#e0a45a"/><path d="M20 32v16M32 32v16M44 32v16" stroke="#b07a3a" stroke-width="3"/></svg>',
     sr: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="17" cy="45" r="12" fill="#ffe08a"/><circle cx="47" cy="19" r="12" fill="#bfe8f0"/><path d="M26 37 L38 27" stroke="#3a3a3a" stroke-width="5" stroke-linecap="round"/><path d="M31 25 L40 25 L39 34" fill="none" stroke="#3a3a3a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    dou: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 56S8 41 8 24a12 12 0 0 1 24-4 12 12 0 0 1 24 4c0 17-24 32-24 32z" fill="#ff6f91"/><path d="M22 26q3-6 8-4" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/></svg>'
+    dou: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 56S8 41 8 24a12 12 0 0 1 24-4 12 12 0 0 1 24 4c0 17-24 32-24 32z" fill="#ff6f91"/><path d="M22 26q3-6 8-4" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/></svg>',
+    meiro: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="6" width="52" height="52" rx="8" fill="#fff6dc"/><path d="M6 6H58V58H6Z M20 6V34 M6 46H34 M34 20V46 M46 20H58 M46 20V58" fill="none" stroke="#5aa64a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="13" cy="52" r="5.5" fill="#ffd84d"/><circle cx="11" cy="51" r="1" fill="#3a3a3a"/><circle cx="15" cy="51" r="1" fill="#3a3a3a"/><circle cx="52" cy="12" r="4" fill="#ff8a5b"/></svg>'
+  };
+  // ホームの並び（設計書7章）。1ページ6まい。いまのページは画面の中だけで覚える（保存しない）
+  var HOME_ORDER = ['hira', 'kazu', 'tokei', 'iro', 'machi', 'kai', 'sr', 'dou', 'meiro'];
+  var HOME_PER_PAGE = 6;
+  var homePage = 0;
+  C.chiikuHome = {
+    ORDER: HOME_ORDER, PER_PAGE: HOME_PER_PAGE,
+    pageCount: function () { return Math.ceil(HOME_ORDER.length / HOME_PER_PAGE); },
+    pageOf: function (kind) { var i = HOME_ORDER.indexOf(kind); return i < 0 ? 0 : Math.floor(i / HOME_PER_PAGE); },
+    kinds: function (page) { return HOME_ORDER.slice(page * HOME_PER_PAGE, (page + 1) * HOME_PER_PAGE); }
   };
   function showHome() {
     var p = pickProfile();
@@ -342,8 +353,9 @@
       go.appendChild(svg(HOME_ICO[kind], 'hc-pic'));
       go.appendChild(el('span', 'hc-name', label));
       all.push(go);
-      cards.appendChild(go);
+      byKind[kind] = go;
     }
+    var byKind = {};
     playCard('ひらがな', 'hira', function () { C.game.start(p.id); });
     playCard('かず', 'kazu', function () { C.kazu.start(p.id); });
     playCard('とけい', 'tokei', function () { C.tokei.start(p.id); });
@@ -352,8 +364,49 @@
     playCard('おかいもの', 'kai', function () { C.okaimono.start(p.id); });
     playCard('しりとり', 'sr', function () { C.shiritori.start(p.id); });
     playCard('どうとく', 'dou', function () { C.chiikuDoutoku.start(p.id); });
+    playCard('めいろ', 'meiro', function () { C.meiro.start(p.id); });
+
+    // 2ページ：◀ カード ▶、下に ●○。横にさっと動かしても めくれる
+    var H = C.chiikuHome, pages = H.pageCount();
+    if (homePage >= pages) homePage = 0;
+    var pager = el('div', 'home-pager');
+    var prev = button('icon-btn home-prev', function () { turn(-1); });
+    prev.setAttribute('aria-label', 'まえの ぺーじ');
+    prev.appendChild(svg('<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15.5 4.5 7 12l8.5 7.5z"/></svg>'));
+    var next = button('icon-btn home-next', function () { turn(1); });
+    next.setAttribute('aria-label', 'つぎの ぺーじ');
+    next.appendChild(svg('<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.5 4.5 17 12l-8.5 7.5z"/></svg>'));
+    var dots = el('div', 'home-dots');
+    var nav = el('div', 'home-nav');
+    nav.appendChild(prev); nav.appendChild(dots); nav.appendChild(next);
+    pager.appendChild(cards); pager.appendChild(nav);
+    function paint() {
+      cards.innerHTML = '';
+      H.kinds(homePage).forEach(function (k) { if (byKind[k]) cards.appendChild(byKind[k]); });
+      cards.className = 'home-cards page-' + homePage;
+      prev.disabled = homePage <= 0;
+      next.disabled = homePage >= pages - 1;
+      dots.innerHTML = '';
+      for (var i = 0; i < pages; i++) dots.appendChild(el('span', 'home-dot' + (i === homePage ? ' on' : '')));
+    }
+    function turn(d) {
+      var np = Math.max(0, Math.min(pages - 1, homePage + d));
+      if (np === homePage) return;
+      homePage = np; play('tap'); paint();
+    }
+    var sx = null, sy = 0, swiped = false;
+    pager.addEventListener('pointerdown', function (ev) { sx = ev.clientX; sy = ev.clientY; swiped = false; });
+    pager.addEventListener('pointerup', function (ev) {
+      if (sx === null) return;
+      var dx = ev.clientX - sx, dy = ev.clientY - sy; sx = null;
+      if (Math.abs(dx) >= 40 && Math.abs(dx) > Math.abs(dy)) { swiped = true; turn(dx < 0 ? 1 : -1); }
+    });
+    // めくったときは、指をはなした所のカードを 押したことにしない
+    pager.addEventListener('click', function (ev) { if (swiped) { swiped = false; ev.stopPropagation(); ev.preventDefault(); } }, true);
+    pager.addEventListener('pointercancel', function () { sx = null; });
+    paint();
     body.appendChild(left);
-    body.appendChild(cards);
+    body.appendChild(pager);
     app.appendChild(body);
   }
 

@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>めいろの見本</title>
+<style>
+  /* めいろの見本（ためし）。アプリ本体には まだ入れていない。外の画像・音・フォントは使わない。 */
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: #eee7da; font-family: "Hiragino Maru Gothic ProN", "Meiryo", "Yu Gothic UI", sans-serif; color: #3a3a3a; }
+  h1 { font-size: 22px; margin: 0 0 6px; }
+  p.lead { margin: 0 0 12px; font-size: 15px; line-height: 1.6; max-width: 980px; }
+  .ctrl { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; align-items: center; }
+  .ctrl b { font-size: 14px; }
+  .ctrl button { font: inherit; font-size: 15px; font-weight: bold; border: 0; border-radius: 12px; padding: 9px 14px; background: #fff; box-shadow: 0 3px 0 #d7c9b0; cursor: pointer; }
+  .ctrl button.on { background: #ff8a3d; color: #fff; box-shadow: 0 3px 0 #c25a17; }
+  .desc { background: #fff; border-radius: 14px; padding: 10px 14px; margin: 0 0 12px; font-size: 15px; line-height: 1.6; max-width: 980px; }
+  .desc strong { color: #e06f20; }
+  .wrap { position: relative; }
+  .frame { position: absolute; left: 0; top: 0; transform-origin: 0 0; border-radius: 20px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,.18);
+    background: radial-gradient(circle at 12% 88%, #ffe9c9 0 120px, transparent 121px), #fff8e7; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .bar { position: absolute; left: 10px; right: 10px; top: 8px; height: 56px; display: flex; align-items: center; gap: 10px; }
+  .ib { width: 56px; height: 56px; border-radius: 50%; background: #fff; box-shadow: 0 4px 0 #ecd3b4; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .ib svg { width: 30px; height: 30px; }
+  .talk { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 0; }
+  .bub { background: #fff; border-radius: 22px; padding: 8px 16px; font-size: 20px; font-weight: 900; box-shadow: 0 3px 10px rgba(0,0,0,.08); line-height: 1.25; text-align: center; }
+  .goal-list { display: flex; gap: 4px; align-items: center; font-size: 22px; flex: 0 0 auto; }
+  .goal-list span { opacity: .3; filter: grayscale(1); }
+  .goal-list span.got { opacity: 1; filter: none; }
+  .frame[data-z="port"] .bar { flex-wrap: wrap; height: auto; row-gap: 6px; }
+  .frame[data-z="port"] .talk { order: 3; flex-basis: 100%; }
+  .frame[data-z="port"] .bub { font-size: 18px; }
+  .frame[data-z="port"] .goal-list { flex: 1 1 auto; justify-content: center; }
+  .board { position: absolute; left: 0; right: 0; bottom: 10px; display: flex; align-items: center; justify-content: center; }
+  .board svg { display: block; overflow: visible; }
+  .clear { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 10px; background: rgba(255,248,231,.7); font-size: 34px; font-weight: 900; color: #e06f20; }
+  .clear.on { display: flex; }
+  .clear button { font: inherit; font-size: 22px; border: 0; border-radius: 20px; padding: 12px 28px; background: #ff8a3d; color: #fff; box-shadow: 0 5px 0 #c25a17; }
+  .hint-path { fill: none; stroke: #ffd23f; stroke-linecap: round; stroke-linejoin: round; opacity: .0; transition: opacity .4s; }
+  .hint-path.on { opacity: .85; animation: hp 1s ease-in-out infinite alternate; }
+  @keyframes hp { from { opacity: .35; } to { opacity: .9; } }
+  .chick { transition: transform .12s linear; }
+  .chick.hop .body { animation: hop .25s ease; }
+  @keyframes hop { 50% { transform: translateY(-8%); } }
+  .pop { animation: pop .4s ease; transform-box: fill-box; transform-origin: center; }
+  @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.6); } 100% { transform: scale(0); } }
+</style>
+</head>
+<body>
+<h1>めいろの見本</h1>
+<p class="lead">見本です（アプリには まだ入っていません）。<b>ひよこを 指（マウス）で 引っぱって</b>、ごはんまで連れていってください。壁には入れません。指をはなしても、その場所で止まって続きからできます。<br>
+しばらく動かないと、ゴールまでの道が 黄色く光ります（ヒント）。「つぎの めいろ」で、毎回ちがう形のめいろになります。</p>
+<div class="ctrl"><b>レベル：</b>
+  <button data-lv="1" class="on">1 ちいさい</button>
+  <button data-lv="2">2 いきどまり</button>
+  <button data-lv="3">3 ほし</button>
+  <button data-lv="4">4 かぎと とびら</button>
+  <button data-lv="5">5 ぜんぶ</button>
+</div>
+<div class="ctrl"><b>大きさ：</b>
+  <button data-z="land" class="on">スマホ よこ</button>
+  <button data-z="port">スマホ たて</button>
+  <button data-z="tab">タブレット</button>
+  <button id="again">つぎの めいろ</button>
+</div>
+<div class="desc" id="desc"></div>
+<div class="wrap" id="wrap"><div class="frame" id="frame"></div></div>
+
+<script>
+(function () {
+  'use strict';
+  var SIZES = { land: [812, 375], port: [375, 740], tab: [1280, 800] };
+  // レベルごとの決まり：大きさ（たて向き・よこ向き）、行き止まりの多さ、ほし、かぎ
+  var LV = {
+    1: { land: [5, 3], port: [4, 5], tab: [6, 4], loops: 0.25, stars: 0, key: false, say: 'ごはんまで つれていってね' },
+    2: { land: [7, 4], port: [4, 6], tab: [8, 5], loops: 0.05, stars: 0, key: false, say: 'ごはんまで つれていってね' },
+    3: { land: [10, 5], port: [6, 8], tab: [12, 8], loops: 0.05, stars: 3, key: false, say: 'ほしを 3つ ひろってから ごはんへ' },
+    4: { land: [10, 5], port: [6, 8], tab: [12, 8], loops: 0.05, stars: 0, key: true, say: 'かぎで とびらを あけて ごはんへ' },
+    5: { land: [10, 5], port: [6, 8], tab: [12, 8], loops: 0.03, stars: 3, key: true, say: 'ほし 3つ と かぎ を ひろって ごはんへ' }
+  };
+  var DESC = {
+    1: '<strong>レベル1</strong>：小さいめいろ。道が少し つながっていて、まよいにくい。',
+    2: '<strong>レベル2</strong>：少し大きく、行き止まりが ふえる。',
+    3: '<strong>レベル3</strong>：画面いっぱい。とちゅうの ほしを 3つ ひろうまで、ごはんは ふたが しまっている。',
+    4: '<strong>レベル4</strong>：かぎを ひろうと、ごはんの前の とびらが ひらく。',
+    5: '<strong>レベル5</strong>：ほし3つ と かぎ の りょうほう。'
+  };
+  var cur = { lv: 1, z: 'land' }, seed = 1;
+  var frame = document.getElementById('frame'), wrap = document.getElementById('wrap');
+
+  function rng() { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rng() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+  /* ---------- めいろを作る（穴ほり法） ---------- */
+  var DIRS = [[0, -1, 'n', 's'], [1, 0, 'e', 'w'], [0, 1, 's', 'n'], [-1, 0, 'w', 'e']];
+  function makeMaze(W, H, loops) {
+    var cells = [], x, y;
+    for (y = 0; y < H; y++) { cells[y] = []; for (x = 0; x < W; x++) cells[y][x] = { n: 0, e: 0, s: 0, w: 0, v: 0 }; }
+    var stack = [[0, H - 1]]; cells[H - 1][0].v = 1;
+    while (stack.length) {
+      var c = stack[stack.length - 1], opts = shuffle(DIRS.slice()).filter(function (d) {
+        var nx = c[0] + d[0], ny = c[1] + d[1]; return nx >= 0 && ny >= 0 && nx < W && ny < H && !cells[ny][nx].v;
+      });
+      if (!opts.length) { stack.pop(); continue; }
+      var d = opts[0], nx = c[0] + d[0], ny = c[1] + d[1];
+      cells[c[1]][c[0]][d[2]] = 1; cells[ny][nx][d[3]] = 1; cells[ny][nx].v = 1; stack.push([nx, ny]);
+    }
+    // 少しだけ 壁を こわして、道を つなげる（レベル1は 多め＝まよいにくい）
+    for (y = 0; y < H; y++) for (x = 0; x < W; x++) {
+      if (x < W - 1 && !cells[y][x].e && rng() < loops) { cells[y][x].e = 1; cells[y][x + 1].w = 1; }
+      if (y < H - 1 && !cells[y][x].s && rng() < loops) { cells[y][x].s = 1; cells[y + 1][x].n = 1; }
+    }
+    return cells;
+  }
+  function bfs(cells, from, block) {
+    var H = cells.length, W = cells[0].length, prev = {}, q = [from], seen = {}; seen[from] = 1;
+    while (q.length) {
+      var k = q.shift(), p = k.split(','), x = +p[0], y = +p[1];
+      DIRS.forEach(function (d) {
+        if (!cells[y][x][d[2]]) return;
+        var nk = (x + d[0]) + ',' + (y + d[1]);
+        if (seen[nk] || (block && block[nk])) return;
+        seen[nk] = 1; prev[nk] = k; q.push(nk);
+      });
+    }
+    return prev;
+  }
+  function pathTo(prev, from, to) { var p = [to]; while (p[0] !== from) { if (!prev[p[0]]) return null; p.unshift(prev[p[0]]); } return p; }
+  function dist(prev, from) { var d = {}; Object.keys(prev).forEach(function (k) { var n = 0, c = k; while (c !== from) { c = prev[c]; n++; } d[k] = n; }); return d; }
+
+  /* ---------- 1つの めいろの遊び ---------- */
+  var g = null;
+  function build() {
+    var L = LV[cur.lv], dims = L[cur.z], W = dims[0], H = dims[1];
+    var cells = makeMaze(W, H, L.loops);
+    var start = '0,' + (H - 1), goal = (W - 1) + ',0';
+    var prev = bfs(cells, start), d = dist(prev, start);
+    var main = pathTo(prev, start, goal), onMain = {}; main.forEach(function (k) { onMain[k] = 1; });
+    // ごはんは 行き止まりにする（入り口は1つ）。通りぬけられると、ふたが しまっている間に 先の ほしへ 行けなくなる
+    var entrance = main[main.length - 2], gp = goal.split(','), gx = +gp[0], gy = +gp[1];
+    DIRS.forEach(function (dd) {
+      var nx = gx + dd[0], ny = gy + dd[1];
+      if (!cells[gy][gx][dd[2]] || (nx + ',' + ny) === entrance) return;
+      cells[gy][gx][dd[2]] = 0; cells[ny][nx][dd[3]] = 0;
+    });
+    prev = bfs(cells, start); d = dist(prev, start);
+    // ほし：スタートから遠めの、ちがう場所に置く（ゴールとスタートは さける）
+    var cand = Object.keys(d).filter(function (k) { return k !== goal && k !== start; }).sort(function (a, b) { return d[b] - d[a]; });
+    var stars = [], key = null, door = null;
+    if (L.key) {
+      // とびら：ゴールの1つ手前の道。かぎ：とびらを通らずに行ける、本道から はずれた場所
+      door = entrance;   // とびらは ごはんの入り口
+      var prev2 = bfs(cells, start, (function () { var b = {}; b[door] = 1; return b; })());
+      var d2 = dist(prev2, start);
+      var kc = Object.keys(d2).filter(function (k) { return k !== start && !onMain[k]; }).sort(function (a, b) { return d2[b] - d2[a]; });
+      key = kc[0] || Object.keys(d2).filter(function (k) { return k !== start; }).sort(function (a, b) { return d2[b] - d2[a]; })[0];
+    }
+    if (L.stars) {
+      var used = {}; used[key] = 1; used[door] = 1;
+      var step = Math.max(1, Math.floor(cand.length / (L.stars + 1)));
+      for (var i = 0; stars.length < L.stars && i < cand.length; i += step) { if (!used[cand[i]]) { stars.push(cand[i]); used[cand[i]] = 1; } }
+    }
+    g = { W: W, H: H, cells: cells, start: start, goal: goal, at: start, stars: stars, got: {}, key: key, hasKey: false, door: door, trail: [start], done: false, idle: 0, say: L.say };
+    render();
+  }
+
+  /* ---------- 絵 ---------- */
+  var CHICK = '<g class="body"><ellipse cx="0" cy="34" rx="24" ry="5" fill="rgba(0,0,0,.1)"/><ellipse cx="0" cy="4" rx="30" ry="31" fill="#ffd84d"/><ellipse cx="0" cy="14" rx="19" ry="17" fill="#fff0b3"/><circle cx="-10" cy="-3" r="4.5" fill="#3a3a3a"/><circle cx="10" cy="-3" r="4.5" fill="#3a3a3a"/><ellipse cx="-19" cy="7" rx="5" ry="3" fill="#ff9fb0"/><ellipse cx="19" cy="7" rx="5" ry="3" fill="#ff9fb0"/><path d="M-6 5 L6 5 L0 12 Z" fill="#ff8a3d"/><path d="M-4 -26 Q0 -34 4 -26" fill="none" stroke="#ffc93d" stroke-width="4" stroke-linecap="round"/></g>';
+  var FOOD = '<ellipse cx="0" cy="22" rx="30" ry="6" fill="rgba(0,0,0,.1)"/><path d="M-28 -2 H28 Q26 22 0 24 Q-26 22 -28 -2 Z" fill="#ff8a5b"/><path d="M-26 -2 Q-20 -22 0 -20 Q20 -22 26 -2 Z" fill="#ffd23f"/><circle cx="-10" cy="-10" r="4" fill="#ffe680"/><circle cx="4" cy="-13" r="4" fill="#ffe680"/><circle cx="14" cy="-6" r="4" fill="#ffe680"/>';
+  var LID = '<path d="M-31 -2 Q-28 -30 0 -30 Q28 -30 31 -2 Z" fill="#c9d3dc" stroke="#9aa6b2" stroke-width="3"/><circle cx="0" cy="-33" r="5" fill="#9aa6b2"/>';
+  var STAR = '<path d="M0 -22 L6 -7 L22 -7 L9 3 L14 19 L0 9 L-14 19 L-9 3 L-22 -7 L-6 -7 Z" fill="#ffd23f" stroke="#e8a92d" stroke-width="2.5" stroke-linejoin="round"/>';
+  var KEY = '<circle cx="-10" cy="0" r="10" fill="none" stroke="#e8a92d" stroke-width="6"/><path d="M0 0 H24 M16 0 V9 M22 0 V7" stroke="#e8a92d" stroke-width="6" stroke-linecap="round"/>';
+  var DOOR = '<rect x="-26" y="-30" width="52" height="60" rx="8" fill="#b07a3a"/><rect x="-20" y="-24" width="40" height="48" rx="5" fill="#c98e48"/><circle cx="12" cy="2" r="4" fill="#ffd23f"/><rect x="-7" y="-6" width="14" height="12" rx="3" fill="#7a5226"/>';
+
+  function cellXY(k, cs) { var p = k.split(','); return [(+p[0] + 0.5) * cs, (+p[1] + 0.5) * cs]; }
+  function render() {
+    var s = SIZES[cur.z], top = cur.z === 'port' ? 134 : 72;
+    var cs = Math.floor(Math.min((s[0] - 24) / g.W, (s[1] - top - 14) / g.H));
+    g.cs = cs;
+    var W = g.W * cs, H = g.H * cs, wall = Math.max(8, cs * 0.16), sc = cs / 86;
+    var svg = '<svg id="mz" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '">';
+    svg += '<rect x="0" y="0" width="' + W + '" height="' + H + '" rx="' + wall + '" fill="#fff6dc"/>';
+    // 道のヒント（ゴールまでの道）
+    svg += '<path id="hint" class="hint-path" stroke-width="' + cs * 0.3 + '" d=""/>';
+    // あしあと
+    svg += '<path id="trail" fill="none" stroke="#ffcf9e" stroke-width="' + cs * 0.18 + '" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 ' + cs * 0.32 + '"/>';
+    // 壁（生けがき）
+    var wp = '';
+    for (var y = 0; y < g.H; y++) for (var x = 0; x < g.W; x++) {
+      var c = g.cells[y][x], X = x * cs, Y = y * cs;
+      if (!c.n) wp += 'M' + X + ' ' + Y + 'H' + (X + cs);
+      if (!c.w) wp += 'M' + X + ' ' + Y + 'V' + (Y + cs);
+      if (y === g.H - 1 && !c.s) wp += 'M' + X + ' ' + (Y + cs) + 'H' + (X + cs);
+      if (x === g.W - 1 && !c.e) wp += 'M' + (X + cs) + ' ' + Y + 'V' + (Y + cs);
+    }
+    svg += '<path d="' + wp + '" stroke="#5aa64a" stroke-width="' + wall + '" stroke-linecap="round"/>';
+    svg += '<path d="' + wp + '" stroke="#7ccb63" stroke-width="' + wall * 0.45 + '" stroke-linecap="round"/>';
+    function at(k, inner, id) { var p = cellXY(k, cs); return '<g' + (id ? ' id="' + id + '"' : '') + ' transform="translate(' + p[0] + ' ' + p[1] + ') scale(' + sc + ')">' + inner + '</g>'; }
+    svg += at(g.goal, FOOD + '<g id="lid"' + (needLid() ? '' : ' style="display:none"') + '>' + LID + '</g>', 'food');
+    g.stars.forEach(function (k, i) { svg += at(k, STAR, 'st' + i); });
+    if (g.key) svg += at(g.key, KEY, 'key');
+    if (g.door) svg += at(g.door, DOOR, 'door');
+    var cp = cellXY(g.at, cs);
+    svg += '<g id="chick" class="chick" style="transform:translate(' + cp[0] + 'px,' + cp[1] + 'px)"><g transform="scale(' + sc + ')">' + CHICK + '</g></g>';
+    svg += '</svg>';
+    var goals = '';
+    g.stars.forEach(function (k, i) { goals += '<span id="gs' + i + '">⭐</span>'; });
+    if (g.key) goals += '<span id="gk">🔑</span>';
+    frame.innerHTML = '<div class="bar"><div class="ib"><svg viewBox="0 0 24 24"><path fill="#ff8a3d" d="M12 3 2 12h3v8h5v-5h4v5h5v-8h3z"/></svg></div>' +
+      '<div class="talk"><span class="bub" id="say">' + g.say + '</span></div><div class="goal-list">' + goals + '</div>' +
+      '<div class="ib"><svg viewBox="0 0 24 24"><path fill="#4cb8c4" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/></svg></div></div>' +
+      '<div class="board" style="top:' + top + 'px">' + svg + '</div>' +
+      '<div class="clear" id="clear"><div>ごはん だ！ やったね</div><button id="next">つぎの めいろ</button></div>';
+    frame.style.width = s[0] + 'px'; frame.style.height = s[1] + 'px'; frame.setAttribute('data-z', cur.z);
+    fit(); drawTrail();
+  }
+  function needLid() { return g.stars.length > Object.keys(g.got).length; }
+  function fit() {
+    var s = SIZES[cur.z], k = Math.min(1, wrap.clientWidth / s[0], Math.max(320, innerHeight * 0.75) / s[1]);
+    frame.style.transform = 'scale(' + k + ')'; wrap.style.height = Math.ceil(s[1] * k) + 'px'; g.k = k;
+  }
+  function drawTrail() {
+    var d = g.trail.map(function (k, i) { var p = cellXY(k, g.cs); return (i ? 'L' : 'M') + p[0] + ' ' + p[1]; }).join('');
+    var t = document.getElementById('trail'); if (t) t.setAttribute('d', d);
+  }
+
+  /* ---------- 動かす ---------- */
+  function open(k, d) {
+    var p = k.split(','), x = +p[0], y = +p[1];
+    if (!g.cells[y][x][d[2]]) return null;
+    var nk = (x + d[0]) + ',' + (y + d[1]);
+    if (nk === g.door && !g.hasKey) return null;            // とびらは かぎが ないと 通れない
+    if (nk === g.goal && needLid()) return null;              // ほしが そろうまで ごはんに 入れない
+    return nk;
+  }
+  function step(toward) {      // 指のあるマスへ むかって、1マスずつ 進む
+    for (var guard = 0; guard < 4 && g.at !== toward && !g.done; guard++) {
+      var a = g.at.split(','), b = toward.split(','), dx = b[0] - a[0], dy = b[1] - a[1];
+      var order = Math.abs(dx) >= Math.abs(dy) ? [[Math.sign(dx), 0], [0, Math.sign(dy)]] : [[0, Math.sign(dy)], [Math.sign(dx), 0]];
+      var moved = false;
+      for (var i = 0; i < 2 && !moved; i++) {
+        if (!order[i][0] && !order[i][1]) continue;
+        var d = DIRS.filter(function (q) { return q[0] === order[i][0] && q[1] === order[i][1]; })[0];
+        var nk = open(g.at, d);
+        if (nk) { moveTo(nk); moved = true; }
+      }
+      if (!moved) break;
+    }
+  }
+  function moveTo(k) {
+    g.at = k; g.idle = 0; hint(false);
+    if (g.trail[g.trail.length - 2] === k) g.trail.pop(); else g.trail.push(k);
+    var p = cellXY(k, g.cs), ch = document.getElementById('chick');
+    ch.style.transform = 'translate(' + p[0] + 'px,' + p[1] + 'px)';
+    ch.classList.remove('hop'); void ch.offsetWidth; ch.classList.add('hop');
+    drawTrail();
+    var si = g.stars.indexOf(k);
+    if (si >= 0 && !g.got[k]) { g.got[k] = 1; pop('st' + si); document.getElementById('gs' + si).classList.add('got'); tone([880, 1175, 1568]);
+      if (!needLid()) { document.getElementById('lid').style.display = 'none'; say(g.key && !g.hasKey ? 'つぎは かぎを さがそう' : 'ごはんの ふたが あいたよ！'); } }
+    if (k === g.key && !g.hasKey) { g.hasKey = true; pop('key'); document.getElementById('gk').classList.add('got'); tone([660, 880, 1320]);
+      setTimeout(function () { var dr = document.getElementById('door'); if (dr) dr.style.display = 'none'; }, 300); say(needLid() ? 'とびらが あいた！ ほしも あつめよう' : 'とびらが あいたよ！'); }
+    if (k === g.goal) { g.done = true; tone([523, 659, 784, 1047]); setTimeout(function () { document.getElementById('clear').classList.add('on'); }, 350); }
+  }
+  function pop(id) { var e = document.getElementById(id); if (e) { e.classList.add('pop'); setTimeout(function () { e.style.display = 'none'; }, 380); } }
+  function say(t) { var e = document.getElementById('say'); if (e) e.textContent = t; }
+  function cellAt(ev) {
+    var svg = document.getElementById('mz'); if (!svg) return null;
+    var r = svg.getBoundingClientRect(), x = (ev.clientX - r.left) / g.k, y = (ev.clientY - r.top) / g.k;
+    var cx = Math.floor(x / g.cs), cy = Math.floor(y / g.cs);
+    if (cx < 0 || cy < 0 || cx >= g.W || cy >= g.H) return null;
+    return cx + ',' + cy;
+  }
+  var dragging = false;
+  frame.addEventListener('pointerdown', function (ev) {
+    if (ev.target.closest('#next')) { seed++; build(); return; }
+    var c = cellAt(ev); if (!c || g.done) return;
+    // ひよこの マス（か そのとなり）から 引っぱりはじめる
+    var a = g.at.split(','), b = c.split(',');
+    if (Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) > 1) return;
+    dragging = true; frame.setPointerCapture(ev.pointerId); step(c);
+  });
+  frame.addEventListener('pointermove', function (ev) { if (!dragging) return; var c = cellAt(ev); if (c) step(c); });
+  frame.addEventListener('pointerup', function () { dragging = false; });
+  frame.addEventListener('pointercancel', function () { dragging = false; });
+
+  /* ---------- ヒント：しばらく動かないと、つぎに行く所までの道を光らせる ---------- */
+  function target() {
+    if (g.stars.length && needLid()) { // いちばん近い まだの ほし
+      var prev = bfs(g.cells, g.at, g.hasKey ? null : mk(g.door)), best = null, bl = 1e9;
+      g.stars.forEach(function (k) { if (g.got[k]) return; var p = pathTo(prev, g.at, k); if (p && p.length < bl) { bl = p.length; best = k; } });
+      if (best) return best;
+    }
+    if (g.key && !g.hasKey) return g.key;
+    return g.goal;
+  }
+  function mk(k) { var o = {}; if (k) o[k] = 1; return o; }
+  function hint(on) {
+    var h = document.getElementById('hint'); if (!h) return;
+    if (!on) { h.classList.remove('on'); return; }
+    var t = target(), prev = bfs(g.cells, g.at, g.hasKey ? null : mk(g.door)), p = pathTo(prev, g.at, t);
+    if (!p) return;
+    h.setAttribute('d', p.map(function (k, i) { var q = cellXY(k, g.cs); return (i ? 'L' : 'M') + q[0] + ' ' + q[1]; }).join(''));
+    h.classList.add('on');
+  }
+  setInterval(function () { if (!g || g.done || dragging) return; g.idle++; if (g.idle === 6) hint(true); }, 1000);
+
+  /* ---------- 音（見本用の かんたんな音） ---------- */
+  var ac = null;
+  function tone(fs) {
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      fs.forEach(function (f, i) { var o = ac.createOscillator(), gg = ac.createGain(), t = ac.currentTime + i * 0.08;
+        o.type = 'triangle'; o.frequency.value = f; gg.gain.setValueAtTime(0.0001, t); gg.gain.exponentialRampToValueAtTime(0.15, t + 0.01); gg.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+        o.connect(gg); gg.connect(ac.destination); o.start(t); o.stop(t + 0.35); });
+    } catch (e) {}
+  }
+
+  document.querySelectorAll('[data-lv]').forEach(function (b) { b.addEventListener('click', function () { cur.lv = +b.getAttribute('data-lv'); mark('lv'); seed++; build(); }); });
+  document.querySelectorAll('[data-z]').forEach(function (b) { b.addEventListener('click', function () { cur.z = b.getAttribute('data-z'); mark('z'); build(); }); });
+  function mark(k) { document.querySelectorAll('[data-' + k + ']').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-' + k) === String(cur[k])); }); document.getElementById('desc').innerHTML = DESC[cur.lv]; }
+  document.getElementById('again').addEventListener('click', function () { seed++; build(); });
+  window.addEventListener('resize', function () { if (g) fit(); });
+  mark('lv'); build();
+  window.__maze = { g: function () { return g; }, target: target, bfs: bfs, pathTo: pathTo, mk: mk, cur: cur };   // 確認用
+})();
+</script>
+</body>
+</html>

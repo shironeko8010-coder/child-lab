@@ -1092,3 +1092,61 @@
   .ok-total-n { font-size: 30px; }
   .ok-bottom { margin-top: 4px; }
 }
+
+/* ===== めいろ（meiro.js）===== */
+.scr-meiro .topbar { gap: 8px; }
+.mr-talk { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; justify-content: center; }
+.mr-bub { font-size: clamp(18px, 2.6vw, 28px); padding: 8px 18px; line-height: 1.25; text-align: center; }
+.mr-goals { flex: 0 0 auto; display: flex; align-items: center; gap: 4px; font-size: 26px; }
+.mr-goals:empty { display: none; }
+.mr-g { opacity: .3; filter: grayscale(1); transition: opacity .3s; }
+.mr-g.got { opacity: 1; filter: none; }
+.mr-board { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; padding-top: 6px; touch-action: none; }
+.mr-svg { display: block; overflow: visible; touch-action: none; -webkit-user-select: none; user-select: none; }
+.mr-trail { fill: none; stroke: #ffcf9e; stroke-linecap: round; stroke-linejoin: round; }
+.mr-hint { fill: none; stroke: #ffd23f; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
+.mr-hint.on { animation: mr-hint 1s ease-in-out infinite alternate; }
+@keyframes mr-hint { from { opacity: .35; } to { opacity: .9; } }
+.mr-chick { transition: transform .1s linear; }
+.mr-chick.mr-hop .mr-body { animation: mr-hop .25s ease; }
+@keyframes mr-hop { 50% { transform: translateY(-8%); } }
+.mr-pop { animation: mr-pop .4s ease forwards; transform-box: fill-box; transform-origin: center; }
+@keyframes mr-pop { 50% { transform: scale(1.6); } 100% { transform: scale(0); } }
+@media (orientation: landscape) and (max-height: 520px) {
+  .mr-bub { font-size: clamp(18px, calc(var(--vh) * 5.2), 24px); padding: 6px 14px; }
+  .mr-goals { font-size: 22px; }
+  .mr-board { padding-top: 4px; }
+}
+/* たて向き：ふきだしは上の帯の下の行に（横に並べると字が切れるため） */
+@media (orientation: portrait) {
+  .scr-meiro .topbar { flex-wrap: wrap; row-gap: 6px; }
+  .scr-meiro .mr-talk { order: 3; flex-basis: 100%; }
+  .scr-meiro .mr-goals { flex: 1 1 auto; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mr-chick { transition: none; }
+  .mr-hint.on, .mr-chick.mr-hop .mr-body, .mr-pop { animation: none; }
+}
+
+/* ===== ホームの2ページ（設計書7章）：1ページ 3まい×2だん =====
+   よこ向き：◀ カード ▶ を横に、●○ はカードの下。たて向き：カードの下に ◀ ●○ ▶（せまい画面で カードを広くとる）。
+   前の「4まい×2だん」「たて6列」の指定は、.home-pager を付けて上書きする（消さない）。 */
+.home-pager { touch-action: pan-y; flex: 0 1 820px; min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "prev cards next" ". dots ."; align-items: center; column-gap: 12px; row-gap: 8px; }
+.home-nav { display: contents; }
+.home-prev { grid-area: prev; }
+.home-next { grid-area: next; }
+.home-prev:disabled, .home-next:disabled { opacity: .3; cursor: default; }
+.home-dots { grid-area: dots; display: flex; justify-content: center; gap: 10px; }
+.home-dot { width: 12px; height: 12px; border-radius: 50%; background: #e5d3b8; }
+.home-dot.on { background: var(--c-primary); }
+.home-pager .home-cards { grid-area: cards; width: auto; flex: none; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.home-pager .home-cards .home-card { grid-column: auto; }
+.hc-meiro { background: #5aa64a; }
+@media (orientation: landscape) and (max-height: 520px) {
+  .home-pager { column-gap: 8px; row-gap: 4px; }
+  .home-dot { width: 10px; height: 10px; }
+  .home-pager .home-cards .home-card { height: calc((var(--vh) * 100 - 120px) / 2); }
+}
+@media (orientation: portrait) {
+  .home-pager { width: min(100%, 640px); flex: 0 0 auto; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "cards cards cards" "prev dots next"; }
+}

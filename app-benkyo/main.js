@@ -21,7 +21,7 @@
     { id: 'nagasa', name: '{長|なが}さ・かさ', sub: 'ものさし・ます', enabled: true },
     { id: 'hantai', name: 'はんたい ことば', sub: '大きい↔小さい', enabled: true },
     { id: 'zukan', name: 'ずかん', sub: 'よんで こたえよう', enabled: true },
-    { id: 'eigo', name: 'えい{語|ご}', enabled: false }
+    { id: 'eigo', name: 'えい{語|ご}', sub: 'きく・よむ', enabled: true }
   ];
   // 画面の文字は、2年生までに習う漢字を使う（1年生の漢字はそのまま、2年生の漢字は {漢字|よみ} でふりがな）
   function yomiOf(text) { return String(text || '').replace(/\{([^|{}]+)\|([^|{}]+)\}/g, '$2'); }
@@ -90,6 +90,7 @@
     cleanup.forEach(function (f) { try { f(); } catch (e) {} });
     cleanup = [];
     try { C.voice.cancel(); } catch (e) {}
+    try { if (C.voiceEn) C.voiceEn.cancel(); } catch (e) {}   // 英語の読み上げも止める（ほかの画面へ移ったとき鳴りつづけないように）
     app.innerHTML = '';
     app.className = 'app scr-' + name;
     try { window.scrollTo(0, 0); } catch (e) {}
@@ -307,6 +308,7 @@
     right.appendChild(el('p', 'home-hello', 'こんにちは、' + p.nickname + '！'));
     right.appendChild(elR('h1', 'home-title', '{何|なに}を やる？'));
     var grid = el('div', 'subjects');
+    var byId = {};
     SUBJECTS.forEach(function (s) {
       var card = button('subject-card' + (s.enabled ? '' : ' soon'), function () {
         if (!s.enabled || card.disabled) return;
@@ -330,13 +332,59 @@
       card.appendChild(nm);
       if (s.sub) card.appendChild(elR("span", "sc-sub", s.sub));
       if (!s.enabled) card.appendChild(el('span', 'sc-soon', 'じゅんび中'));
-      grid.appendChild(card);
+      byId[s.id] = card;
     });
-    right.appendChild(grid);
+
+    // 2ページ：◀ カード ▶、下に ●○。横にさっと動かしても めくれる（知育のホームと同じ動き）
+    var pages = homePageCount();
+    if (homePage >= pages) homePage = 0;
+    var pager = el('div', 'home-pager');
+    var prev = button('icon-btn home-prev', function () { turn(-1); });
+    prev.setAttribute('aria-label', 'まえの ぺーじ');
+    prev.appendChild(svg('<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15.5 4.5 7 12l8.5 7.5z"/></svg>'));
+    var next = button('icon-btn home-next', function () { turn(1); });
+    next.setAttribute('aria-label', 'つぎの ぺーじ');
+    next.appendChild(svg('<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.5 4.5 17 12l-8.5 7.5z"/></svg>'));
+    var dots = el('div', 'home-dots');
+    var nav = el('div', 'home-nav');
+    nav.appendChild(prev); nav.appendChild(dots); nav.appendChild(next);
+    pager.appendChild(grid); pager.appendChild(nav);
+    function paint() {
+      grid.innerHTML = '';
+      homeIdsOf(homePage).forEach(function (id) { if (byId[id]) grid.appendChild(byId[id]); });
+      prev.disabled = homePage <= 0;
+      next.disabled = homePage >= pages - 1;
+      dots.innerHTML = '';
+      for (var i = 0; i < pages; i++) dots.appendChild(el('span', 'home-dot' + (i === homePage ? ' on' : '')));
+    }
+    function turn(d) {
+      var np = Math.max(0, Math.min(pages - 1, homePage + d));
+      if (np === homePage) return;
+      homePage = np; play('tap'); paint();
+    }
+    var sx = null, sy = 0, swiped = false;
+    pager.addEventListener('pointerdown', function (ev) { sx = ev.clientX; sy = ev.clientY; swiped = false; });
+    pager.addEventListener('pointerup', function (ev) {
+      if (sx === null) return;
+      var dx = ev.clientX - sx, dy = ev.clientY - sy; sx = null;
+      if (Math.abs(dx) >= 40 && Math.abs(dx) > Math.abs(dy)) { swiped = true; turn(dx < 0 ? 1 : -1); }
+    });
+    pager.addEventListener('pointercancel', function () { sx = null; });
+    // めくったときは、指をはなした所のカードを 押したことにしない
+    pager.addEventListener('click', function (ev) { if (swiped) { swiped = false; ev.stopPropagation(); ev.preventDefault(); } }, true);
+    paint();
+    right.appendChild(pager);
     body.appendChild(left);
     body.appendChild(right);
     app.appendChild(body);
   }
+  // トップの並び（設計書9章）。1ページ6まい。いまのページは画面の中だけで覚える（保存しない）
+  var HOME_PER_PAGE = 6;
+  var homePage = 0;
+  function homeIds() { return SUBJECTS.filter(function (s) { return s.enabled; }).map(function (s) { return s.id; }); }
+  function homePageCount() { return Math.max(1, Math.ceil(homeIds().length / HOME_PER_PAGE)); }
+  function homeIdsOf(page) { return homeIds().slice(page * HOME_PER_PAGE, (page + 1) * HOME_PER_PAGE); }
+  function homePageOf(id) { var i = homeIds().indexOf(id); return i < 0 ? 0 : Math.floor(i / HOME_PER_PAGE); }
 
   /* ---------- 教科をひらく ---------- */
   function findSubject(id) {
@@ -409,6 +457,13 @@
       try {
         var rz = B.zukanScreen.show({ profileId: st.profileId });
         if (rz && rz.catch) rz.catch(function () { showSoon(s); });
+      } catch (e) { showSoon(s); }
+      return;
+    }
+    if (id === 'eigo' && B.eigoScreen && typeof B.eigoScreen.show === 'function') {
+      try {
+        var re = B.eigoScreen.show({ profileId: st.profileId });
+        if (re && re.catch) re.catch(function () { showSoon(s); });
       } catch (e) { showSoon(s); }
       return;
     }
@@ -506,6 +561,7 @@
 
   var B = (C.benkyo = C.benkyo || {});
   B.SUBJECTS = SUBJECTS;
+  B.home = { PER_PAGE: HOME_PER_PAGE, pageCount: homePageCount, pageOf: homePageOf, ids: homeIdsOf };
   B.pickProfile = pickProfile;
   B.start = start;
   B.showHome = showHome;

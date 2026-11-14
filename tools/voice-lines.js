@@ -203,6 +203,10 @@
     add(ZK.TEXT.kira);
     add(ZK.TEXT.keep);
 
+    where = 'えい語';   // 日本語の説明だけ（英語は端末の英語の声で読む）。声がない端末の文は 画面に出すだけ
+    var EG = C.eigo;
+    Object.keys(EG.TEXT).forEach(function (k) { if (k !== 'noVoice') add(EG.TEXT[k]); });
+
     where = 'ごほうび（べんきょう）';
     add('よく がんばったね！');
     add('よく かんがえたね！');
@@ -213,7 +217,7 @@
   /* ---------- ソースに直接書いてある文（speak('…') / speakThen('…', …)） ---------- */
   var SOURCES = ['top.js', 'app-chiiku/game.js', 'app-chiiku/kazu.js', 'app-chiiku/tokei.js', 'app-chiiku/iro.js', 'app-chiiku/machigai.js', 'app-chiiku/doutoku.js', 'app-chiiku/okaimono.js', 'app-chiiku/shiritori.js', 'app-chiiku/meiro.js',
     'app-benkyo/main.js', 'app-benkyo/kuku-screen.js', 'app-benkyo/keisan-screen.js', 'app-benkyo/kanji-screen.js',
-    'app-benkyo/doutoku-screen.js', 'app-benkyo/japan-screen.js', 'app-benkyo/world-screen.js', 'app-benkyo/nagasa-screen.js', 'app-benkyo/hantai-screen.js', 'app-benkyo/zukan-screen.js'];
+    'app-benkyo/doutoku-screen.js', 'app-benkyo/japan-screen.js', 'app-benkyo/world-screen.js', 'app-benkyo/nagasa-screen.js', 'app-benkyo/hantai-screen.js', 'app-benkyo/zukan-screen.js', 'app-benkyo/eigo-screen.js'];
   function literals() {
     return Promise.all(SOURCES.map(function (f) {
       return fetch('../' + f).then(function (r) { return r.text(); }).then(function (src) {

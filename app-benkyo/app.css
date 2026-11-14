@@ -1608,3 +1608,157 @@ ruby rt { font-size: .5em; font-weight: bold; }   /* .5em：本文 18px で ふ�
 @media (orientation: portrait) and (max-width: 520px) and (max-height: 700px) {
   .jp-map { flex: 0 0 auto; height: calc(var(--vh) * 39); }
 }
+
+/* ==================== えい語（eigo-screen.js） ==================== */
+.eg-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; max-width: 1000px; margin: 0 auto; padding-top: 6px; }
+.eg-talk { flex: 0 0 auto; }
+/* えらぶ（きく／よむ） */
+.eg-modes { flex: 1 1 auto; min-height: 0; display: flex; gap: 24px; align-items: center; justify-content: center; width: 100%; }
+.eg-modebtn { width: min(40vw, 300px); aspect-ratio: 1.15; border: 0; border-radius: 28px; background: var(--c-surface); box-shadow: 0 7px 0 var(--c-line); font-family: inherit; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--c-text); }
+.eg-modebtn:active { transform: translateY(5px); box-shadow: 0 2px 0 var(--c-line); }
+.eg-modebtn:disabled { opacity: .35; cursor: default; }
+.eg-mode-ico { display: block; width: 46%; height: auto; }
+.eg-mode-ico svg { width: 100%; height: 100%; display: block; }
+.eg-aa { width: auto; font-family: "Segoe UI", Roboto, Arial, sans-serif; font-size: clamp(48px, 7vw, 96px); font-weight: 900; color: #2f6fdb; line-height: 1; }
+.eg-mode-name { font-size: clamp(26px, 3.4vw, 40px); font-weight: 900; color: var(--c-primary-dark); }
+/* テーマ */
+.eg-title { margin: 0; font-size: clamp(22px, 3vw, 34px); color: var(--c-primary-dark); }
+.eg-themes { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 10px; width: 100%; }
+.eg-theme { min-height: 56px; border: 0; border-radius: 18px; background: var(--c-surface); box-shadow: 0 5px 0 var(--c-line); font-family: inherit; cursor: pointer; color: var(--c-text);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px; }
+.eg-theme:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--c-line); }
+.eg-theme.eg-all { background: #fff3d6; }
+.eg-theme-ico { font-size: clamp(28px, 4vw, 48px); line-height: 1.1; }
+.eg-theme-name { font-size: clamp(16px, 1.9vw, 22px); font-weight: bold; text-align: center; line-height: 1.15; }
+/* 問題 */
+.eg-ask { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; }
+.eg-ask:empty { display: none; }
+.eg-big-letter { font-family: "Segoe UI", Roboto, Arial, sans-serif; font-size: clamp(72px, 10vw, 120px); font-weight: 900; line-height: 1; color: var(--c-primary-dark); background: var(--c-surface); border-radius: 24px; padding: 4px 32px; box-shadow: 0 5px 0 var(--c-line); }
+.eg-ask-pic { display: block; font-size: clamp(64px, 9vw, 110px); line-height: 1.1; }
+.eg-ask-pic.eg-art { width: clamp(80px, 11vw, 130px); height: clamp(80px, 11vw, 130px); }
+.eg-choices { flex: 1 1 auto; min-height: 0; width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-content: center; }
+.eg-choices.n3 { grid-template-columns: repeat(3, minmax(0, 220px)); justify-content: center; }
+.eg-choice { position: relative; min-height: 96px; border: 0; border-radius: 22px; background: var(--c-surface); box-shadow: 0 6px 0 var(--c-line); font-family: inherit; cursor: pointer; color: var(--c-text);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px; }
+.eg-choice:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--c-line); }
+.eg-choice.tried { opacity: .4; }
+.eg-choice.right { background: #eef9ef; box-shadow: 0 6px 0 var(--c-good), 0 0 0 6px var(--c-good); }
+.eg-body.is-wait .eg-choice:not(.right) { opacity: .45; }
+.eg-card-pic.eg-emoji { font-size: clamp(52px, 7vw, 88px); line-height: 1.1; }
+.eg-card-pic.eg-art { display: block; width: clamp(64px, 8vw, 100px); height: clamp(64px, 8vw, 100px); }
+.eg-card-pic.eg-art svg, .eg-ask-pic.eg-art svg { width: 100%; height: 100%; display: block; }
+.eg-spell { display: none; flex-direction: column; align-items: center; line-height: 1.1; }
+.eg-choice.right .eg-spell { display: flex; }
+.eg-spell b { font-family: "Segoe UI", Roboto, Arial, sans-serif; font-size: clamp(22px, 2.8vw, 34px); color: #2f6fdb; }
+.eg-spell small { font-size: 16px; color: #56616d; }
+.eg-letter { font-family: "Segoe UI", Roboto, Arial, sans-serif; font-size: clamp(48px, 6.5vw, 80px); font-weight: 800; line-height: 1; }
+.eg-foot { flex: 0 0 auto; }
+.eg-next { white-space: nowrap; flex: 0 0 auto; }
+.eg-talk .kk-msg { max-width: 640px; }
+
+@media (orientation: landscape) and (max-height: 700px) {
+  .eg-choice { min-height: 80px; }
+}
+/* スマホ横向き：高さに合わせて つめる */
+@media (orientation: landscape) and (max-height: 520px) {
+  .eg-body { gap: 6px; padding-top: 2px; }
+  .eg-talk .kk-who { display: none; }
+  .eg-talk .kk-msg { font-size: max(16px, calc(var(--vh) * 4.6)); padding: 4px 12px; min-height: 0; }
+  .eg-modebtn { width: min(34vw, calc(var(--vh) * 62)); border-radius: 22px; }
+  .eg-mode-name { font-size: max(22px, calc(var(--vh) * 7)); }
+  .eg-aa { font-size: calc(var(--vh) * 16); }
+  .eg-title { font-size: max(18px, calc(var(--vh) * 5.4)); }
+  .eg-themes { gap: 6px; }
+  .eg-theme { border-radius: 14px; flex-direction: row; gap: 6px; padding: 2px 6px; box-shadow: 0 3px 0 var(--c-line); }
+  .eg-theme-ico { font-size: calc(var(--vh) * 8); }
+  .eg-theme-name { font-size: 16px; text-align: left; }
+  .eg-choices { gap: 8px; }
+  .eg-choice { min-height: 56px; border-radius: 16px; padding: 4px; gap: 2px; box-shadow: 0 4px 0 var(--c-line); }
+  .eg-card-pic.eg-emoji { font-size: calc(var(--vh) * 13); }
+  .eg-card-pic.eg-art { width: calc(var(--vh) * 16); height: calc(var(--vh) * 16); }
+  .eg-spell b { font-size: max(18px, calc(var(--vh) * 5.4)); }
+  .eg-letter { font-size: calc(var(--vh) * 14); }
+  .eg-big-letter { font-size: calc(var(--vh) * 16); padding: 0 20px; border-radius: 16px; }
+  .eg-ask-pic { font-size: calc(var(--vh) * 15); }
+  .eg-ask-pic.eg-art { width: calc(var(--vh) * 18); height: calc(var(--vh) * 18); }
+  .eg-next { min-height: 56px; padding: 4px 18px; font-size: 20px; }
+}
+@media (orientation: landscape) and (max-height: 340px) {
+  .eg-choice, .eg-next { min-height: 48px; }
+}
+/* たて向き：カードは 2まい×2だん（3まいは 3まい×1だん）、テーマは 3列 */
+@media (orientation: portrait) {
+  .eg-modes { flex-direction: column; gap: 18px; }
+  .eg-modebtn { width: min(64vw, 300px); aspect-ratio: 1.6; }
+  .eg-mode-ico { width: 30%; }
+  .eg-themes { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .eg-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .eg-choices.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .eg-body { gap: 8px; }
+  .eg-talk .kk-who .chara { width: 52px; height: 52px; }
+  .eg-talk .kk-msg { font-size: clamp(16px, 4.6vw, 20px); padding: 6px 12px; }
+  .eg-themes { gap: 8px; }
+  .eg-theme { border-radius: 14px; }
+  .eg-theme-ico { font-size: 30px; }
+  .eg-theme-name { font-size: 16px; }
+  .eg-choices { gap: 10px; }
+  .eg-choice { min-height: 96px; border-radius: 18px; }
+  .eg-card-pic.eg-emoji { font-size: clamp(44px, 13vw, 64px); }
+  .eg-card-pic.eg-art { width: clamp(56px, 16vw, 80px); height: clamp(56px, 16vw, 80px); }
+  .eg-letter { font-size: clamp(44px, 13vw, 64px); }
+  .eg-big-letter { font-size: clamp(64px, 20vw, 96px); }
+  .eg-ask-pic { font-size: clamp(56px, 18vw, 88px); }
+  .eg-next { min-height: 56px; padding: 6px 16px; font-size: 20px; }
+}
+/* えい語：カードを 空いている高さに合わせて 大きくする（低く横長だと 絵が小さく見えるため） */
+.eg-choices { grid-auto-rows: minmax(96px, 240px); }
+@media (orientation: landscape) and (max-height: 520px) {
+  .eg-choices { grid-auto-rows: minmax(56px, calc(var(--vh) * 44)); }
+  .eg-choices.k-kiku .eg-choice { height: calc(var(--vh) * 44); }
+  .eg-card-pic.eg-emoji { font-size: calc(var(--vh) * 17); }
+  .eg-card-pic.eg-art { width: calc(var(--vh) * 20); height: calc(var(--vh) * 20); }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .eg-choices { grid-auto-rows: minmax(96px, calc(var(--vh) * 24)); }
+}
+@media (orientation: landscape) and (max-height: 700px) and (min-height: 521px) {
+  .eg-choices { grid-auto-rows: minmax(80px, calc(var(--vh) * 28)); }
+}
+@media (orientation: landscape) and (max-height: 700px) and (min-height: 521px) {
+  .eg-big-letter { font-size: calc(var(--vh) * 13); padding: 0 24px; }
+  .eg-ask-pic { font-size: calc(var(--vh) * 13); }
+  .eg-ask-pic.eg-art { width: calc(var(--vh) * 15); height: calc(var(--vh) * 15); }
+  .eg-body { gap: 8px; }
+}
+
+/* ===== べんきょうのトップの2ページ（設計書9章）：1ページ 3まい×2だん =====
+   よこ向き：◀ カード ▶、●○ はカードの下。たて向き：カードの下に ◀ ●○ ▶。知育のホームと同じ考え方。
+   前のトップ用の指定（5列・6列・3列など）は .scr-home .home-pager を付けて上書きする（消さない）。 */
+.scr-home .home-pager { touch-action: pan-y; width: 100%; min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: minmax(0, 1fr) auto; grid-template-areas: "prev cards next" ". dots ."; align-items: center; column-gap: 12px; row-gap: 8px; }
+.scr-home .home-nav { display: contents; }
+.scr-home .home-prev { grid-area: prev; }
+.scr-home .home-next { grid-area: next; }
+.scr-home .home-prev:disabled, .scr-home .home-next:disabled { opacity: .3; cursor: default; }
+.scr-home .home-dots { grid-area: dots; display: flex; justify-content: center; gap: 10px; }
+.scr-home .home-dot { width: 12px; height: 12px; border-radius: 50%; background: #d8dee6; }
+.scr-home .home-dot.on { background: var(--c-primary); }
+.scr-home .home-pager .subjects { grid-area: cards; width: auto; grid-template-columns: repeat(3, minmax(0, 1fr)); justify-content: stretch; }
+@media (orientation: landscape) and (max-height: 520px) {
+  .scr-home .home-pager { flex: 1 1 auto; min-height: 0; column-gap: 8px; row-gap: 4px; }
+  .scr-home .home-pager .subjects { height: 100%; grid-auto-rows: minmax(0, 1fr); }
+  .scr-home .home-dot { width: 10px; height: 10px; }
+}
+@media (orientation: portrait) {
+  .scr-home .home-pager { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto auto; grid-template-areas: "cards cards cards" "prev dots next"; }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  .scr-home .home-pager { grid-area: cards; width: calc(100vw - 24px - var(--safe-l) - var(--safe-r)); }
+  .scr-home .home-pager .subjects { width: auto; }
+}
+/* えい語のテーマの名前は ボタンの主な字なので 18px（スマホでも） */
+@media (orientation: landscape) and (max-height: 520px), (orientation: portrait) and (max-width: 520px) {
+  .eg-theme-name { font-size: 18px; line-height: 1.1; }
+}

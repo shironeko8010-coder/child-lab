@@ -66,6 +66,7 @@ chiid-lab/
 | 知育 | おかいもの（硬貨をトレーに入れて、値段どおりに払う） | `docs/superpowers/specs/2026-11-12-chiiku-okaimono-design.md` |
 | 知育 | しりとり（ひよこと交代で、絵カードを選んでつなぐ） | `docs/superpowers/specs/2026-11-12-chiiku-shiritori-design.md` |
 | 知育 | めいろ（指でひよこを引っぱって ごはんへ。ほし・かぎと とびら）。あわせて知育のホームを2ページに | `docs/superpowers/specs/2026-11-14-chiiku-meiro-design.md` |
+| 勉強 | えい語（きく：英語を聞いて絵を選ぶ／よむ：アルファベット。12テーマ126こ。英語は端末の英語の声）。あわせて勉強のトップを2ページに | `docs/superpowers/specs/2026-11-14-benkyo-eigo-design.md` |
 | 勉強 | 長さ・かさ（ものさし・ますを読む、単位をかえる・えらぶ） | `docs/superpowers/specs/2026-11-12-benkyo-nagasa-design.md` |
 | 勉強 | はんたい ことば（反対の意味のことば・文を4つから選ぶ） | `docs/superpowers/specs/2026-11-12-benkyo-hantai-design.md` |
 | 勉強 | ずかん（図鑑のページを読んで2問答え、カードを集める。9テーマ×12ページ） | `docs/superpowers/specs/2026-11-12-benkyo-zukan-design.md` |

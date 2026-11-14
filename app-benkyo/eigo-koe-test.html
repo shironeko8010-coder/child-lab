@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>英語の声のためし</title>
+<style>
+  /* ためし用のページ（アプリからはリンクしない）。端末に入っている英語の読み上げの声を確かめる。
+     通信しない声（localService）だけを使う。ネットの声は 一覧に「ネット」と出すだけで、鳴らさない。 */
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: #fff8e7; color: #3a3a3a; font-family: "Hiragino Maru Gothic ProN", "Meiryo", "Yu Gothic UI", sans-serif; }
+  h1 { font-size: 24px; margin: 0 0 8px; }
+  p { font-size: 16px; line-height: 1.6; margin: 0 0 10px; }
+  .box { background: #fff; border-radius: 16px; padding: 12px 14px; margin: 0 0 14px; box-shadow: 0 3px 0 #ecd3b4; }
+  .box h2 { font-size: 18px; margin: 0 0 8px; color: #e06f20; }
+  .grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  button { font: inherit; font-size: 22px; font-weight: bold; min-width: 64px; min-height: 64px; padding: 8px 16px; border: 0; border-radius: 16px; background: #fff3e2; color: #3a3a3a; box-shadow: 0 4px 0 #ecd3b4; cursor: pointer; }
+  button:active { transform: translateY(3px); box-shadow: 0 1px 0 #ecd3b4; }
+  button.word { font-family: "Segoe UI", Roboto, Arial, sans-serif; }
+  #status { font-size: 17px; font-weight: bold; }
+  .ok { color: #2f8a3c; } .ng { color: #c0392b; }
+  select { font: inherit; font-size: 16px; padding: 8px; max-width: 100%; }
+  table { border-collapse: collapse; font-size: 14px; width: 100%; }
+  td, th { border-bottom: 1px solid #eee; padding: 4px 6px; text-align: left; }
+  label { font-size: 16px; }
+</style>
+</head>
+<body>
+<h1>英語の声のためし</h1>
+<p>この端末に入っている「英語の読み上げの声」で、ことばを読み上げます。ボタンを押して、<b>声が出るか・聞きやすいか</b>を確かめてください。通信しない声だけを使います。</p>
+
+<div class="box">
+  <h2>この端末の声</h2>
+  <div id="status">しらべています…</div>
+  <p style="margin-top:8px"><label>使う声：<select id="pick"></select></label></p>
+  <p><label>はやさ：<input id="rate" type="range" min="0.5" max="1.2" step="0.1" value="0.8"> <span id="rateV">0.8</span></label></p>
+</div>
+
+<div class="box">
+  <h2>きく（ことば）</h2>
+  <div class="grid" id="words"></div>
+</div>
+<div class="box">
+  <h2>よむ（アルファベット）</h2>
+  <div class="grid" id="letters"></div>
+</div>
+<div class="box">
+  <h2>みじかい文</h2>
+  <div class="grid" id="sentences"></div>
+</div>
+<div class="box">
+  <h2>この端末の英語の声の一覧</h2>
+  <table><thead><tr><th>名前</th><th>ことば</th><th>種類</th></tr></thead><tbody id="list"></tbody></table>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var WORDS = ['dog', 'cat', 'apple', 'banana', 'red', 'blue', 'one', 'two', 'three', 'hello', 'thank you', 'good morning'];
+  var LETTERS = ['A', 'B', 'C', 'G', 'H', 'R', 'W', 'Y'];
+  var SENTENCES = ['What color is it?', 'It is a dog.', 'I like apples.'];
+  var synth = window.speechSynthesis, voices = [], chosen = null;
+  var status = document.getElementById('status'), pick = document.getElementById('pick');
+  var rate = document.getElementById('rate'), rateV = document.getElementById('rateV');
+
+  function isEn(v) { return /^en([-_]|$)/i.test(v.lang || ''); }
+  function load() {
+    if (!synth) { status.innerHTML = '<span class="ng">この端末（ブラウザ）は 読み上げ機能が使えません。</span>'; return; }
+    voices = synth.getVoices().filter(isEn);
+    var local = voices.filter(function (v) { return v.localService; });
+    // ならび：アメリカ英語 → イギリス英語 → そのほか
+    local.sort(function (a, b) { return score(b) - score(a); });
+    pick.innerHTML = '';
+    local.forEach(function (v, i) { var o = document.createElement('option'); o.value = i; o.textContent = v.name + '（' + v.lang + '）'; pick.appendChild(o); });
+    chosen = local[0] || null;
+    if (chosen) status.innerHTML = '<span class="ok">英語の声があります（' + local.length + 'こ）。いまの声：' + chosen.name + '</span>';
+    else status.innerHTML = '<span class="ng">通信しない英語の声が 見つかりません。' + (voices.length ? '（ネットの声だけ ' + voices.length + 'こ あります）' : '') + '</span>';
+    pick._local = local;
+    var list = document.getElementById('list'); list.innerHTML = '';
+    voices.forEach(function (v) { var tr = document.createElement('tr'); tr.innerHTML = '<td>' + v.name + '</td><td>' + v.lang + '</td><td>' + (v.localService ? '端末の中' : 'ネット（使わない）') + '</td>'; list.appendChild(tr); });
+  }
+  function score(v) { var l = (v.lang || '').toLowerCase(); return (/en[-_]us/.test(l) ? 20 : /en[-_]gb/.test(l) ? 10 : 0) + (v.default ? 1 : 0); }
+  function say(text) {
+    if (!synth) return;
+    if (!chosen) { status.innerHTML = '<span class="ng">英語の声が無いので、鳴らせません。</span>'; return; }
+    synth.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.voice = chosen; u.lang = chosen.lang; u.rate = +rate.value;
+    synth.speak(u);
+  }
+  function buttons(id, list) {
+    var box = document.getElementById(id);
+    list.forEach(function (t) { var b = document.createElement('button'); b.className = 'word'; b.textContent = t; b.addEventListener('click', function () { say(t); }); box.appendChild(b); });
+  }
+  buttons('words', WORDS); buttons('letters', LETTERS); buttons('sentences', SENTENCES);
+  pick.addEventListener('change', function () { chosen = (pick._local || [])[+pick.value] || chosen; if (chosen) status.innerHTML = '<span class="ok">いまの声：' + chosen.name + '</span>'; });
+  rate.addEventListener('input', function () { rateV.textContent = rate.value; });
+  load();
+  if (synth && 'onvoiceschanged' in synth) synth.onvoiceschanged = load;
+  setTimeout(load, 1000);   // 声の一覧が おそく届く端末のため
+})();
+</script>
+</body>
+</html>

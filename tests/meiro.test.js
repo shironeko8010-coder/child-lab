@@ -318,21 +318,23 @@
   C.test('meiro: litCells ひるは null（ぜんぶ明るい）', function () {
     C.assertEq(M().litCells(maze(6, 6), '2,2', { '2,2': 1 }, 'day'), null);
   });
-  C.test('meiro: litCells まわり2マスは13マス（はしでは へる）', function () {
+  C.test('meiro: litCells よるの まわり2マスは13マス（はしでは へる）', function () {
     var mz = maze(7, 7);
-    var a = M().litCells(mz, '3,3', { '3,3': 1 }, 'dark');
+    var a = M().litCells(mz, '3,3', { '3,3': 1 }, 'night');
     C.assertEq(cnt(a), 13);
     C.assertEq(a['3,1'], 1); C.assertEq(a['4,4'], 1); C.assertEq(a['5,4'], undefined);
-    C.assertEq(cnt(M().litCells(mz, '0,0', { '0,0': 1 }, 'dark')), 6);
+    C.assertEq(cnt(M().litCells(mz, '0,0', { '0,0': 1 }, 'night')), 6);
   });
-  C.test('meiro: litCells よるは 通ったマスの まわりも 明るい', function () {
+  C.test('meiro: litCells まっくらは まわり1マス（9マス）だけ、あしあとなし', function () {
+    var mz = maze(10, 5);
+    var a = M().litCells(mz, '6,2', { '0,2': 1, '5,2': 1, '6,2': 1 }, 'dark');
+    C.assertEq(cnt(a), 9);
+    C.assertEq(a['7,3'], 1); C.assertEq(a['8,2'], undefined); C.assertEq(a['0,2'], undefined);
+    C.assertEq(cnt(M().litCells(mz, '0,0', { '0,0': 1 }, 'dark')), 4);
+  });
+  C.test('meiro: litCells よるは 通ったマスだけ うすく', function () {
     var mz = maze(10, 5);
     var a = M().litCells(mz, '6,2', { '0,2': 1, '6,2': 1 }, 'night');
-    C.assertEq(a['0,0'], 1); C.assertEq(a['8,2'], 1); C.assertEq(a['3,2'], undefined);
-  });
-  C.test('meiro: litCells まっくらは 通ったマスだけ うすく', function () {
-    var mz = maze(10, 5);
-    var a = M().litCells(mz, '6,2', { '0,2': 1, '6,2': 1 }, 'dark');
     C.assertEq(a['0,2'], 0.5); C.assertEq(a['0,1'], undefined); C.assertEq(a['6,2'], 1); C.assertEq(a['8,2'], 1);
   });
   C.test('meiro: start(PID) は ひる、start(PID, mode) で よる・まっくら', function () {
@@ -354,30 +356,29 @@
     var D = { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] };
     for (var d in D) if (c[d]) { m._moveToward((p[0] + D[d][0]) + ',' + (p[1] + D[d][1])); return; }
   }
-  C.test('meiro: よるは 動くと 明るい所が へらない、まっくらは 前の所が うすくなる', function () {
+  C.test('meiro: よるは 動くと 前の所が うすく残り、まっくらは 何も残らない', function () {
     var m = M();
     return withLogs([], function () {
       return m.start(PID, 'night').then(function () {
-        var before = m._state().lit, start = m._state().at;
-        stepAny(m); stepAny(m);
-        var after = m._state().lit;
-        Object.keys(before).forEach(function (k) { if (!after[k]) throw new Error('きえた ' + k); });
-        C.assertEq(cnt(m._state().visited) >= 2, true);
-        C.assertEq(after[start], 1);
-        return m.start(PID, 'dark');
-      }).then(function () {
         var start = m._state().at;
         stepAny(m); stepAny(m); stepAny(m);
         var s = m._state();
-        if (s.at !== start) C.assertEq(s.lit[start] === 1 || s.lit[start] === 0.5, true);
         C.assertEq(s.lit[s.at], 1);
+        C.assertEq(s.lit[start] === 1 || s.lit[start] === 0.5, true);
+        return m.start(PID, 'dark');
+      }).then(function () {
+        stepAny(m); stepAny(m); stepAny(m);
+        var s = m._state();
+        C.assertEq(s.lit[s.at], 1);
+        C.assertEq(cnt(s.lit) <= 9, true);
+        Object.keys(s.lit).forEach(function (k) { if (s.lit[k] !== 1) throw new Error('うすい所 ' + k); });
       });
     });
   });
   C.test('meiro: よる・まっくらの声の文', function () {
     var T = M().TEXT;
     C.assertEq(T.night, 'よるの めいろだよ。ちかくしか みえないよ');
-    C.assertEq(T.dark, 'まっくらの めいろだよ。あしあとが のこるよ');
+    C.assertEq(T.dark, 'まっくらの めいろだよ。ひよこの まわりしか みえないよ');
     C.assertEq(T.choose, 'どれで あそぶ？');
     C.assertEq(JSON.stringify(M().MODES), JSON.stringify(['day', 'night', 'dark']));
   });

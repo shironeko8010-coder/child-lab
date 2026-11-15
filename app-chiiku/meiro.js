@@ -23,9 +23,9 @@
     star: 'ほし ゲット！', lidOpen: 'ごはんの ふたが あいたよ！', findKey: 'つぎは かぎを さがそう',
     doorOpen: 'とびらが あいたよ！', doorOpenStars: 'とびらが あいた！ ほしも あつめよう',
     goal: 'ごはん だ！ やったね', reward: 'すごい！ めいろ 3つ できたね', hint: 'ひかっている みちを すすんでね', touchChick: 'ひよこを さわって うごかしてね',
-    choose: 'どれで あそぶ？', night: 'よるの めいろだよ。ちかくしか みえないよ', dark: 'まっくらの めいろだよ。あしあとが のこるよ'
+    choose: 'どれで あそぶ？', night: 'よるの めいろだよ。ちかくしか みえないよ', dark: 'まっくらの めいろだよ。ひよこの まわりしか みえないよ'
   };
-  // ひる（ぜんぶ見える）／よる（通った所と まわりが 明るいまま）／まっくら（まわりだけ。通ったマスは うすい あしあと）
+  // ひる（ぜんぶ見える）／よる（まわり2マス。通ったマスは うすい あしあと）／まっくら（まわり1マスだけ。あしあとなし）
   // 設計書：docs/superpowers/specs/2026-11-15-chiiku-meiro-yoru-design.md
   var MODES = ['day', 'night', 'dark'];
   var MODE_UI = { day: { ico: '☀️', label: 'ひる' }, night: { ico: '🌙', label: 'よる' }, dark: { ico: '🌑', label: 'まっくら' } };
@@ -202,12 +202,15 @@
   }
 
   /* ---------- よる・まっくら の 明るい所 ---------- */
-  // まわり2マス：マスの中心の きょりが 2 以下（13マス）
-  var AROUND = [];
-  for (var ay = -2; ay <= 2; ay++) for (var ax = -2; ax <= 2; ax++) if (ax * ax + ay * ay <= 4.5) AROUND.push([ax, ay]);
-  function litAround(maze, k, out, v) {
+  // よる：まわり2マス（マスの中心の きょりが 2 以下の13マス）。まっくら：まわり1マス（3×3の9マス）
+  var AROUND2 = [], AROUND1 = [];
+  for (var ay = -2; ay <= 2; ay++) for (var ax = -2; ax <= 2; ax++) {
+    if (ax * ax + ay * ay <= 4.5) AROUND2.push([ax, ay]);
+    if (Math.abs(ax) <= 1 && Math.abs(ay) <= 1) AROUND1.push([ax, ay]);
+  }
+  function litAround(maze, k, out, v, shape) {
     var p = xy(k);
-    AROUND.forEach(function (d) {
+    shape.forEach(function (d) {
       var x = p[0] + d[0], y = p[1] + d[1];
       if (x < 0 || y < 0 || x >= maze.w || y >= maze.h) return;
       var kk = key(x, y);
@@ -218,11 +221,8 @@
   function litCells(maze, at, visited, mode) {
     if (mode !== 'night' && mode !== 'dark') return null;
     var out = {};
-    Object.keys(visited || {}).forEach(function (k) {
-      if (mode === 'night') litAround(maze, k, out, 1);
-      else if (!out[k]) out[k] = 0.5;
-    });
-    litAround(maze, at, out, 1);
+    if (mode === 'night') Object.keys(visited || {}).forEach(function (k) { out[k] = 0.5; });   // あしあと
+    litAround(maze, at, out, 1, mode === 'night' ? AROUND2 : AROUND1);
     return out;
   }
 

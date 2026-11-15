@@ -299,3 +299,86 @@
     });
   });
 })();
+
+/* めいろ：よる・まっくら（docs/superpowers/specs/2026-11-15-chiiku-meiro-yoru-design.md） */
+(function () {
+  'use strict';
+  var C = window.Chiid;
+  function M() { return C.meiro; }
+  var PID = 'p-meiro-yoru';
+  function cnt(o) { return Object.keys(o || {}).length; }
+  function withLogs(logs, fn) {
+    var S = C.storage, og = S.getLogs, ol = S.logAnswer, saved = [];
+    S.getLogs = function () { return Promise.resolve(logs); };
+    S.logAnswer = function (e) { saved.push(e); return Promise.resolve(); };
+    return Promise.resolve().then(function () { return fn(saved); }).then(function (v) { S.getLogs = og; S.logAnswer = ol; return v; }, function (e) { S.getLogs = og; S.logAnswer = ol; throw e; });
+  }
+  function maze(w, h) { return M().make(1, w, h, function () { return 0.3; }); }
+
+  C.test('meiro: litCells ひるは null（ぜんぶ明るい）', function () {
+    C.assertEq(M().litCells(maze(6, 6), '2,2', { '2,2': 1 }, 'day'), null);
+  });
+  C.test('meiro: litCells まわり2マスは13マス（はしでは へる）', function () {
+    var mz = maze(7, 7);
+    var a = M().litCells(mz, '3,3', { '3,3': 1 }, 'dark');
+    C.assertEq(cnt(a), 13);
+    C.assertEq(a['3,1'], 1); C.assertEq(a['4,4'], 1); C.assertEq(a['5,4'], undefined);
+    C.assertEq(cnt(M().litCells(mz, '0,0', { '0,0': 1 }, 'dark')), 6);
+  });
+  C.test('meiro: litCells よるは 通ったマスの まわりも 明るい', function () {
+    var mz = maze(10, 5);
+    var a = M().litCells(mz, '6,2', { '0,2': 1, '6,2': 1 }, 'night');
+    C.assertEq(a['0,0'], 1); C.assertEq(a['8,2'], 1); C.assertEq(a['3,2'], undefined);
+  });
+  C.test('meiro: litCells まっくらは 通ったマスだけ うすく', function () {
+    var mz = maze(10, 5);
+    var a = M().litCells(mz, '6,2', { '0,2': 1, '6,2': 1 }, 'dark');
+    C.assertEq(a['0,2'], 0.5); C.assertEq(a['0,1'], undefined); C.assertEq(a['6,2'], 1); C.assertEq(a['8,2'], 1);
+  });
+  C.test('meiro: start(PID) は ひる、start(PID, mode) で よる・まっくら', function () {
+    var m = M();
+    return withLogs([], function () {
+      return m.start(PID).then(function () {
+        C.assertEq(m._state().mode, 'day'); C.assertEq(m._state().lit, null);
+        return m.start(PID, 'night');
+      }).then(function () {
+        var s = m._state();
+        C.assertEq(s.mode, 'night'); C.assertEq(s.phase, 'play'); C.assertEq(cnt(s.visited), 1);
+        C.assertEq(!!s.lit[s.at], true);
+        return m.start(PID, 'oops');
+      }).then(function () { C.assertEq(m._state().mode, 'day'); });
+    });
+  });
+  function stepAny(m) {   // 動ける方へ1マス
+    var s = m._state(), p = s.at.split(',').map(Number), c = s.maze.cells[p[1]][p[0]];
+    var D = { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] };
+    for (var d in D) if (c[d]) { m._moveToward((p[0] + D[d][0]) + ',' + (p[1] + D[d][1])); return; }
+  }
+  C.test('meiro: よるは 動くと 明るい所が へらない、まっくらは 前の所が うすくなる', function () {
+    var m = M();
+    return withLogs([], function () {
+      return m.start(PID, 'night').then(function () {
+        var before = m._state().lit, start = m._state().at;
+        stepAny(m); stepAny(m);
+        var after = m._state().lit;
+        Object.keys(before).forEach(function (k) { if (!after[k]) throw new Error('きえた ' + k); });
+        C.assertEq(cnt(m._state().visited) >= 2, true);
+        C.assertEq(after[start], 1);
+        return m.start(PID, 'dark');
+      }).then(function () {
+        var start = m._state().at;
+        stepAny(m); stepAny(m); stepAny(m);
+        var s = m._state();
+        if (s.at !== start) C.assertEq(s.lit[start] === 1 || s.lit[start] === 0.5, true);
+        C.assertEq(s.lit[s.at], 1);
+      });
+    });
+  });
+  C.test('meiro: よる・まっくらの声の文', function () {
+    var T = M().TEXT;
+    C.assertEq(T.night, 'よるの めいろだよ。ちかくしか みえないよ');
+    C.assertEq(T.dark, 'まっくらの めいろだよ。あしあとが のこるよ');
+    C.assertEq(T.choose, 'どれで あそぶ？');
+    C.assertEq(JSON.stringify(M().MODES), JSON.stringify(['day', 'night', 'dark']));
+  });
+})();

@@ -1150,3 +1150,32 @@
 @media (orientation: portrait) {
   .home-pager { width: min(100%, 640px); flex: 0 0 auto; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "cards cards cards" "prev dots next"; }
 }
+
+/* ---------- めいろ：よる・まっくら（docs/superpowers/specs/2026-11-15-chiiku-meiro-yoru-design.md） ---------- */
+.mr-dark { fill: #0d1430; opacity: .93; pointer-events: none; }
+.mr-night .mr-food, .mr-night .mr-star, .mr-night .mr-key, .mr-night .mr-door { filter: drop-shadow(0 0 5px #fff3a0) drop-shadow(0 0 10px #ffd23f); }
+.mr-night .mr-chick { filter: drop-shadow(0 0 8px #fff6c8); }
+.mr-night .mr-hint { stroke: #fff07a; }
+.scr-meiro-mode { background: linear-gradient(#fff8e6, #ffe9c2); }
+.mr-mode-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; width: 100%; }
+.mr-mode-title { margin: 0; font-size: clamp(26px, 4vw, 40px); font-weight: bold; color: #6b4a2b; }
+.mr-modes { display: flex; gap: 18px; justify-content: center; width: 100%; max-width: 900px; }
+.mr-mode { flex: 1 1 0; max-width: 260px; min-height: 160px; border: 0; border-radius: 28px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 6px 0 rgba(0,0,0,.18); font-family: inherit; }
+.mr-mode:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.18); }
+.mr-mode-day { background: #fff3c4; color: #8a5a00; }
+.mr-mode-night { background: #2d3a78; color: #fff; }
+.mr-mode-dark { background: #11162e; color: #fff; }
+.mr-mode-ico { font-size: clamp(56px, 8vw, 88px); line-height: 1; }
+.mr-mode-label { font-size: clamp(24px, 3.4vw, 34px); font-weight: bold; }
+@media (orientation: landscape) and (max-height: 520px) {
+  .mr-mode-body { gap: 8px; }
+  .mr-mode-title { font-size: calc(var(--vh) * 7); }
+  .mr-mode { min-height: calc(var(--vh) * 46); border-radius: 22px; }
+  .mr-mode-ico { font-size: calc(var(--vh) * 15); }
+  .mr-mode-label { font-size: max(22px, calc(var(--vh) * 6.5)); }
+}
+@media (orientation: portrait) {
+  .mr-modes { flex-direction: column; align-items: center; gap: 14px; }
+  .mr-mode { width: min(80vw, 360px); max-width: none; flex: 0 0 auto; min-height: 0; height: calc(var(--vh) * 18); flex-direction: row; gap: 18px; }
+  .mr-mode-ico { font-size: calc(var(--vh) * 9); }
+}

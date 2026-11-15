@@ -22,8 +22,13 @@
   var TEXT = {
     star: 'ほし ゲット！', lidOpen: 'ごはんの ふたが あいたよ！', findKey: 'つぎは かぎを さがそう',
     doorOpen: 'とびらが あいたよ！', doorOpenStars: 'とびらが あいた！ ほしも あつめよう',
-    goal: 'ごはん だ！ やったね', reward: 'すごい！ めいろ 3つ できたね', hint: 'ひかっている みちを すすんでね', touchChick: 'ひよこを さわって うごかしてね'
+    goal: 'ごはん だ！ やったね', reward: 'すごい！ めいろ 3つ できたね', hint: 'ひかっている みちを すすんでね', touchChick: 'ひよこを さわって うごかしてね',
+    choose: 'どれで あそぶ？', night: 'よるの めいろだよ。ちかくしか みえないよ', dark: 'まっくらの めいろだよ。あしあとが のこるよ'
   };
+  // ひる（ぜんぶ見える）／よる（通った所と まわりが 明るいまま）／まっくら（まわりだけ。通ったマスは うすい あしあと）
+  // 設計書：docs/superpowers/specs/2026-11-15-chiiku-meiro-yoru-design.md
+  var MODES = ['day', 'night', 'dark'];
+  var MODE_UI = { day: { ico: '☀️', label: 'ひる' }, night: { ico: '🌙', label: 'よる' }, dark: { ico: '🌑', label: 'まっくら' } };
   var DIRS = { n: [0, -1, 's'], e: [1, 0, 'w'], s: [0, 1, 'n'], w: [-1, 0, 'e'] };   // [dx, dy, 反対]
 
   function lv(level) { return Math.max(1, Math.min(MAX_LEVEL, Number(level) || 1)); }
@@ -196,6 +201,31 @@
     return m;
   }
 
+  /* ---------- よる・まっくら の 明るい所 ---------- */
+  // まわり2マス：マスの中心の きょりが 2 以下（13マス）
+  var AROUND = [];
+  for (var ay = -2; ay <= 2; ay++) for (var ax = -2; ax <= 2; ax++) if (ax * ax + ay * ay <= 4.5) AROUND.push([ax, ay]);
+  function litAround(maze, k, out, v) {
+    var p = xy(k);
+    AROUND.forEach(function (d) {
+      var x = p[0] + d[0], y = p[1] + d[1];
+      if (x < 0 || y < 0 || x >= maze.w || y >= maze.h) return;
+      var kk = key(x, y);
+      if (!out[kk] || out[kk] < v) out[kk] = v;
+    });
+  }
+  // 明るい所 { 'x,y': 1（明るい） | 0.5（うすい あしあと） }。ひるは null（ぜんぶ明るい）
+  function litCells(maze, at, visited, mode) {
+    if (mode !== 'night' && mode !== 'dark') return null;
+    var out = {};
+    Object.keys(visited || {}).forEach(function (k) {
+      if (mode === 'night') litAround(maze, k, out, 1);
+      else if (!out[k]) out[k] = 0.5;
+    });
+    litAround(maze, at, out, 1);
+    return out;
+  }
+
   function speakStart(level) {
     var L = lv(level);
     if (L === 3) return 'ほしを 3つ ひろってから、ごはんへ いこう';
@@ -233,8 +263,10 @@
   function starsLeft() { return st.maze.stars.length - Object.keys(st.got).length; }
   function moveState() { return { hasKey: st.hasKey, starsLeft: starsLeft(), got: st.got }; }
 
-  function start(profileId) {
-    st = { profileId: profileId, level: 1, recent: [], round: 1, phase: 'loading' };
+  // mode を わたすと そのモードで すぐ始める。わたさないときは 画面では「どれで あそぶ？」、テスト（画面なし）では ひる
+  function start(profileId, mode) {
+    st = { profileId: profileId, level: 1, recent: [], round: 1, phase: 'loading', mode: MODES.indexOf(mode) >= 0 ? mode : 'day' };
+    var ask = !mode && hasApp();
     var ui = U();
     var sid = (hasApp() && ui.screenId) ? ui.screenId() : null;   // 記録を読むあいだに ホームへ戻ったら、始めない
     if (!resizeBound && hasApp()) { resizeBound = true; window.addEventListener('resize', onResize); }
@@ -245,7 +277,7 @@
         var p = progressFromLogs(logs);
         st.level = p.level; st.recent = p.recent;
         if (sid !== null && ui.screenId() !== sid) return;
-        newMaze(false);
+        if (ask) showModes(); else newMaze(false);
       });
   }
 
@@ -260,6 +292,7 @@
     if (!hasApp()) {     // テスト：表の大きさ（スマホ よこ）で作る
       var d = fit(st.level, 'land', 788, 289, MIN_CELL);
       st.kind = 'land'; st.maze = make(st.level, d.w, d.h); st.at = st.maze.start; st.trail = [st.at];
+      resetLight();
       return;
     }
     var app = ui.newScreen('meiro');
@@ -283,9 +316,59 @@
     var low = vw > vh && vh <= 340;
     var f = fit(st.level, st.kind, Math.max(1, bw), Math.max(1, bh), low ? MIN_CELL_LOW : MIN_CELL);
     st.maze = make(st.level, f.w, f.h); st.cell = f.cell; st.at = st.maze.start; st.trail = [st.at];
+    resetLight();
     render();
     if (!rebuild) say(speakStart(st.level));
     watch();
+  }
+
+  /* ---------- どれで あそぶ？（ひる・よる・まっくら） ---------- */
+  function showModes() {
+    st.phase = 'mode';
+    var ui = U();
+    var app = ui.newScreen('meiro-mode');
+    st.sid = ui.screenId ? ui.screenId() : null;
+    var bar = ui.topBar({ home: true });
+    app.appendChild(bar);
+    var body = ui.el('div', 'mr-mode-body');
+    body.appendChild(ui.el('p', 'mr-mode-title', TEXT.choose));
+    var row = ui.el('div', 'mr-modes');
+    MODES.forEach(function (m) {
+      var b = ui.button('mr-mode mr-mode-' + m, function () {
+        if (st.phase !== 'mode') return;
+        ui.play('tap');
+        chooseMode(m);
+      });
+      b.setAttribute('aria-label', MODE_UI[m].label);
+      b.appendChild(ui.el('span', 'mr-mode-ico', MODE_UI[m].ico));
+      b.appendChild(ui.el('span', 'mr-mode-label', MODE_UI[m].label));
+      row.appendChild(b);
+    });
+    body.appendChild(row);
+    app.appendChild(body);
+    ui.speak(TEXT.choose);
+  }
+  function chooseMode(m) {
+    st.mode = MODES.indexOf(m) >= 0 ? m : 'day';
+    st.phase = 'loading';
+    if (st.mode === 'day' || !hasApp()) { newMaze(false); return; }
+    U().speakThen(TEXT[st.mode], 0, function () { if (st && st.phase === 'loading') newMaze(false); });
+  }
+  function resetLight() { st.visited = {}; st.visited[st.at] = 1; st.lit = litCells(st.maze, st.at, st.visited, st.mode); }
+  function updateLight() {
+    st.visited[st.at] = 1;
+    st.lit = litCells(st.maze, st.at, st.visited, st.mode);
+    drawLight();
+  }
+  // 暗い まくに、明るい所の 穴をあける（マスクの 黒＝穴、灰色＝うすい）
+  function drawLight() {
+    if (!st.dom || !st.dom.holes || !st.lit) return;
+    var cs = st.cell, h = '';
+    Object.keys(st.lit).forEach(function (k) {
+      var p = xy(k), v = st.lit[k];
+      h += '<rect x="' + (p[0] * cs - cs * 0.08) + '" y="' + (p[1] * cs - cs * 0.08) + '" width="' + (cs * 1.16) + '" height="' + (cs * 1.16) + '" rx="' + (cs * 0.3) + '" fill="' + (v >= 1 ? '#000' : '#6e6e6e') + '"/>';
+    });
+    st.dom.holes.innerHTML = h;
   }
 
   /* ---------- 絵 ---------- */
@@ -301,9 +384,11 @@
   function lineOf(list) { return list.map(function (k, i) { var p = center(k); return (i ? 'L' : 'M') + p[0] + ' ' + p[1]; }).join(''); }
   function render() {
     var mz = st.maze, cs = st.cell, W = mz.w * cs, H = mz.h * cs, wall = Math.max(8, cs * 0.16), sc = cs / 86;
-    var s = '<svg class="mr-svg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true">';
+    var s = '<svg class="mr-svg' + ((st.mode === 'night' || st.mode === 'dark') ? ' mr-night' : '') + '" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true">';
     s += '<rect x="0" y="0" width="' + W + '" height="' + H + '" rx="' + wall + '" fill="#fff6dc"/>';
-    s += '<path class="mr-hint" stroke-width="' + (cs * 0.3) + '" d=""/>';
+    var night = st.mode === 'night' || st.mode === 'dark';
+    var hintEl = '<path class="mr-hint" stroke-width="' + (cs * 0.3) + '" d=""/>';
+    if (!night) s += hintEl;
     s += '<path class="mr-trail" stroke-width="' + (cs * 0.18) + '" stroke-dasharray="1 ' + (cs * 0.32) + '" d=""/>';
     var wp = '';
     for (var y = 0; y < mz.h; y++) for (var x = 0; x < mz.w; x++) {
@@ -315,6 +400,12 @@
     }
     s += '<path d="' + wp + '" stroke="#5aa64a" stroke-width="' + wall + '" stroke-linecap="round" fill="none"/>';
     s += '<path d="' + wp + '" stroke="#7ccb63" stroke-width="' + (wall * 0.45) + '" stroke-linecap="round" fill="none"/>';
+    if (night) {   // 暗い まく。目じるし・ひよこ・ヒントの道は この上に描く（光って見える）
+      s += '<defs><filter id="mr-soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="' + (cs * 0.12) + '"/></filter>' +
+        '<mask id="mr-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="' + W + '" height="' + H + '"><rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#fff"/><g class="mr-holes" filter="url(#mr-soft)"></g></mask></defs>';
+      s += '<rect class="mr-dark" x="-2" y="-2" width="' + (W + 4) + '" height="' + (H + 4) + '" rx="' + wall + '" mask="url(#mr-mask)"/>';
+      s += hintEl;
+    }
     function at(k, inner, cls) { var p = center(k); return '<g class="' + cls + '" data-at="' + k + '" transform="translate(' + p[0] + ' ' + p[1] + ') scale(' + sc + ')">' + inner + '</g>'; }
     s += at(mz.goal, ART.food + '<g class="mr-lid"' + (starsLeft() ? '' : ' style="display:none"') + '>' + ART.lid + '</g>', 'mr-food');
     mz.stars.forEach(function (k) { s += at(k, ART.star, 'mr-star'); });
@@ -328,12 +419,14 @@
     st.dom.chick = st.dom.svg.querySelector('.mr-chick');
     st.dom.trail = st.dom.svg.querySelector('.mr-trail');
     st.dom.hint = st.dom.svg.querySelector('.mr-hint');
+    st.dom.holes = st.dom.svg.querySelector('.mr-holes');
     var g = '';
     mz.stars.forEach(function () { g += '<span class="mr-g">⭐</span>'; });
     if (mz.key) g += '<span class="mr-g mr-gk">🔑</span>';
     st.dom.goals.innerHTML = g;
     bindPointer(st.dom.svg);
     drawTrail();
+    drawLight();
   }
   function drawTrail() { if (st.dom && st.dom.trail) st.dom.trail.setAttribute('d', lineOf(st.trail)); }
   function hideItem(cls, k) {
@@ -424,6 +517,7 @@
     if (st.trail[st.trail.length - 2] === k) st.trail.pop(); else st.trail.push(k);
     walkTo(k);
     drawTrail();
+    updateLight();
     var mz = st.maze;
     if (mz.stars.indexOf(k) >= 0 && !st.got[k]) {
       st.got[k] = 1; play('star'); hideItem('mr-star', k);
@@ -531,16 +625,16 @@
   function state() {
     if (!st) return null;
     return { phase: st.phase, level: st.level, round: st.round, at: st.at, got: st.got, hasKey: st.hasKey,
-      hinted: st.hinted, done: st.done, maze: st.maze };
+      hinted: st.hinted, done: st.done, maze: st.maze, mode: st.mode, visited: st.visited, lit: st.lit };
   }
 
   C.meiro = {
     AREA: AREA, MAX_LEVEL: MAX_LEVEL, ROUND: ROUND, MIN_CELL: MIN_CELL, MIN_CELL_LOW: MIN_CELL_LOW, LEVELS: LEVELS, TEXT: TEXT,
     dims: dims, kindOf: kindOf, fit: fit, make: make, canMove: canMove, path: path, nextTarget: nextTarget,
-    speakStart: speakStart, progressFromLogs: progressFromLogs,
+    speakStart: speakStart, progressFromLogs: progressFromLogs, MODES: MODES, litCells: litCells,
     start: start,
     // テスト用
-    _state: state, _moveToward: function (c) { moveToward(c); }, _idle: function (s) { idle(s); },
+    _state: state, _chooseMode: function (m) { if (st && st.phase === 'mode') chooseMode(m); }, _moveToward: function (c) { moveToward(c); }, _idle: function (s) { idle(s); },
     _next: function () { if (st && st.pending) st.pending(); },
     _down: function (id, c) { return pointerDown(id, c); }, _move: function (id, c) { pointerMove(id, c); }, _up: function (id) { pointerUp(id); }
   };

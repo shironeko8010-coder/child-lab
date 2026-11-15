@@ -49,7 +49,8 @@
     listeners.push(fn);
     return function () { var i = listeners.indexOf(fn); if (i >= 0) listeners.splice(i, 1); };
   }
-  function duck(on) { try { if (C.sfx && C.sfx.duck) C.sfx.duck(on); } catch (e) { /* 無視 */ } }
+  // 英語の声は 端末の声で ずんだもんより 小さめなので、BGM を 強く下げる（strong）
+  function duck(on) { try { if (C.sfx && C.sfx.duck) C.sfx.duck(on, true); } catch (e) { /* 無視 */ } }
 
   function available() { return !!(chosen || pick()); }
   function voiceName() { var v = chosen || pick(); return v ? v.name : ''; }

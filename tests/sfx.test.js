@@ -125,4 +125,63 @@
     C.sfx.play('whistle');
     C.sfx._reset();
   });
+
+  /* トップ画面（ホーム）の専用の曲（MP3）と、英語の声のときの さげかた */
+  C.test('sfx: setHomeTrack のあと startBgm で ホームの曲（MP3）、null に もどすと ふだんの曲', function () {
+    C.sfx._reset();
+    C.sfx.setBgmOn(true);
+    C.sfx.setHomeTrack('../shared/bgm/home-chiiku.mp3');
+    C.sfx.startBgm();
+    C.assertEq(C.sfx._bgmKind(), 'home');
+    C.assertEq(/home-chiiku\.mp3$/.test(C.sfx._homeSrc()), true);
+    C.assertEq(C.sfx.isBgmPlaying(), true);
+    C.sfx.setHomeTrack(null);          // ホームを はなれた（ほかの画面）
+    C.assertEq(C.sfx._bgmKind(), 'songs');
+    C.assertEq(C.sfx.isBgmPlaying(), true);
+    C.sfx.stopBgm();
+    C.assertEq(C.sfx._bgmKind(), '');
+    C.sfx._reset();
+  });
+  C.test('sfx: BGMがOFFなら ホームの曲も鳴らさない', function () {
+    C.sfx._reset();
+    C.sfx.setBgmOn(false);
+    C.sfx.setHomeTrack('../shared/bgm/home-benkyo.mp3');
+    C.sfx.startBgm();
+    C.assertEq(C.sfx._bgmKind(), '');
+    C.assertEq(C.sfx.isBgmPlaying(), false);
+    C.sfx._reset();
+  });
+  C.test('sfx: ホームの曲を流しているときに 曲を かえると 切りかわる', function () {
+    C.sfx._reset();
+    C.sfx.setBgmOn(true);
+    C.sfx.setHomeTrack('../shared/bgm/home-chiiku.mp3'); C.sfx.startBgm();
+    C.sfx.setHomeTrack('../shared/bgm/home-benkyo.mp3');
+    C.assertEq(/home-benkyo\.mp3$/.test(C.sfx._homeSrc()), true);
+    C.assertEq(C.sfx._bgmKind(), 'home');
+    C.sfx._reset();
+  });
+  C.test('sfx: 英語の声のときは BGM を もっと下げる（duck(true, true)）', function () {
+    C.sfx._reset();
+    C.sfx.duck(true, true);
+    C.assertEq(C.sfx._bgmGainTarget(), 0.15);
+    C.sfx.duck(false);
+    C.assertEq(C.sfx._bgmGainTarget(), 1);
+    C.sfx._reset();
+  });
+  C.test('voiceEn: 英語を読むあいだは BGM を 強く下げる', function () {
+    var seen = [], orig = C.sfx.duck;
+    C.sfx.duck = function (on, strong) { seen.push([!!on, !!strong]); };
+    var fake = { getVoices: function () { return [{ name: 'English', lang: 'en-US', localService: true }]; }, speak: function (u) { setTimeout(function () { u.onend && u.onend(); }, 5); }, cancel: function () {} };
+    C.voiceEn._override(fake, { maxMs: 200 });
+    return C.voiceEn.speak('apple').then(function () {
+      C.sfx.duck = orig; C.voiceEn._override(null);
+      C.assertEq(JSON.stringify(seen[0]), JSON.stringify([true, true]));
+      C.assertEq(seen[seen.length - 1][0], false);
+    }, function (e) { C.sfx.duck = orig; C.voiceEn._override(null); throw e; });
+  });
+  C.test('sfx: ホームの曲のファイルが 2つある（ちいく・べんきょう）', function () {
+    return Promise.all(['../shared/bgm/home-chiiku.mp3', '../shared/bgm/home-benkyo.mp3'].map(function (u) {
+      return fetch(u, { method: 'HEAD' }).then(function (r) { C.assertEq(r.ok, true); });
+    }));
+  });
 })();

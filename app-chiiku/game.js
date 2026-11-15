@@ -14,6 +14,7 @@
 
   var app = null;
   var token = 0;           // 画面ごとの番号。古い画面のタイマーやタップを無視する
+  var HOME_TRACK = '../shared/bgm/home-chiiku.mp3';   // ホーム（なにで あそぶ？）の曲
   var cleanup = [];        // 画面を切り替えるときに外すもの
   var st = {
     profileId: null,
@@ -89,6 +90,7 @@
 
   function newScreen(name) {
     token++;
+    try { C.sfx.setHomeTrack(name === 'home' ? HOME_TRACK : null); } catch (e) {}   // ホームだけ 専用の曲
     cleanup.forEach(function (f) { try { f(); } catch (e) {} });
     cleanup = [];
     try { C.voice.cancel(); } catch (e) {}

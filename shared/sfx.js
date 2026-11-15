@@ -1,4 +1,4 @@
-/* 効果音・BGM（WebAudioで合成）。外部の音声ファイルは使わない。
+/* 効果音・BGM（WebAudioで合成）。ただし ちいく・べんきょうの トップ（ホーム）だけは、やまとさんが用意した曲（shared/bgm/*.mp3）を流す。
    AudioContext は最初に音を鳴らすとき（＝タップの中）に作る。 */
 (function () {
   'use strict';
@@ -15,6 +15,11 @@
   var BGM_SCALE = 1;       // BGM 全体の音量（曲ごとの音量にかける）。前の単音BGMは 0.30 だった
   var SFX_BUS_GAIN = 1.2;   // 効果音は少しだけ上げる
   var DUCK_RATIO = 0.5;
+  var DUCK_STRONG = 0.15;   // 英語の声（端末の声で 小さめ）のときは もっと下げる
+  var duckStrong = false;
+  // ホームの曲（MP3）。音量は 曲ファイルが大きめなので 下げて流す
+  var HOME_VOL = 0.4;
+  var homeTrack = null, homeAudio = null, homeSrc = null, homePlaying = false;
 
   function getCtx() {
     if (disabled) return null;
@@ -35,7 +40,7 @@
     }
   }
 
-  function bgmGainTarget() { return ducked ? DUCK_RATIO : 1; }
+  function bgmGainTarget() { return ducked ? (duckStrong ? DUCK_STRONG : DUCK_RATIO) : 1; }
 
   // 音の通り道：効果音/BGM -> コンプレッサー（音割れ防止）-> スピーカー
   function buildGraph(ac) {
@@ -252,10 +257,53 @@
     } catch (e) { /* 無視 */ }
   }
 
-  // ふだんの BGM（3曲を順番に）。トップの曲が流れていたら、切りかえる
-  function startBgm() { startList(SONGS); }
+  /* ---------- ホームの曲（MP3） ---------- */
+  function homeVolume() { return HOME_VOL * bgmGainTarget(); }
+  function playHome() {
+    if (disabled) return;
+    try {
+      if (!homeAudio || homeSrc !== homeTrack) {
+        stopHomeAudio();
+        homeAudio = new window.Audio(homeTrack);
+        homeSrc = homeTrack;
+        homeAudio.loop = true;
+        homeAudio.preload = 'auto';
+      }
+      homeAudio.volume = homeVolume();
+      var p = homeAudio.play();
+      if (p && p.catch) p.catch(function () { /* まだ 画面に さわっていない：さわったときに また startBgm が呼ばれる */ });
+    } catch (e) { /* 無視 */ }
+    homePlaying = true;
+  }
+  function stopHomeAudio() {
+    homePlaying = false;
+    try { if (homeAudio) homeAudio.pause(); } catch (e) { /* 無視 */ }
+  }
+  // ホーム（なにで あそぶ？／何を やる？）の曲を決める。null＝ホームでない（ふだんの曲）
+  function setHomeTrack(src) {
+    src = src || null;
+    if (src === homeTrack) return;
+    var was = bgmPlaying;
+    homeTrack = src;
+    if (was && list !== TOP_LIST) { stopBgm(); startBgm(); }
+  }
+
+  // ふだんの BGM（3曲を順番に）。ホームでは ホームの曲（MP3）。トップの曲が流れていたら、切りかえる
+  function startBgm() {
+    if (homeTrack) {
+      if (!bgmOn || disabled) return;
+      if (bgmPlaying && homePlaying && homeAudio && homeSrc === homeTrack) { playHome(); return; }
+      stopBgm();
+      bgmPlaying = true;
+      playHome();
+      return;
+    }
+    if (homePlaying) stopBgm();
+    startList(SONGS);
+  }
+
   // トップ画面の曲（1曲をくりかえす）
-  function startTopBgm() { startList(TOP_LIST); }
+  function startTopBgm() { if (homePlaying) stopBgm(); startList(TOP_LIST); }
   function startList(l) {
     try {
       if (bgmPlaying && list !== l) stopBgm();
@@ -272,6 +320,7 @@
   function stopBgm() {
     bgmPlaying = false;
     if (bgmTimer) { clearInterval(bgmTimer); bgmTimer = null; }
+    stopHomeAudio();
   }
 
   C.sfx = {
@@ -279,10 +328,14 @@
     startBgm: startBgm,
     startTopBgm: startTopBgm,
     stopBgm: stopBgm,
-    duck: function (on) {
+    // on：読み上げ中。strong：英語の声（もっと下げる）
+    duck: function (on, strong) {
       ducked = !!on;
+      duckStrong = !!(on && strong);
       applyDuck(ctx);
+      try { if (homeAudio) homeAudio.volume = homeVolume(); } catch (e) { /* 無視 */ }
     },
+    setHomeTrack: setHomeTrack,
     setSfxOn: function (b) { sfxOn = !!b; },
     setBgmOn: function (b) {
       bgmOn = !!b;
@@ -299,6 +352,8 @@
     _buildSong: function (i) { return buildSong(SONGS[i]); },
     _songIdx: function () { return songIdx; },
     _isDucked: function () { return ducked; },
+    _bgmKind: function () { return !bgmPlaying ? '' : homePlaying ? 'home' : 'songs'; },
+    _homeSrc: function () { return homeAudio ? homeSrc : ''; },
     _ctxCreated: function () { return ctx !== null; },
     _disable: function () { disabled = true; },
     _reset: function () {
@@ -307,7 +362,8 @@
       ctx = null;
       sfxBus = null; bgmBus = null; comp = null;
       songIdx = 0; song = null; list = SONGS;
-      ducked = false;
+      ducked = false; duckStrong = false;
+      homeTrack = null; homeAudio = null; homeSrc = null;
       disabled = false;
       sfxOn = true;
       bgmOn = true;

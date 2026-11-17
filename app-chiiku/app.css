@@ -1179,3 +1179,7 @@
   .mr-mode { width: min(80vw, 360px); max-width: none; flex: 0 0 auto; min-height: 0; height: calc(var(--vh) * 18); flex-direction: row; gap: 18px; }
   .mr-mode-ico { font-size: calc(var(--vh) * 9); }
 }
+/* まっくら（2026-11-17）：明かりの外は まっ黒。ほしは うすく、かぎは 見えない */
+.mr-dark.mr-pitch { opacity: 1; }
+.mr-night .mr-star.mr-dim { opacity: .3; filter: none; }
+.mr-night .mr-key.mr-hide { visibility: hidden; }

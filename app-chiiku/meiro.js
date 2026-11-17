@@ -25,7 +25,7 @@
     goal: 'ごはん だ！ やったね', reward: 'すごい！ めいろ 3つ できたね', hint: 'ひかっている みちを すすんでね', touchChick: 'ひよこを さわって うごかしてね',
     choose: 'どれで あそぶ？', night: 'よるの めいろだよ。ちかくしか みえないよ', dark: 'まっくらの めいろだよ。ひよこの まわりしか みえないよ'
   };
-  // ひる（ぜんぶ見える）／よる（まわり2マス。通ったマスは うすい あしあと）／まっくら（まわり1マスだけ。あしあとなし）
+  // ひる（ぜんぶ見える）／よる（まわり1マス。ほかは うっすら）／まっくら（まわり1マスの ほかは まっ黒。ほしは うすく、かぎは 見えない。ヒントなし）
   // 設計書：docs/superpowers/specs/2026-11-15-chiiku-meiro-yoru-design.md
   var MODES = ['day', 'night', 'dark'];
   var MODE_UI = { day: { ico: '☀️', label: 'ひる' }, night: { ico: '🌙', label: 'よる' }, dark: { ico: '🌑', label: 'まっくら' } };
@@ -202,12 +202,9 @@
   }
 
   /* ---------- よる・まっくら の 明るい所 ---------- */
-  // よる：まわり2マス（マスの中心の きょりが 2 以下の13マス）。まっくら：まわり1マス（3×3の9マス）
-  var AROUND2 = [], AROUND1 = [];
-  for (var ay = -2; ay <= 2; ay++) for (var ax = -2; ax <= 2; ax++) {
-    if (ax * ax + ay * ay <= 4.5) AROUND2.push([ax, ay]);
-    if (Math.abs(ax) <= 1 && Math.abs(ay) <= 1) AROUND1.push([ax, ay]);
-  }
+  // まわり1マス（ひよこの マスと となり8マス＝3×3の9マス）
+  var AROUND1 = [];
+  for (var ay = -1; ay <= 1; ay++) for (var ax = -1; ax <= 1; ax++) AROUND1.push([ax, ay]);
   function litAround(maze, k, out, v, shape) {
     var p = xy(k);
     shape.forEach(function (d) {
@@ -221,9 +218,15 @@
   function litCells(maze, at, visited, mode) {
     if (mode !== 'night' && mode !== 'dark') return null;
     var out = {};
-    if (mode === 'night') Object.keys(visited || {}).forEach(function (k) { out[k] = 0.5; });   // あしあと
-    litAround(maze, at, out, 1, mode === 'night' ? AROUND2 : AROUND1);
+    litAround(maze, at, out, 1, AROUND1);   // よる・まっくら とも まわり1マス。あしあとは 残らない（visited は つかわない）
     return out;
+  }
+  // 目じるしの 見え方：'show'（光って見える）／'dim'（うすい）／'hide'（見えない）。まっくらでは 明かりの外の ほしは うすく、かぎは 見えない
+  function itemLook(mode, kind, lit) {
+    if (mode !== 'dark' || lit) return 'show';
+    if (kind === 'star') return 'dim';
+    if (kind === 'key') return 'hide';
+    return 'show';
   }
 
   function speakStart(level) {
@@ -369,6 +372,17 @@
       h += '<rect x="' + (p[0] * cs - cs * 0.08) + '" y="' + (p[1] * cs - cs * 0.08) + '" width="' + (cs * 1.16) + '" height="' + (cs * 1.16) + '" rx="' + (cs * 0.3) + '" fill="' + (v >= 1 ? '#000' : '#6e6e6e') + '"/>';
     });
     st.dom.holes.innerHTML = h;
+    lookItems();
+  }
+  function lookItems() {
+    if (!st.dom || !st.dom.svg) return;
+    [['mr-star', 'star'], ['mr-key', 'key']].forEach(function (p) {
+      Array.prototype.forEach.call(st.dom.svg.querySelectorAll('.' + p[0]), function (e) {
+        var look = itemLook(st.mode, p[1], !!(st.lit && st.lit[e.getAttribute('data-at')]));
+        e.classList.toggle('mr-dim', look === 'dim');
+        e.classList.toggle('mr-hide', look === 'hide');
+      });
+    });
   }
 
   /* ---------- 絵 ---------- */
@@ -403,7 +417,7 @@
     if (night) {   // 暗い まく。目じるし・ひよこ・ヒントの道は この上に描く（光って見える）
       s += '<defs><filter id="mr-soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="' + (cs * 0.12) + '"/></filter>' +
         '<mask id="mr-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="' + W + '" height="' + H + '"><rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#fff"/><g class="mr-holes" filter="url(#mr-soft)"></g></mask></defs>';
-      s += '<rect class="mr-dark" x="-2" y="-2" width="' + (W + 4) + '" height="' + (H + 4) + '" rx="' + wall + '" mask="url(#mr-mask)"/>';
+      s += '<rect class="mr-dark' + (st.mode === 'dark' ? ' mr-pitch' : '') + '" x="-2" y="-2" width="' + (W + 4) + '" height="' + (H + 4) + '" rx="' + wall + '" mask="url(#mr-mask)"/>';
       s += hintEl;
     }
     function at(k, inner, cls) { var p = center(k); return '<g class="' + cls + '" data-at="' + k + '" transform="translate(' + p[0] + ' ' + p[1] + ') scale(' + sc + ')">' + inner + '</g>'; }
@@ -603,7 +617,7 @@
     for (var i = 0; i < sec; i++) {
       if (st.phase !== 'play' || st.done) return;
       st.idle++;
-      if (st.idle === HINT_SEC) showHint(true);
+      if (st.idle === HINT_SEC && st.mode !== 'dark') showHint(true);   // まっくらは ヒントなし
     }
   }
   function showHint(on) {
@@ -631,7 +645,7 @@
   C.meiro = {
     AREA: AREA, MAX_LEVEL: MAX_LEVEL, ROUND: ROUND, MIN_CELL: MIN_CELL, MIN_CELL_LOW: MIN_CELL_LOW, LEVELS: LEVELS, TEXT: TEXT,
     dims: dims, kindOf: kindOf, fit: fit, make: make, canMove: canMove, path: path, nextTarget: nextTarget,
-    speakStart: speakStart, progressFromLogs: progressFromLogs, MODES: MODES, litCells: litCells,
+    speakStart: speakStart, progressFromLogs: progressFromLogs, MODES: MODES, litCells: litCells, itemLook: itemLook,
     start: start,
     // テスト用
     _state: state, _chooseMode: function (m) { if (st && st.phase === 'mode') chooseMode(m); }, _moveToward: function (c) { moveToward(c); }, _idle: function (s) { idle(s); },

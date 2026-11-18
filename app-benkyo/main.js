@@ -21,7 +21,8 @@
     { id: 'nagasa', name: '{長|なが}さ・かさ', sub: 'ものさし・ます', enabled: true },
     { id: 'hantai', name: 'はんたい ことば', sub: '大きい↔小さい', enabled: true },
     { id: 'zukan', name: 'ずかん', sub: 'よんで こたえよう', enabled: true },
-    { id: 'eigo', name: 'えい{語|ご}', sub: 'きく・よむ', enabled: true }
+    { id: 'eigo', name: 'えい{語|ご}', sub: 'きく・よむ', enabled: true },
+    { id: 'program', name: 'プログラミング', sub: 'やじるしで うごかそう', enabled: true }
   ];
   // 画面の文字は、2年生までに習う漢字を使う（1年生の漢字はそのまま、2年生の漢字は {漢字|よみ} でふりがな）
   function yomiOf(text) { return String(text || '').replace(/\{([^|{}]+)\|([^|{}]+)\}/g, '$2'); }
@@ -156,7 +157,8 @@
     nagasa: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#fdf0d5"/><rect x="6" y="20" width="36" height="14" rx="2" fill="#f6c871" stroke="#a5701a" stroke-width="2"/><path d="M10 20v6M14 20v4M18 20v6M22 20v4M26 20v6M30 20v4M34 20v6M38 20v4" stroke="#6b4508" stroke-width="1.5"/><rect x="8" y="9" width="20" height="7" rx="2" fill="#f4a261"/><path d="M32 30h8v10h-8z" fill="#9fd3f2" stroke="#1d5f8c" stroke-width="1.5"/></svg>',
     hantai: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#e8f0fe"/><path d="M10 17h26" stroke="#e2483d" stroke-width="4" stroke-linecap="round"/><path d="M30 10l7 7-7 7" fill="none" stroke="#e2483d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M38 31H12" stroke="#2f7fd6" stroke-width="4" stroke-linecap="round"/><path d="M18 24l-7 7 7 7" fill="none" stroke="#2f7fd6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     zukan: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#e8f6ea"/><path d="M24 14 Q16 9 7 11 V37 Q16 35 24 40 Z" fill="#5cb85c"/><path d="M24 14 Q32 9 41 11 V37 Q32 35 24 40 Z" fill="#4cb8c4"/><path d="M24 14 V40" stroke="#fff" stroke-width="2"/><circle cx="15" cy="22" r="3" fill="#fff"/><path d="M29 20h8M29 25h8M29 30h6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>',
-    eigo: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#efe9f6"/><path d="M11 36l8-24 8 24M14 28h10M31 12v24h6a6 6 0 0 0 0-12h-6" stroke="#6d55a3" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    eigo: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#efe9f6"/><path d="M11 36l8-24 8 24M14 28h10M31 12v24h6a6 6 0 0 0 0-12h-6" stroke="#6d55a3" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    program: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#e7f1fb"/><rect x="14" y="13" width="20" height="16" rx="4" fill="#5b8fd9"/><circle cx="20" cy="21" r="2.5" fill="#fff"/><circle cx="28" cy="21" r="2.5" fill="#fff"/><path d="M24 13V9" stroke="#5b8fd9" stroke-width="3" stroke-linecap="round"/><circle cx="24" cy="8" r="2.2" fill="#ff8a5b"/><path d="M10 37h8M15 34l3 3-3 3M22 37h8M27 34l3 3-3 3" stroke="#3a3a3a" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
   };
 
   function bubble(text) {
@@ -466,6 +468,13 @@
       try {
         var re = B.eigoScreen.show({ profileId: st.profileId });
         if (re && re.catch) re.catch(function () { showSoon(s); });
+      } catch (e) { showSoon(s); }
+      return;
+    }
+    if (id === 'program' && B.programScreen && typeof B.programScreen.show === 'function') {
+      try {
+        var rp = B.programScreen.show({ profileId: st.profileId });
+        if (rp && rp.catch) rp.catch(function () { showSoon(s); });
       } catch (e) { showSoon(s); }
       return;
     }

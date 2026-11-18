@@ -211,6 +211,9 @@
     var EG = C.eigo;
     Object.keys(EG.TEXT).forEach(function (k) { if (k !== 'noVoice') add(EG.TEXT[k]); });
 
+    where = 'プログラミング';
+    Object.keys(C.program.TEXT).forEach(function (k) { add(C.program.TEXT[k]); });
+
     where = 'ごほうび（べんきょう）';
     add('よく がんばったね！');
     add('よく かんがえたね！');

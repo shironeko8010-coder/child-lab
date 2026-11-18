@@ -257,7 +257,7 @@
     C.assertEq(H.PER_PAGE, 6);
     C.assertEq(H.pageCount(), 2);
     C.assertEq(H.kinds(0).join(','), 'hira,kazu,tokei,iro,machi,kai');
-    C.assertEq(H.kinds(1).join(','), 'sr,dou,meiro');
+    C.assertEq(H.kinds(1).join(','), 'sr,dou,meiro,kioku');
   });
 
   C.test('home: 遊びのあるページを返す', function () {

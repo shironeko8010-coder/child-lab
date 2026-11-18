@@ -97,6 +97,9 @@
     range(1, MR.MAX_LEVEL).forEach(function (lv) { add(MR.speakStart(lv)); });
     Object.keys(MR.TEXT).forEach(function (k) { add(MR.TEXT[k]); });
 
+    where = 'ちいく きおく';
+    Object.keys(C.kioku.TEXT).forEach(function (k) { add(C.kioku.TEXT[k]); });
+
     where = 'ちいく どうとく';
     var D = C.chiikuDoutoku;
     D.SCENES.concat(D.OPEN).forEach(function (sc) {

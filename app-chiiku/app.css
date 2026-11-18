@@ -1183,3 +1183,42 @@
 .mr-dark.mr-pitch { opacity: 1; }
 .mr-night .mr-star.mr-dim { opacity: .3; filter: none; }
 .mr-night .mr-key.mr-hide { visibility: hidden; }
+
+/* ===== きおく（kioku.js）。設計書：docs/superpowers/specs/2026-11-18-chiiku-kioku-design.md ===== */
+.scr-kioku .topbar { gap: 8px; }
+.kk-talk { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; justify-content: center; }
+.kk-bub { font-size: clamp(18px, 2.6vw, 28px); padding: 8px 18px; line-height: 1.25; text-align: center; }
+.kk-board { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; padding-top: 6px; }
+.kk-grid { display: grid; justify-content: center; }
+.kk-card { position: relative; width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: pointer; perspective: 600px; -webkit-tap-highlight-color: transparent; }
+.kk-inner { position: absolute; inset: 0; transition: transform .3s ease; transform-style: preserve-3d; }
+.kk-card.up .kk-inner { transform: rotateY(180deg); }
+.kk-face { position: absolute; inset: 0; border-radius: 14%; display: flex; align-items: center; justify-content: center; backface-visibility: hidden; -webkit-backface-visibility: hidden; line-height: 1; }
+.kk-back { background: #6fa8f0; box-shadow: 0 4px 0 #4a82c9; background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,.35) 0 18%, transparent 19%); }
+.kk-front { background: #fff; box-shadow: 0 4px 0 #e2d6c2; transform: rotateY(180deg); }
+.kk-card.got .kk-front { box-shadow: 0 0 0 4px #ffd23f, 0 4px 0 #e8a92d; }
+.scr-kioku-choose { background: linear-gradient(#fff8e6, #ffe9c2); }
+.kk-ch-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; width: 100%; }
+.kk-ch-title { margin: 0; font-size: clamp(26px, 4vw, 40px); font-weight: bold; color: #6b4a2b; }
+.kk-ch-row { display: grid; grid-template-columns: repeat(6, minmax(0, 150px)); gap: 12px; justify-content: center; width: 100%; }
+.kk-ch { min-height: 120px; border: 0; border-radius: 22px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: #fff; color: #3a3a3a; box-shadow: 0 6px 0 rgba(0,0,0,.15); font-family: inherit; }
+.kk-ch:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.15); }
+.kk-ch-main { font-size: clamp(28px, 4vw, 44px); font-weight: bold; line-height: 1.1; }
+.kk-ch-sub { font-size: 18px; color: #6b6b6b; }
+.kk-ch-auto { background: #ffb547; color: #fff; }
+.kk-ch-auto .kk-ch-sub { color: #fff; }
+.kk-ch.now { box-shadow: 0 0 0 4px #6fa8f0, 0 6px 0 rgba(0,0,0,.15); }
+@media (orientation: landscape) and (max-height: 520px) {
+  .kk-bub { font-size: clamp(18px, calc(var(--vh) * 5.2), 24px); padding: 6px 14px; }
+  .kk-board { padding-top: 4px; }
+  .kk-ch-body { gap: 8px; }
+  .kk-ch-title { font-size: calc(var(--vh) * 7); }
+  .kk-ch { min-height: calc(var(--vh) * 34); }
+}
+@media (orientation: portrait) {
+  .scr-kioku .topbar { flex-wrap: wrap; row-gap: 6px; }
+  .scr-kioku .kk-talk { order: 3; flex-basis: 100%; }
+  .kk-ch-row { grid-template-columns: repeat(2, minmax(0, 160px)); }
+  .kk-ch { min-height: calc(var(--vh) * 14); }
+}
+@media (prefers-reduced-motion: reduce) { .kk-inner { transition: none; } }

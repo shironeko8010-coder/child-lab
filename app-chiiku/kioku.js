@@ -11,7 +11,8 @@
   // ぜんぶ そろえたら ごほうび（1まいの ばんが 1回分）
   var COUNTS = [6, 10, 16, 24, 36];      // レベルごとの まい数
   var PREVIEW_MS = [2000, 2000, 4000, 4000, 4000];   // はじめに ぜんぶ見せる時間（レベルごと）
-  var BACK_MS = 1000, WAIT_CLEAR = 1800, VOICE_AFTER = 400;   // 正解音の あと、少し あけてから 声
+  var BACK_MS = 1000, WAIT_CLEAR = 1800, VOICE_AFTER = 400;
+  var HINT_MS = 3000;   // ヒント：もう一度 ぜんぶ 見せる 時間   // 正解音の あと、少し あけてから 声
   var GAP = 6, MAX_CARD = 200;
   // 見分けやすい 絵（Unicode 12 以前の絵文字）
   var PICS = ['🐶', '🐱', '🐰', '🐻', '🐼', '🦁', '🐸', '🐵', '🐧', '🐤', '🐙', '🦀', '🐢', '🦋', '🐞', '🍎', '🍌', '🍉', '🍓', '🍇', '🍰', '🍦', '🚗', '🚀', '🌻', '⭐', '🎈', '⚽'];
@@ -31,11 +32,12 @@
   }
   function isCorrect(misses, pairs) { return misses <= pairs; }
 
-  // 板（w×h）に n まいの 正方形カードを、いちばん大きく なるように ならべる
+  // 板（w×h）に n まいの 正方形カードを、いちばん大きく なるように ならべる。最後の 段が はんぱに ならない 列の数だけ 使う
   function layout(n, w, h, gap) {
     gap = gap || 0;
     var best = null;
     for (var cols = 1; cols <= n; cols++) {
+      if (n % cols !== 0) continue;
       var rows = Math.ceil(n / cols);
       var cell = Math.floor(Math.min((w - (cols - 1) * gap) / cols, (h - (rows - 1) * gap) / rows));
       if (!best || cell > best.cell) best = { cols: cols, rows: rows, cell: cell };
@@ -121,12 +123,16 @@
   function newGame() {
     if (isOver()) { st.phase = 'rest'; if (hasApp()) U().showRest(); return; }
     st.phase = 'play'; st.cards = deal(st.level); st.open = []; st.matched = []; st.misses = 0;
-    st.busy = false; st.done = false; st.pending = null; st.dom = null;
+    st.busy = false; st.done = false; st.pending = null; st.dom = null; st.peek = false;
     if (!hasApp()) return;
     var ui = U();
     var app = ui.newScreen('kioku');
     st.sid = ui.screenId ? ui.screenId() : null;
     var bar = ui.topBar({ home: true });
+    var hb = ui.button('icon-btn kk-hint', function () { hint(); });   // ヒント：もう一度 3びょう ぜんぶ 見る
+    hb.setAttribute('aria-label', 'ひんと');
+    hb.appendChild(ui.el('span', 'kk-hint-ico', '👀'));
+    if (bar.firstChild) bar.firstChild.appendChild(hb);
     var talk = ui.el('div', 'kk-talk');
     var bub = ui.bubble(TEXT.start); bub.classList.add('kk-bub');
     talk.appendChild(bub);
@@ -166,6 +172,18 @@
         say(TEXT.start);
       }, PREVIEW_MS[st.level - 1]);
     }
+  }
+  // ヒント：そろって いない カードも ぜんぶ 3びょう 見せる（はずし1回と 数える）。1まい めくっている ときは 出さない
+  function hint() {
+    if (!st || st.phase !== 'play' || st.done || st.busy || st.pending || st.open.length || !onScreen()) return;
+    st.misses++; st.peek = true; st.busy = true;
+    if (st.dom) st.dom.cards.forEach(function (b) { b.classList.add('up'); });
+    play('tap'); say(TEXT.preview);
+    later(function () {
+      st.peek = false; st.busy = false;
+      st.cards.forEach(function (c, i) { paint(i); });
+      say(TEXT.start);
+    }, HINT_MS);
   }
   function paint(i) {
     if (!st.dom) return;
@@ -251,7 +269,7 @@
   function state() {
     if (!st) return null;
     return { phase: st.phase, level: st.level, round: st.round, cards: st.cards, open: (st.open || []).slice(), matched: (st.matched || []).slice(),
-      misses: st.misses, done: st.done };
+      misses: st.misses, done: st.done, peek: !!st.peek };
   }
 
   C.kioku = {
@@ -260,6 +278,6 @@
     start: start,
     // テスト用
     _state: state, _flip: function (i) { flip(i); }, _flush: flush, _choose: choose,
-    _next: function () { flush(); }, _again: again
+    _next: function () { flush(); }, _again: again, _hint: function () { hint(); }
   };
 })();

@@ -142,4 +142,38 @@
     C.assertEq(C.chiikuHome.ORDER.indexOf('kioku') >= 0, true);
     return fetch('../shared/parent.js').then(function (r) { return r.text(); }).then(function (t) { C.assertEq(/kioku: 'きおく'/.test(t), true); });
   });
+
+  /* 2026-11-19 の直し：ならびに はんぱを 出さない・ヒント・ホームの カードの 色 */
+  C.test('kioku: layout は どの画面・まい数でも 最後の 段が はんぱに ならない', function () {
+    var k = K(), bad = [];
+    [[667, 375], [740, 360], [812, 375], [375, 667], [360, 740], [390, 844], [1280, 800], [1024, 600]].forEach(function (sz) {
+      var w = sz[0] - 24, h = sz[1] - 86;
+      k.COUNTS.forEach(function (n) {
+        var L = k.layout(n, w, h, 6);
+        if (n % L.cols !== 0) bad.push(sz.join('x') + ' n' + n + ' cols' + L.cols);
+      });
+    });
+    if (bad.length) throw new Error(bad.slice(0, 4).join(' / '));
+  });
+  C.test('kioku: ヒントで ぜんぶ 見え、おわると もどる（はずし1回と 数える）。そろった カードは そのまま', function () {
+    var k = K();
+    return withLogs([], function () {
+      return k.start(PID, 1).then(function () {
+        var ps = pairs(k._state().cards);
+        k._flip(ps[0][0]); k._flip(ps[0][1]); k._flush();     // 1組 そろえる
+        k._hint();
+        C.assertEq(k._state().peek, true);
+        k._flip(ps[1][0]);                                     // 見せている間は めくれない
+        C.assertEq(k._state().open.length, 0);
+        k._flush();
+        C.assertEq(k._state().peek, false); C.assertEq(k._state().misses, 1);
+        C.assertEq(k._state().matched.length, 2);
+        k._flip(ps[1][0]); k._hint();                           // 1まい めくっている ときは ヒントを 出さない
+        C.assertEq(k._state().peek, false);
+      });
+    });
+  });
+  C.test('kioku: ホームの「きおく」の カードに 色が ある', function () {
+    return fetch('../app-chiiku/app.css').then(function (r) { return r.text(); }).then(function (t) { C.assertEq(/\.hc-kioku \{ background:/.test(t), true); });
+  });
 })();

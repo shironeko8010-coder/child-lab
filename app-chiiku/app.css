@@ -1222,3 +1222,6 @@
   .kk-ch { min-height: calc(var(--vh) * 14); }
 }
 @media (prefers-reduced-motion: reduce) { .kk-inner { transition: none; } }
+/* きおく：ホームの カードの 色（2026-11-19）・ヒントの ボタン */
+.hc-kioku { background: #5468d4; }
+.kk-hint-ico { font-size: 30px; line-height: 1; }

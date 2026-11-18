@@ -318,11 +318,11 @@
   C.test('meiro: litCells ひるは null（ぜんぶ明るい）', function () {
     C.assertEq(M().litCells(maze(6, 6), '2,2', { '2,2': 1 }, 'day'), null);
   });
-  C.test('meiro: litCells よるも まわり1マス（9マス）だけ、あしあとなし', function () {
+  C.test('meiro: litCells よるは まわり1マスと、通ったマスが 明るい（まわりは ひろがらない）', function () {
     var mz = maze(10, 5);
     var a = M().litCells(mz, '6,2', { '0,2': 1, '5,2': 1, '6,2': 1 }, 'night');
-    C.assertEq(cnt(a), 9);
-    C.assertEq(a['7,3'], 1); C.assertEq(a['8,2'], undefined); C.assertEq(a['0,2'], undefined);
+    C.assertEq(cnt(a), 10);
+    C.assertEq(a['7,3'], 1); C.assertEq(a['0,2'], 1); C.assertEq(a['0,1'], undefined); C.assertEq(a['8,2'], undefined);
   });
   C.test('meiro: litCells まっくらは まわり1マス（9マス）だけ、あしあとなし', function () {
     var mz = maze(10, 5);
@@ -350,17 +350,21 @@
     var D = { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] };
     for (var d in D) if (c[d]) { m._moveToward((p[0] + D[d][0]) + ',' + (p[1] + D[d][1])); return; }
   }
-  C.test('meiro: よるも まっくらも 動くと あしあとは 残らない', function () {
+  C.test('meiro: よるは 通った道が 明るいまま、まっくらは 何も残らない', function () {
     var m = M();
-    function check() {
-      stepAny(m); stepAny(m); stepAny(m);
-      var s = m._state();
-      C.assertEq(s.lit[s.at], 1);
-      C.assertEq(cnt(s.lit) <= 9, true);
-      Object.keys(s.lit).forEach(function (k) { if (s.lit[k] !== 1) throw new Error('うすい所 ' + k); });
-    }
     return withLogs([], function () {
-      return m.start(PID, 'night').then(function () { check(); return m.start(PID, 'dark'); }).then(check);
+      return m.start(PID, 'night').then(function () {
+        stepAny(m); stepAny(m); stepAny(m);
+        var s = m._state();
+        C.assertEq(s.lit[s.at], 1);
+        Object.keys(s.visited).forEach(function (k) { if (s.lit[k] !== 1) throw new Error('くらい 通った所 ' + k); });
+        return m.start(PID, 'dark');
+      }).then(function () {
+        stepAny(m); stepAny(m); stepAny(m);
+        var s = m._state();
+        C.assertEq(s.lit[s.at], 1);
+        C.assertEq(cnt(s.lit) <= 9, true);
+      });
     });
   });
   C.test('meiro: itemLook まっくらは ほしが うすく、かぎは 見えない（明かりの中なら 見える）', function () {

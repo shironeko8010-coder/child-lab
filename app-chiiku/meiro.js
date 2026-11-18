@@ -25,7 +25,7 @@
     goal: 'ごはん だ！ やったね', reward: 'すごい！ めいろ 3つ できたね', hint: 'ひかっている みちを すすんでね', touchChick: 'ひよこを さわって うごかしてね',
     choose: 'どれで あそぶ？', night: 'よるの めいろだよ。ちかくしか みえないよ', dark: 'まっくらの めいろだよ。ひよこの まわりしか みえないよ'
   };
-  // ひる（ぜんぶ見える）／よる（まわり1マス。ほかは うっすら）／まっくら（まわり1マスの ほかは まっ黒。ほしは うすく、かぎは 見えない。ヒントなし）
+  // ひる（ぜんぶ見える）／よる（まわり1マスと 通った道。ほかは うっすら）／まっくら（まわり1マスの ほかは まっ黒。ほしは うすく、かぎは 見えない。ヒントなし）
   // 設計書：docs/superpowers/specs/2026-11-15-chiiku-meiro-yoru-design.md
   var MODES = ['day', 'night', 'dark'];
   var MODE_UI = { day: { ico: '☀️', label: 'ひる' }, night: { ico: '🌙', label: 'よる' }, dark: { ico: '🌑', label: 'まっくら' } };
@@ -218,7 +218,8 @@
   function litCells(maze, at, visited, mode) {
     if (mode !== 'night' && mode !== 'dark') return null;
     var out = {};
-    litAround(maze, at, out, 1, AROUND1);   // よる・まっくら とも まわり1マス。あしあとは 残らない（visited は つかわない）
+    if (mode === 'night') Object.keys(visited || {}).forEach(function (k) { out[k] = 1; });   // よる：通った道は 明るいまま
+    litAround(maze, at, out, 1, AROUND1);   // よる・まっくら とも まわり1マス（まっくらは 何も残らない）
     return out;
   }
   // 目じるしの 見え方：'show'（光って見える）／'dim'（うすい）／'hide'（見えない）。まっくらでは 明かりの外の ほしは うすく、かぎは 見えない

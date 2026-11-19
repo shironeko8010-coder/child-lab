@@ -220,6 +220,10 @@
     where = 'すうどく';
     Object.keys(C.sudoku.TEXT).forEach(function (k) { add(C.sudoku.TEXT[k]); });
 
+    where = 'ロジックぬりえ';
+    Object.keys(C.logic.TEXT).forEach(function (k) { if (k !== 'reveal') add(C.logic.TEXT[k]); });
+    [1, 2, 3, 4, 5].forEach(function (l) { C.logic.PICS[l].forEach(function (p) { add(C.logic.TEXT.clear + ' ' + C.logic.TEXT.reveal.replace('＊', p.name)); }); });
+
     where = 'ごほうび（べんきょう）';
     add('よく がんばったね！');
     add('よく かんがえたね！');

@@ -10,11 +10,11 @@
   }
   function done() { C.storage._forceMemory(false); }
 
-  C.test('benkyo.SUBJECTS: 13件で、すべて有効（すうどくも）', function () {
+  C.test('benkyo.SUBJECTS: 14件で、すべて有効（ロジックぬりえも）', function () {
     var list = C.benkyo.SUBJECTS;
-    C.assertEq(list.length, 13);
-    C.assertEq(list.map(function (s) { return s.id; }), ['kuku', 'kukuB', 'keisan', 'kanji', 'doutoku', 'chizuJ', 'chizuW', 'nagasa', 'hantai', 'zukan', 'eigo', 'program', 'sudoku']);
-    C.assertEq(list.filter(function (s) { return s.enabled; }).map(function (s) { return s.id; }), ['kuku', 'kukuB', 'keisan', 'kanji', 'doutoku', 'chizuJ', 'chizuW', 'nagasa', 'hantai', 'zukan', 'eigo', 'program', 'sudoku']);
+    C.assertEq(list.length, 14);
+    C.assertEq(list.map(function (s) { return s.id; }), ['kuku', 'kukuB', 'keisan', 'kanji', 'doutoku', 'chizuJ', 'chizuW', 'nagasa', 'hantai', 'zukan', 'eigo', 'program', 'sudoku', 'logic']);
+    C.assertEq(list.filter(function (s) { return s.enabled; }).map(function (s) { return s.id; }), ['kuku', 'kukuB', 'keisan', 'kanji', 'doutoku', 'chizuJ', 'chizuW', 'nagasa', 'hantai', 'zukan', 'eigo', 'program', 'sudoku', 'logic']);
     list.forEach(function (s) { if (!s.name) throw new Error('名前がない: ' + s.id); });
   });
 

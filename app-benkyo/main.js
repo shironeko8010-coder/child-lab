@@ -23,7 +23,8 @@
     { id: 'zukan', name: 'ずかん', sub: 'よんで こたえよう', enabled: true },
     { id: 'eigo', name: 'えい{語|ご}', sub: 'きく・よむ', enabled: true },
     { id: 'program', name: 'プログラミング', sub: 'やじるしで うごかそう', enabled: true },
-    { id: 'sudoku', name: 'すうどく', sub: '{数|すう}字の パズル', enabled: true }
+    { id: 'sudoku', name: 'すうどく', sub: '{数|すう}字の パズル', enabled: true },
+    { id: 'logic', name: 'ロジックぬりえ', sub: '{数|すう}字で ぬって 絵を 出そう', enabled: true }
   ];
   // 画面の文字は、2年生までに習う漢字を使う（1年生の漢字はそのまま、2年生の漢字は {漢字|よみ} でふりがな）
   function yomiOf(text) { return String(text || '').replace(/\{([^|{}]+)\|([^|{}]+)\}/g, '$2'); }
@@ -160,7 +161,8 @@
     zukan: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#e8f6ea"/><path d="M24 14 Q16 9 7 11 V37 Q16 35 24 40 Z" fill="#5cb85c"/><path d="M24 14 Q32 9 41 11 V37 Q32 35 24 40 Z" fill="#4cb8c4"/><path d="M24 14 V40" stroke="#fff" stroke-width="2"/><circle cx="15" cy="22" r="3" fill="#fff"/><path d="M29 20h8M29 25h8M29 30h6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>',
     eigo: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#efe9f6"/><path d="M11 36l8-24 8 24M14 28h10M31 12v24h6a6 6 0 0 0 0-12h-6" stroke="#6d55a3" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     program: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#e7f1fb"/><rect x="14" y="13" width="20" height="16" rx="4" fill="#5b8fd9"/><circle cx="20" cy="21" r="2.5" fill="#fff"/><circle cx="28" cy="21" r="2.5" fill="#fff"/><path d="M24 13V9" stroke="#5b8fd9" stroke-width="3" stroke-linecap="round"/><circle cx="24" cy="8" r="2.2" fill="#ff8a5b"/><path d="M10 37h8M15 34l3 3-3 3M22 37h8M27 34l3 3-3 3" stroke="#3a3a3a" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    sudoku: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#fdf0e2"/><rect x="9" y="9" width="30" height="30" rx="3" fill="#fff" stroke="#c07a2c" stroke-width="2.5"/><path d="M24 9v30M9 24h30" stroke="#c07a2c" stroke-width="2.5"/><path d="M16.5 9v30M31.5 9v30M9 16.5h30M9 31.5h30" stroke="#e8c49a" stroke-width="1.2"/><text x="12.8" y="21.5" font-size="9" font-weight="bold" fill="#3a3a3a" text-anchor="middle">1</text><text x="27.8" y="36.5" font-size="9" font-weight="bold" fill="#3a3a3a" text-anchor="middle">4</text><text x="35.2" y="21.5" font-size="9" font-weight="bold" fill="#2f6fb0" text-anchor="middle">3</text></svg>'
+    sudoku: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#fdf0e2"/><rect x="9" y="9" width="30" height="30" rx="3" fill="#fff" stroke="#c07a2c" stroke-width="2.5"/><path d="M24 9v30M9 24h30" stroke="#c07a2c" stroke-width="2.5"/><path d="M16.5 9v30M31.5 9v30M9 16.5h30M9 31.5h30" stroke="#e8c49a" stroke-width="1.2"/><text x="12.8" y="21.5" font-size="9" font-weight="bold" fill="#3a3a3a" text-anchor="middle">1</text><text x="27.8" y="36.5" font-size="9" font-weight="bold" fill="#3a3a3a" text-anchor="middle">4</text><text x="35.2" y="21.5" font-size="9" font-weight="bold" fill="#2f6fb0" text-anchor="middle">3</text></svg>',
+    logic: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#e9f4ea"/><rect x="16" y="16" width="26" height="26" rx="3" fill="#fff" stroke="#3f8f4d" stroke-width="2"/><rect x="21" y="19" width="5" height="5" fill="#e0533d"/><rect x="31" y="19" width="5" height="5" fill="#e0533d"/><rect x="18" y="24" width="21" height="5" fill="#e0533d"/><rect x="21" y="29" width="15" height="5" fill="#e0533d"/><rect x="26" y="34" width="5" height="5" fill="#e0533d"/><text x="10" y="30" font-size="8" font-weight="bold" fill="#3a3a3a" text-anchor="middle">5</text><text x="28.5" y="12.5" font-size="8" font-weight="bold" fill="#3a3a3a" text-anchor="middle">3</text></svg>'
   };
 
   function bubble(text) {
@@ -484,6 +486,13 @@
       try {
         var rs = B.sudokuScreen.show({ profileId: st.profileId });
         if (rs && rs.catch) rs.catch(function () { showSoon(s); });
+      } catch (e) { showSoon(s); }
+      return;
+    }
+    if (id === 'logic' && B.logicScreen && typeof B.logicScreen.show === 'function') {
+      try {
+        var rl = B.logicScreen.show({ profileId: st.profileId });
+        if (rl && rl.catch) rl.catch(function () { showSoon(s); });
       } catch (e) { showSoon(s); }
       return;
     }

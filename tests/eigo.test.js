@@ -356,7 +356,7 @@
     C.assertEq(H.PER_PAGE, 6); C.assertEq(H.pageCount(), 3);
     C.assertEq(H.ids(0).join(','), 'kuku,kukuB,keisan,kanji,doutoku,chizuJ');
     C.assertEq(H.ids(1).join(','), 'chizuW,nagasa,hantai,zukan,eigo,program');
-    C.assertEq(H.ids(2).join(','), 'sudoku');
+    C.assertEq(H.ids(2).join(','), 'sudoku,logic');
   });
 
   C.test('home(benkyo): 教科のあるページ', function () {

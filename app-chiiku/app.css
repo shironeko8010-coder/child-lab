@@ -1225,3 +1225,40 @@
 /* きおく：ホームの カードの 色（2026-11-19）・ヒントの ボタン */
 .hc-kioku { background: #5468d4; }
 .kk-hint-ico { font-size: 30px; line-height: 1; }
+
+/* ===== かげあわせ（kage.js）。設計書：docs/superpowers/specs/2026-11-19-chiiku-kage-design.md ===== */
+.hc-kage { background: #6d5a8f; }
+.scr-kage .topbar { gap: 8px; }
+.kg-talk { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; justify-content: center; }
+.kg-bub { font-size: clamp(18px, 2.6vw, 28px); padding: 8px 18px; line-height: 1.25; text-align: center; }
+.kg-body { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; gap: 28px; width: 100%; }
+.kg-shadow { flex: 0 0 auto; width: min(36vw, calc(var(--vh) * 52), 320px); aspect-ratio: 1; border-radius: 28px; background: #fff; box-shadow: 0 6px 0 #e2d6c2; display: flex; align-items: center; justify-content: center; }
+.kg-shadow-pic { font-size: min(24vw, calc(var(--vh) * 34), 210px); line-height: 1; filter: brightness(0); opacity: .82; transition: filter .4s, opacity .4s; }
+.kg-shadow-pic.flip { transform: scaleX(-1); }
+.kg-shadow-pic.show { filter: none; opacity: 1; }
+.kg-choices { display: grid; gap: 14px; }
+.kg-choices.n3 { grid-template-columns: repeat(3, auto); }
+.kg-choices.n4 { grid-template-columns: repeat(2, auto); }
+.kg-choices.n6 { grid-template-columns: repeat(3, auto); }
+.kg-choice { width: min(15vw, calc(var(--vh) * 22), 140px); height: min(15vw, calc(var(--vh) * 22), 140px); min-width: 56px; min-height: 56px; border: 0; border-radius: 22px; background: #fff; box-shadow: 0 5px 0 #e2d6c2; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.kg-choice:active { transform: translateY(3px); box-shadow: 0 2px 0 #e2d6c2; }
+.kg-choice-pic { font-size: min(9vw, calc(var(--vh) * 13), 84px); line-height: 1; }
+.kg-choice.tried { opacity: .35; }
+.kg-choice.right { box-shadow: 0 0 0 5px #ffd23f, 0 5px 0 #e8a92d; animation: kg-glow 1s ease-in-out infinite alternate; }
+@keyframes kg-glow { to { box-shadow: 0 0 0 9px #ffe680, 0 5px 0 #e8a92d; } }
+@media (orientation: landscape) and (max-height: 520px) {
+  .kg-bub { font-size: clamp(18px, calc(var(--vh) * 5.2), 24px); padding: 6px 14px; }
+  .kg-body { gap: 18px; }
+  .kg-choices { gap: 8px; }
+  .kg-choices.n6 .kg-choice { width: calc(var(--vh) * 30); height: calc(var(--vh) * 30); }
+}
+@media (orientation: portrait) {
+  .scr-kage .topbar { flex-wrap: wrap; row-gap: 6px; }
+  .scr-kage .kg-talk { order: 3; flex-basis: 100%; }
+  .kg-body { flex-direction: column; gap: 18px; justify-content: center; }
+  .kg-shadow { width: min(60vw, calc(var(--vh) * 30), 300px); }
+  .kg-shadow-pic { font-size: min(40vw, calc(var(--vh) * 20), 200px); }
+  .kg-choice { width: min(26vw, calc(var(--vh) * 14), 130px); height: min(26vw, calc(var(--vh) * 14), 130px); }
+  .kg-choice-pic { font-size: min(15vw, calc(var(--vh) * 8.5), 78px); }
+}
+@media (prefers-reduced-motion: reduce) { .kg-choice.right { animation: none; } .kg-shadow-pic { transition: none; } }

@@ -65,8 +65,10 @@ chiid-lab/
 |---|---|---|
 | 知育 | おかいもの（硬貨をトレーに入れて、値段どおりに払う） | `docs/superpowers/specs/2026-11-12-chiiku-okaimono-design.md` |
 | 知育 | しりとり（ひよこと交代で、絵カードを選んでつなぐ） | `docs/superpowers/specs/2026-11-12-chiiku-shiritori-design.md` |
+| 知育 | かげあわせ（黒い かげを見て 同じ形の絵を えらぶ。5レベル、始めに えらべる。5問で ごほうび） | `docs/superpowers/specs/2026-11-19-chiiku-kage-design.md` |
 | 知育 | きおく（うらがえしの絵カードを2まいずつ めくって そろえる。ひとりで。6・10・16・24・36まいの5レベル、始めに えらべる） | `docs/superpowers/specs/2026-11-18-chiiku-kioku-design.md` |
 | 知育 | めいろ（指でひよこを引っぱって ごはんへ。ほし・かぎと とびら。ひる・よる（まわり1マス＋通った道）・まっくら（まわり1マス・ほかは まっ黒・かぎは見えない・ヒントなし）を選べる）。あわせて知育のホームを2ページに | `docs/superpowers/specs/2026-11-14-chiiku-meiro-design.md`・よる `docs/superpowers/specs/2026-11-15-chiiku-meiro-yoru-design.md` |
+| 勉強 | すうどく（4×4・6×6・9×9。レベル1・2は まちがいを すぐ知らせる、3〜5は 答え合わせ。レベル5は 大人むけ。メモ・ヒント） | `docs/superpowers/specs/2026-11-19-benkyo-sudoku-design.md` |
 | 勉強 | プログラミング（矢印の命令を ならべて ロボットを はたまで うごかす。レベル4・5は くりかえし。始めに レベルを えらべる。3問で ごほうび） | `docs/superpowers/specs/2026-11-19-benkyo-program-design.md` |
 | 勉強 | えい語（きく：英語を聞いて絵を選ぶ・ABC は文字を選ぶ／よむ：つづりを見て絵を選ぶ。12テーマ126こ。英語は端末の英語の声）。あわせて勉強のトップを2ページに | `docs/superpowers/specs/2026-11-14-benkyo-eigo-design.md` |
 | 勉強 | 長さ・かさ（ものさし・ますを読む、単位をかえる・えらぶ） | `docs/superpowers/specs/2026-11-12-benkyo-nagasa-design.md` |

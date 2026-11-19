@@ -1,6 +1,6 @@
 /* Service Worker：ネットワーク優先＋オフライン用の保存。外部への通信はしない。 */
 'use strict';
-var CACHE_NAME = 'chiid-v50'; // ファイルを変えたら番号を上げる
+var CACHE_NAME = 'chiid-v52'; // ファイルを変えたら番号を上げる
 // 読み上げの音声ファイル（VOICEVOX:ずんだもん）の対応表。音声ファイルも保存して、オフラインで鳴らす
 try { importScripts('shared/voice-clips.js'); } catch (e) { /* なくても動く */ }
 function voiceFiles() {
@@ -56,6 +56,7 @@ var PRECACHE = [
   'app-chiiku/shiritori.js',
   'app-chiiku/meiro.js',
   'app-chiiku/kioku.js',
+  'app-chiiku/kage.js',
   'app-benkyo/index.html',
   'app-benkyo/app.css',
   'app-benkyo/main.js',
@@ -90,6 +91,8 @@ var PRECACHE = [
   'app-benkyo/eigo-screen.js',
   'app-benkyo/subjects/program.js',
   'app-benkyo/program-screen.js',
+  'app-benkyo/subjects/sudoku.js',
+  'app-benkyo/sudoku-screen.js',
   'app-benkyo/doutoku-screen.js'
 ];
 

@@ -100,6 +100,9 @@
     where = 'ちいく きおく';
     Object.keys(C.kioku.TEXT).forEach(function (k) { add(C.kioku.TEXT[k]); });
 
+    where = 'ちいく かげあわせ';
+    Object.keys(C.kage.TEXT).forEach(function (k) { add(C.kage.TEXT[k]); });
+
     where = 'ちいく どうとく';
     var D = C.chiikuDoutoku;
     D.SCENES.concat(D.OPEN).forEach(function (sc) {
@@ -213,6 +216,9 @@
 
     where = 'プログラミング';
     Object.keys(C.program.TEXT).forEach(function (k) { add(C.program.TEXT[k]); });
+
+    where = 'すうどく';
+    Object.keys(C.sudoku.TEXT).forEach(function (k) { add(C.sudoku.TEXT[k]); });
 
     where = 'ごほうび（べんきょう）';
     add('よく がんばったね！');

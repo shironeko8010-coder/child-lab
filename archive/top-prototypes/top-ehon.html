@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>まなびの もり</title>
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="shared/ui.css">
+<style>
+  /* ===== トップ画面の試作A「まなびの もり」（絵本）=====
+     机の上に 絵本が1さつ。さわると 表紙がひらき、見ひらきの左が「ちいく」、右が「べんきょう」。
+     えらぶと ページがめくれて、次の画面へ。横向きは見ひらき、たて向きは1ページ。
+     大きさは画面（.scene）を基準にした cq 単位。スクロールは出さない。 */
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body { -webkit-user-select: none; user-select: none; background: #dcc49c; }
+  .scene { position: fixed; top: var(--safe-t, 0px); right: var(--safe-r, 0px); bottom: var(--safe-b, 0px); left: var(--safe-l, 0px);
+    overflow: hidden; container-type: size; color: #5a4636;
+    background: radial-gradient(ellipse 75% 70% at 50% 45%, #f6ead2 0%, #e2cba3 65%, #cdb084 100%); }
+  .mincho { font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "BIZ UDPMincho", "Noto Serif JP", serif; }
+
+  .stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; perspective: 260cqmin; }
+  .book { --W: min(92cqw, 126cqh); position: relative; width: var(--W); height: calc(var(--W) / 1.5);
+    transform-style: preserve-3d; transform: translateX(-25%); transition: transform 1.2s cubic-bezier(.35, .1, .25, 1); }
+  .open .book { transform: none; }
+  .leaving .book { transform: scale(1.18); transition: transform .8s ease-in; }
+  /* 本の厚み（ひらいてから見える） */
+  .board { position: absolute; left: -1.4cqmin; right: -1.4cqmin; top: -1.4cqmin; bottom: -1.4cqmin; border-radius: 2cqmin; background: #56744d;
+    box-shadow: 0 2cqmin 4cqmin rgba(70, 45, 20, .35); opacity: 0; transition: opacity .4s .6s; }
+  .open .board { opacity: 1; }
+
+  /* ページ（紙） */
+  .pg { position: absolute; top: 0; height: 100%; box-sizing: border-box; overflow: hidden; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6cqmin; padding: 5% 6%; text-align: center;
+    background:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 .45  0 0 0 0 .36  0 0 0 0 .25  0 0 0 .10 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
+      radial-gradient(ellipse at 50% 40%, #fffaf0, #f3e7cd); }
+  .pg.l { left: 0; width: 50%; border-radius: 1.2cqmin 0 0 1.2cqmin; visibility: hidden; }
+  .pg.r { left: 50%; width: 50%; border-radius: 0 1.2cqmin 1.2cqmin 0; }
+  .pg.s { left: 0; width: 100%; border-radius: 1.2cqmin; display: none; }
+  .opened .pg.l, html:not(.js) .pg.l { visibility: visible; }
+  .pg.l::after, .pg.r::after, .face.back::after, .leaf .face::after { content: ""; position: absolute; top: 0; bottom: 0; width: 12%; pointer-events: none; }
+  .pg.l::after, .face.back::after { right: 0; background: linear-gradient(to left, rgba(110, 75, 35, .2), transparent); }
+  .pg.r::after { left: 0; background: linear-gradient(to right, rgba(110, 75, 35, .2), transparent); }
+  .pg .art { width: 78%; flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  .pg .art svg { display: block; width: 100%; height: 100%; max-height: 100%; overflow: visible; }
+  .hd { font-size: clamp(18px, 4.4cqmin, 36px); font-weight: 700; color: #8a6d52; letter-spacing: .1em; }
+  .nm { font-size: clamp(24px, 7.4cqmin, 56px); font-weight: 900; letter-spacing: .1em; line-height: 1.15; }
+  .nm.c { color: #c8603e; } .nm.b { color: #3f6fa8; }
+  .pno { position: absolute; bottom: 2.4%; font-size: 18px; color: #a88e72; }
+  .pg.l .pno { left: 7%; } .pg.r .pno { right: 7%; }
+  .pg:active .art { transform: scale(.98); }
+  .go-lock .pg { pointer-events: none; }
+
+  /* 表紙（右半分に重なる。ひらくと 左へ回る） */
+  .cover { position: absolute; left: 50%; top: 0; width: 50%; height: 100%; z-index: 3; transform-origin: left center; transform-style: preserve-3d;
+    transition: transform 1.3s cubic-bezier(.35, .1, .25, 1); cursor: pointer; }
+  .open .cover { transform: rotateY(-180deg); }
+  .opened .cover { display: none; }
+  html:not(.js) .cover { display: none; }
+  .face { position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; overflow: hidden; }
+  .face.front { border-radius: .6cqmin 2cqmin 2cqmin .6cqmin; background: #56744d; box-shadow: 0 2cqmin 4cqmin rgba(70, 45, 20, .4), inset 1.2cqmin 0 0 rgba(0, 0, 0, .12);
+    display: flex; flex-direction: column; align-items: center; padding: 7% 8%; box-sizing: border-box; gap: 3%; }
+  .face.back { transform: rotateY(180deg); border-radius: 1.2cqmin 0 0 1.2cqmin; }
+  .face.back > .pg { position: absolute; inset: 0; left: 0; width: 100%; visibility: visible; border-radius: inherit; }
+  .plate { background: #fbf3df; border: .5cqmin solid #d9bf86; border-radius: 1.4cqmin; padding: 2.4% 9%; box-shadow: 0 .6cqmin 0 rgba(0, 0, 0, .15); }
+  .plate h1 { margin: 0; font-size: clamp(26px, 7.6cqmin, 60px); font-weight: 900; color: #4c5e3a; letter-spacing: .14em; white-space: nowrap; }
+  .cart { flex: 1 1 auto; min-height: 0; width: 100%; border-radius: 1.4cqmin; overflow: hidden; border: .5cqmin solid #d9bf86; background: #f8f0dc; }
+  .cart svg { display: block; width: 100%; height: 100%; }
+  .touch { font-size: clamp(20px, 5cqmin, 40px); font-weight: 900; color: #fbf3df; letter-spacing: .12em; animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+
+  /* めくれる紙（JSで作る） */
+  .leaf { position: absolute; top: 0; height: 100%; z-index: 6; transform-style: preserve-3d; pointer-events: none; }
+  .leaf .face { border-radius: inherit; }
+  .leaf .face.back { transform: rotateY(180deg); }
+  .leaf .face > .pg { position: absolute; inset: 0; left: 0; width: 100%; visibility: visible; border-radius: inherit; }
+  .leaf .face::after { display: none; }
+  .shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to right, rgba(80, 55, 25, 0), rgba(80, 55, 25, .25)); opacity: 0; }
+
+  .fade { position: absolute; inset: 0; z-index: 30; background: #fbf5e6; opacity: 0; pointer-events: none; transition: opacity .7s ease-in; }
+  .leaving .fade { opacity: 1; }
+  .ver { position: absolute; right: 2.4cqw; bottom: 1.4cqh; z-index: 7; font-size: 18px; font-weight: 700; color: rgba(95, 65, 35, .5); letter-spacing: .05em; }
+
+  /* たて向き：1ページの本。表紙を左へひらくと、えらぶページ */
+  @container (orientation: portrait) {
+    .book { --W: min(86cqw, 54cqh); height: calc(var(--W) / .65); transform: none; }
+    .open .book { transform: none; }
+    .cover { left: 0; width: 100%; }
+    .open .cover { transform: rotateY(-180deg); opacity: 0; transition: transform 1.3s cubic-bezier(.35, .1, .25, 1), opacity .5s .8s; }
+    .face.back > .pg > * { display: none; }
+    .pg.l, .pg.r { display: none; }
+    .pg.s { display: flex; justify-content: space-evenly; padding: 6% 7%; cursor: default; }
+    .plate h1 { font-size: clamp(26px, 10cqmin, 60px); }
+  }
+  .pick { width: 100%; display: flex; align-items: center; gap: 4%; padding: 3% 4%; box-sizing: border-box; min-height: 56px; cursor: pointer;
+    border-radius: 2cqmin; background: rgba(255, 255, 255, .55); border: .4cqmin solid #e2cfa8; -webkit-tap-highlight-color: transparent; }
+  .pick .art { width: 34%; aspect-ratio: 1; flex: 0 0 auto; }
+  .pick .art svg { display: block; width: 100%; height: 100%; }
+  .pick .nm { font-size: clamp(22px, 7.4cqmin, 46px); white-space: nowrap; }
+  .pick:active { transform: scale(.98); }
+  @media (prefers-reduced-motion: reduce) {
+    .book, .cover, .touch { transition-duration: .01s !important; animation: none; }
+  }
+</style>
+</head>
+<body>
+<!-- 水彩のにじみ（絵に使う） -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="wc" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="3" seed="5" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="8"/></filter></svg>
+
+<div class="scene" data-top>
+  <div class="stage">
+    <div class="book" data-book>
+      <div class="board"></div>
+
+      <!-- 左ページ：ちいく -->
+      <div class="pg l" data-kind="chiiku" role="link" aria-label="ちいく">
+        <div class="hd mincho">どれで</div>
+        <div class="art" data-art="chiiku"></div>
+        <div class="nm c">ちいく</div>
+        <div class="pno mincho">1</div>
+      </div>
+      <!-- 右ページ：べんきょう -->
+      <div class="pg r" data-kind="benkyo" role="link" aria-label="べんきょう">
+        <div class="hd mincho">あそぶ？</div>
+        <div class="art" data-art="benkyo"></div>
+        <div class="nm b">べんきょう</div>
+        <div class="pno mincho">2</div>
+      </div>
+      <!-- たて向き用：1ページに2つ -->
+      <div class="pg s">
+        <div class="hd mincho">どれで あそぶ？</div>
+        <div class="pick" data-kind="chiiku" role="link" aria-label="ちいく"><div class="art" data-art="chiiku"></div><div class="nm c">ちいく</div></div>
+        <div class="pick" data-kind="benkyo" role="link" aria-label="べんきょう"><div class="art" data-art="benkyo"></div><div class="nm b">べんきょう</div></div>
+      </div>
+
+      <!-- 表紙 -->
+      <div class="cover" data-cover>
+        <div class="face front">
+          <div class="plate"><h1 class="mincho">まなびの もり</h1></div>
+          <div class="cart"><svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <rect width="300" height="300" fill="#eaf2f0"/>
+            <g filter="url(#wc)">
+              <rect x="-10" y="-10" width="320" height="190" fill="#cfe6ee" opacity=".8"/>
+              <circle cx="232" cy="66" r="28" fill="#f6c26b" opacity=".9"/>
+              <path d="M-10 190 Q80 130 170 175 T320 160 V320 H-10Z" fill="#b8cf9a"/>
+              <path d="M-10 230 Q110 190 220 222 T320 215 V320 H-10Z" fill="#8fb37a"/>
+              <path d="M150 300 Q160 250 140 222" stroke="#e8d7b0" stroke-width="16" fill="none" stroke-linecap="round"/>
+              <rect x="74" y="130" width="16" height="80" fill="#8a6a4f"/>
+              <circle cx="82" cy="112" r="46" fill="#7fa86a"/><circle cx="54" cy="134" r="28" fill="#93b97c"/><circle cx="110" cy="136" r="28" fill="#6e9a5c"/>
+              <circle cx="206" cy="246" r="14" fill="#f7d35e"/><circle cx="210" cy="226" r="10" fill="#f7d35e"/>
+            </g>
+            <circle cx="213" cy="224" r="1.8" fill="#5a4636"/><path d="M219 226 l6 2 -6 2z" fill="#e8894a"/>
+            <path d="M178 52 q6 -6 12 0 q6 -6 12 0" stroke="#7d8b9a" stroke-width="2" fill="none"/><path d="M200 82 q4 -4 8 0 q4 -4 8 0" stroke="#7d8b9a" stroke-width="2" fill="none"/>
+          </svg></div>
+          <div class="touch">タッチしてね</div>
+        </div>
+        <div class="face back" data-cover-back></div>
+      </div>
+    </div>
+  </div>
+  <div class="ver">ver 1.25</div>
+  <div class="fade"></div>
+</div>
+
+<!-- 絵の もと（JSで ページへ入れる） -->
+<template id="art-chiiku"><svg viewBox="0 0 200 170" aria-hidden="true"><g filter="url(#wc)">
+  <ellipse cx="100" cy="158" rx="80" ry="8" fill="#e5d3b0"/>
+  <rect x="14" y="98" width="52" height="52" rx="6" fill="#f2a07b"/><rect x="70" y="98" width="52" height="52" rx="6" fill="#86b3d9"/>
+  <rect x="42" y="44" width="52" height="52" rx="6" fill="#b8cf9a"/>
+  <circle cx="156" cy="126" r="28" fill="#f7d35e"/><circle cx="156" cy="94" r="20" fill="#f7d35e"/>
+</g>
+  <text x="40" y="134" text-anchor="middle" font-size="30" font-weight="700" fill="#fff">あ</text>
+  <text x="96" y="134" text-anchor="middle" font-size="30" font-weight="700" fill="#fff">1</text>
+  <path d="M68 56 l14 26 h-28z" fill="#fff" opacity=".9"/>
+  <circle cx="149" cy="91" r="2.6" fill="#5a4636"/><circle cx="163" cy="91" r="2.6" fill="#5a4636"/><path d="M152 98 h8 l-4 5z" fill="#e8894a"/><path d="M130 122 q-10 -4 -12 6" stroke="#e9b93a" stroke-width="5" fill="none" stroke-linecap="round"/>
+</svg></template>
+<template id="art-benkyo"><svg viewBox="0 0 200 170" aria-hidden="true"><g filter="url(#wc)">
+  <ellipse cx="100" cy="158" rx="80" ry="8" fill="#e5d3b0"/>
+  <path d="M20 60 Q60 48 100 62 Q140 48 180 60 V148 Q140 136 100 150 Q60 136 20 148Z" fill="#fdfaf2" stroke="#c9b48c" stroke-width="3"/>
+  <path d="M100 62 V150" stroke="#c9b48c" stroke-width="3"/>
+  <path d="M150 20 l6 18 19 0 -15 11 6 18 -16 -11 -15 11 6 -18 -15 -11 19 0z" fill="#f6c26b"/>
+</g>
+  <g stroke="#86b3d9" stroke-width="3" stroke-linecap="round"><path d="M34 80 h50"/><path d="M34 96 h44"/><path d="M34 112 h50"/></g>
+  <text x="140" y="112" text-anchor="middle" font-size="30" font-weight="700" fill="#3f6fa8">九九</text>
+  <g transform="rotate(-35 60 40)"><rect x="20" y="34" width="70" height="12" rx="3" fill="#f2a07b"/><path d="M90 34 l14 6 -14 6z" fill="#e8d7b0"/><rect x="14" y="34" width="8" height="12" rx="2" fill="#e86f6f"/></g>
+</svg></template>
+
+<script src="shared/core.js"></script>
+<script src="shared/storage.js"></script>
+<script src="shared/sfx.js"></script>
+<script src="shared/voice-clips.js"></script>
+<script src="shared/voice.js"></script>
+<script>
+/* 試作A の動き。通信は行わない。 */
+(function () {
+  'use strict';
+  var C = window.Chiid || {};
+  var TARGET = { chiiku: 'app-chiiku/index.html', benkyo: 'app-benkyo/index.html' };
+  var NAME = { chiiku: 'ちいく', benkyo: 'べんきょう' };
+  var scene = document.querySelector('[data-top]'), book = document.querySelector('[data-book]');
+  var started = false, going = false, sfxOn = true, ac = null;
+  var calm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var OPEN_MS = calm ? 50 : 1300, TURN_MS = calm ? 50 : 950;
+
+  function settings() { try { return C.storage.getSettings(); } catch (e) { return { bgmOn: true, sfxOn: true }; } }
+  function art(kind) { return document.getElementById('art-' + kind).innerHTML; }
+  function portrait() { return scene.clientHeight > scene.clientWidth; }
+
+  // 絵を入れて、表紙のうら（ひらいたときの左ページ）を用意する
+  Array.prototype.forEach.call(document.querySelectorAll('[data-art]'), function (el) { el.innerHTML = art(el.getAttribute('data-art')); });
+  document.querySelector('[data-cover-back]').appendChild(document.querySelector('.pg.l').cloneNode(true));
+
+  // 紙がこすれる音（WebAudio で作る）
+  function rustle(len) {
+    if (!sfxOn) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      var d = len || 0.5, n = Math.floor(ac.sampleRate * d), buf = ac.createBuffer(1, n, ac.sampleRate), ch = buf.getChannelData(0);
+      for (var i = 0; i < n; i++) ch[i] = (Math.random() * 2 - 1) * (0.5 + 0.5 * Math.sin(i / n * Math.PI * 3));
+      var src = ac.createBufferSource(), bp = ac.createBiquadFilter(), g = ac.createGain(), t = ac.currentTime;
+      src.buffer = buf; bp.type = 'bandpass'; bp.frequency.setValueAtTime(1800, t); bp.frequency.linearRampToValueAtTime(3600, t + d); bp.Q.value = 0.7;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.06); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      src.connect(bp); bp.connect(g); g.connect(ac.destination); src.start(t); src.stop(t + d + 0.05);
+    } catch (e) { /* 音が出なくても止めない */ }
+  }
+
+  function start() {
+    if (started) return;
+    started = true;
+    var st = settings(); sfxOn = st.sfxOn !== false;
+    try { C.sfx.setSfxOn(st.sfxOn); C.sfx.setBgmOn(st.bgmOn); } catch (e) {}
+    if (st.bgmOn) { try { C.sfx.startTopBgm(); } catch (e) {} }
+    rustle(0.7);
+    scene.classList.add('open');
+    setTimeout(function () { scene.classList.add('opened'); }, OPEN_MS);
+    setTimeout(function () { try { C.voice.speak('どれで あそぶ？'); } catch (e) {} }, OPEN_MS + 200);
+  }
+
+  // 行き先のページ（めくった下に出る）
+  function destPage(kind) {
+    return '<div class="art">' + art(kind) + '</div><div class="nm ' + (kind === 'chiiku' ? 'c' : 'b') + '">' + NAME[kind] + '</div><div class="hd mincho">いってらっしゃい！</div>';
+  }
+
+  // ページを1まい めくる。from: めくる元のページ。dir: -1＝右から左へ、+1＝左から右へ
+  function turn(from, dir, kind) {
+    var leaf = document.createElement('div'), front = document.createElement('div'), back = document.createElement('div'), shade = document.createElement('div');
+    leaf.className = 'leaf';
+    leaf.style.left = from.style.left || getComputedStyle(from).left;
+    leaf.style.width = getComputedStyle(from).width;
+    leaf.style.borderRadius = getComputedStyle(from).borderRadius;
+    leaf.style.transformOrigin = dir < 0 ? 'left center' : 'right center';
+    front.className = 'face front-leaf'; back.className = 'face back';
+    front.appendChild(from.cloneNode(true)); front.appendChild(shade); shade.className = 'shade';
+    var blank = document.createElement('div'); blank.className = 'pg'; back.appendChild(blank);
+    leaf.appendChild(front); leaf.appendChild(back); book.appendChild(leaf);
+    from.innerHTML = destPage(kind);
+    if (from.classList.contains('s')) from.style.justifyContent = 'center';
+    leaf.animate([{ transform: 'rotateY(0deg)' }, { transform: 'rotateY(' + (dir * 180) + 'deg)' }],
+      { duration: TURN_MS, easing: 'cubic-bezier(.45,.05,.3,1)', fill: 'forwards' });
+    shade.animate([{ opacity: 0 }, { opacity: 1, offset: .5 }, { opacity: 0 }], { duration: TURN_MS, fill: 'forwards' });
+    if (portrait()) leaf.animate([{ opacity: 1 }, { opacity: 1, offset: .6 }, { opacity: 0 }], { duration: TURN_MS, fill: 'forwards' });
+  }
+
+  function go(kind) {
+    if (going || !TARGET[kind]) return;
+    going = true;
+    scene.classList.add('go-lock');
+    rustle(0.55);
+    var from = portrait() ? book.querySelector('.pg.s') : book.querySelector(kind === 'chiiku' ? '.pg.l' : '.pg.r');
+    turn(from, kind === 'chiiku' && !portrait() ? 1 : -1, kind);
+    setTimeout(function () { try { C.sfx.play('star'); } catch (e) {} scene.classList.add('leaving'); }, TURN_MS + 350);
+    setTimeout(function () { location.href = TARGET[kind]; }, TURN_MS + (calm ? 400 : 1150));
+  }
+
+  document.documentElement.classList.add('js');
+  try { C.storage.init().catch(function () {}); } catch (e) {}
+  scene.addEventListener('click', function (ev) {
+    if (!started) { start(); return; }
+    if (!scene.classList.contains('opened')) return;
+    var p = ev.target.closest('[data-kind]');
+    if (p && book.contains(p)) go(p.getAttribute('data-kind'));
+  });
+  window.addEventListener('pageshow', function (ev) { if (ev.persisted) location.reload(); });
+  C.topEhon = { start: start, go: go };
+})();
+</script>
+</body>
+</html>

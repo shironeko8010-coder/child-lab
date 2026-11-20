@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ひらめき えき</title>
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="shared/ui.css">
+<style>
+  /* ===== トップ画面の試作C「ひらめき えき」（今の汽車をブラッシュアップ）=====
+     1まいめ：駅の入口（題名の看板・とけい・駅長のひよこ・きっぷ「タッチしてね」）。
+     きっぷを さわると パチンと穴があき、汽笛が鳴って、カメラが右のホームへ動く。汽車が2台 入ってくる。
+     車両を さわると 汽車が出発し、けむりが画面をおおって 次の画面へ。
+     大きさは画面（.scene）を基準にした cq 単位。スクロールは出さない。 */
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body { -webkit-user-select: none; user-select: none; background: #a8dcf7; }
+  .scene { position: fixed; top: var(--safe-t, 0px); right: var(--safe-r, 0px); bottom: var(--safe-b, 0px); left: var(--safe-l, 0px); overflow: hidden; container-type: size;
+    background: linear-gradient(#62b9ee 0%, #a8dcf7 45%, #d8f0fb 72%, #fff3d2 100%); }
+
+  /* 遠くの景色（ゆっくり動く＝奥行き） */
+  .bg { position: absolute; left: 0; top: 0; bottom: 0; width: 160cqw; transition: transform 1.8s cubic-bezier(.55, 0, .3, 1); }
+  .panned .bg { transform: translateX(-60cqw); }
+  .sun { position: absolute; left: 8cqw; top: 6cqh; width: 16cqmin; height: 16cqmin; }
+  .sun svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .rays { transform-origin: 50px 50px; animation: spin 40s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .mt { position: absolute; left: 0; bottom: 20cqh; width: 100%; height: 34cqh; }
+  .cloud { position: absolute; width: 20cqmin; height: 11cqmin; animation: drift linear infinite; }
+  .cloud svg { display: block; width: 100%; height: 100%; }
+  .c1 { top: 8cqh; animation-duration: 70s; animation-delay: -20s; }
+  .c2 { top: 18cqh; width: 15cqmin; animation-duration: 90s; animation-delay: -60s; }
+  .c3 { top: 4cqh; width: 12cqmin; animation-duration: 80s; animation-delay: -35s; }
+  @keyframes drift { from { left: 165cqw; } to { left: -25cqw; } }
+
+  /* 世界（入口とホーム。横に2画面ぶん） */
+  .world { position: absolute; left: 0; top: 0; bottom: 0; width: 200cqw; transition: transform 1.8s cubic-bezier(.55, 0, .3, 1); }
+  .panned .world { transform: translateX(-100cqw); }
+  .ground { position: absolute; left: 0; right: 0; bottom: 0; height: 22cqh; background: linear-gradient(#9ad874, #84c862); }
+  .ground::before { content: ""; position: absolute; left: 0; right: 0; top: -1.2cqmin; height: 2.4cqmin; border-radius: 50%;
+    background: radial-gradient(circle at 1.6cqmin 1.2cqmin, #9ad874 1.2cqmin, transparent 1.3cqmin) 0 0 / 3.2cqmin 2.4cqmin repeat-x; }
+  .trees { position: absolute; left: 0; right: 0; bottom: 21cqh; height: 9cqh; }
+  .trees svg { display: block; width: 100%; height: 100%; }
+  .half { position: absolute; top: 0; bottom: 0; width: 100cqw; }
+  .half.a { left: 0; } .half.b { left: 100cqw; }
+
+  /* ---- 1まいめ：駅の入口 ---- */
+  .station { --W: min(74cqw, 112cqh); position: absolute; left: 50%; bottom: max(19cqh, calc(3.5cqh + 72px)); width: var(--W); aspect-ratio: 400 / 250; transform: translateX(-50%); }
+  .station > svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .sign { position: absolute; left: 15%; top: 47.2%; width: 70%; height: 17.6%; display: flex; align-items: center; justify-content: center; margin: 0;
+    font-size: clamp(24px, calc(var(--W) * .078), 96px); font-weight: 900; color: #3a3a3a; letter-spacing: .12em; white-space: nowrap; line-height: 1; }
+  .sign span { display: inline-block; }
+  .js .scene:not(.started) .sign span { animation: hop 2.6s ease-in-out infinite; }
+  .sign span:nth-child(2) { animation-delay: .1s !important; } .sign span:nth-child(3) { animation-delay: .2s !important; } .sign span:nth-child(4) { animation-delay: .3s !important; }
+  .sign span:nth-child(6) { animation-delay: .5s !important; } .sign span:nth-child(7) { animation-delay: .6s !important; }
+  @keyframes hop { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-12%); } }
+  .hand { transform-origin: 200px 50px; }
+  .chief { position: absolute; left: calc(50% + var(--W) * .5 - 2cqmin); bottom: 15cqh; width: 17cqmin; height: 17cqmin; }
+  .chief svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .wave { transform-origin: 84px 70px; animation: wave 1.2s ease-in-out infinite; }
+  @keyframes wave { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-28deg); } }
+  /* きっぷ */
+  .ticket { position: absolute; left: 50%; bottom: 3.5cqh; transform: translateX(-50%) rotate(-2deg); min-height: 56px; box-sizing: border-box;
+    display: flex; align-items: center; gap: 3cqmin; padding: 1.4cqmin 6cqmin 1.4cqmin 5cqmin; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    background: radial-gradient(circle at 0 50%, transparent 1.6cqmin, #ffeec2 1.7cqmin) left / 51% 100% no-repeat,
+                radial-gradient(circle at 100% 50%, transparent 1.6cqmin, #ffeec2 1.7cqmin) right / 51% 100% no-repeat;
+    filter: drop-shadow(0 .6cqmin 0 rgba(160, 110, 40, .35)); animation: tk 1.3s ease-in-out infinite; }
+  @keyframes tk { 0%, 100% { transform: translateX(-50%) rotate(-2deg) scale(1); } 50% { transform: translateX(-50%) rotate(-2deg) scale(1.06); } }
+  .ticket .tk-l { font-size: clamp(18px, 3.4cqmin, 26px); font-weight: 900; white-space: nowrap; color: #c8603e; border-right: .4cqmin dashed #e2b77a; padding-right: 3cqmin; letter-spacing: .1em; }
+  .ticket .tk-r { font-size: clamp(24px, 6.4cqmin, 46px); font-weight: 900; color: #e06f20; letter-spacing: .08em; white-space: nowrap; }
+  .ticket .hole { position: absolute; left: 22%; top: 50%; width: 3.6cqmin; height: 3.6cqmin; margin: -1.8cqmin 0 0 -1.8cqmin; border-radius: 50%; background: #84c862;
+    transform: scale(0); transition: transform .12s; }
+  .punched .ticket { animation: none; transform: translateX(-50%) rotate(-8deg) translateY(-8%); transition: transform .2s; }
+  .punched .ticket .hole { transform: scale(1); }
+  .started .ticket { opacity: 0; transition: opacity .6s .5s; pointer-events: none; }
+  html:not(.js) .ticket { display: none; }
+
+  /* ---- 2まいめ：ホーム ---- */
+  .board { position: absolute; left: 50%; top: 0; z-index: 5; transform-origin: 50% -6cqh; transform: translateX(-50%); }
+  .board-in { display: block; margin-top: 6cqh; background: #fffdf6; border: .8cqmin solid #6b4a32; border-radius: 2.4cqmin; padding: .6cqmin 4cqmin;
+    font-size: clamp(24px, 8cqmin, 56px); font-weight: 900; color: #e06f20; letter-spacing: .06em; white-space: nowrap; box-shadow: 0 1cqmin 0 rgba(0, 0, 0, .12); }
+  .board::before, .board::after { content: ""; position: absolute; top: 0; height: 6.4cqh; width: .6cqmin; background: #6b4a32; }
+  .board::before { left: 22%; } .board::after { right: 22%; }
+  .started .board { animation: swing 3.6s ease-in-out 2.2s infinite; }
+  @keyframes swing { 0%, 100% { transform: translateX(-50%) rotate(-1.5deg); } 50% { transform: translateX(-50%) rotate(1.5deg); } }
+  .platform { position: absolute; left: 0; right: 0; bottom: 0; height: 6cqh; background: #c9c4bb; border-top: .6cqmin solid #a39d93; z-index: 6; }
+  .platform::before { content: ""; position: absolute; left: 0; right: 0; top: 22%; height: 30%;
+    background: repeating-linear-gradient(90deg, #ffd23f 0 2.6cqmin, #f0c22e 2.6cqmin 2.9cqmin); }
+  .rows { position: absolute; left: 0; right: 0; top: 18cqh; bottom: 6cqh; display: flex; z-index: 4; }
+  .row { flex: 1 1 0; position: relative; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5cqmin; }
+  .rail { position: absolute; left: 0; right: 0; bottom: 2cqmin; height: 3.2cqmin;
+    background: linear-gradient(#6d6157, #6d6157) top / 100% 26% no-repeat, linear-gradient(#6d6157, #6d6157) bottom / 100% 26% no-repeat,
+      repeating-linear-gradient(90deg, #a0846a 0 1.4cqmin, transparent 1.4cqmin 4.4cqmin); }
+  .train { position: relative; display: flex; align-items: flex-end; height: min(52cqh, 23cqw); transform: translateX(120cqw); }
+  .arrive .train { animation: arrive 2.2s cubic-bezier(.2, .75, .3, 1) forwards; }
+  .arrive .row:nth-child(2) .train { animation-delay: .25s; }
+  .row.go .train { animation: depart 1.2s cubic-bezier(.6, 0, .9, .6) forwards; }
+  @keyframes arrive { from { transform: translateX(120cqw); } to { transform: translateX(0); } }
+  @keyframes depart { from { transform: translateX(0); } to { transform: translateX(-130cqw); } }
+  .eng { height: 80%; aspect-ratio: .95; position: relative; }
+  .eng > svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .lamp { animation: lamp 1.6s ease-in-out infinite; }
+  @keyframes lamp { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+  .car { height: 100%; aspect-ratio: 1.18; margin-left: 1.2cqmin; border-radius: 3cqmin 3cqmin 2cqmin 2cqmin; background: linear-gradient(var(--hi) 0 12%, var(--body) 12% 84%, var(--lo) 84%);
+    position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .8cqmin; padding: 3.2cqmin 2cqmin 5.4cqmin;
+    text-decoration: none; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  .car::before { content: ""; position: absolute; left: -1.2cqmin; bottom: 4.4cqmin; width: 1.4cqmin; height: 1.4cqmin; background: #555; }
+  .car::after { content: ""; position: absolute; left: -2.5%; right: -2.5%; top: -1.6cqmin; height: 2.8cqmin; border-radius: 2cqmin; background: var(--roof); }
+  .car:active { filter: brightness(1.06); }
+  .k1 { --body: #ff8a5b; --hi: #ffb088; --lo: #e2683c; --roof: #b9472a; } .k2 { --body: #5aa2ea; --hi: #8cc0f2; --lo: #3d82cf; --roof: #2d5e9e; }
+  .win { flex: 1 1 auto; min-height: 0; aspect-ratio: 1.25; background: #fffaf0; border-radius: 2.4cqmin; display: flex; align-items: flex-end; justify-content: center;
+    overflow: hidden; border: .9cqmin solid #f6e6c4; position: relative; box-shadow: inset 0 0 0 .4cqmin rgba(0, 0, 0, .08); }
+  .win::after { content: ""; position: absolute; left: -30%; top: 0; width: 30%; height: 100%; background: rgba(255, 255, 255, .55); transform: skewX(-20deg); }
+  .win svg { display: block; height: 92%; width: auto; aspect-ratio: 1; overflow: visible; }
+  .plate { background: #fff; border-radius: 999px; padding: .3cqmin 3cqmin; border: .5cqmin solid #f1c96a; }
+  .lbl { font-size: clamp(20px, 6.4cqmin, 44px); font-weight: 900; color: #3a3a3a; white-space: nowrap; line-height: 1.15; }
+  .wheel { position: absolute; bottom: -2.2cqmin; width: 6.4cqmin; height: 6.4cqmin; border-radius: 50%; background: radial-gradient(#ddd 22%, #444 24% 34%, #666 36%); border: .8cqmin solid #333; }
+  .wheel::after { content: ""; position: absolute; left: 45%; top: 0; width: 10%; height: 100%; background: #333; }
+  .arrive .wheel { animation: roll .5s linear 4; }
+  .arrive .row:nth-child(2) .wheel { animation-delay: .25s; }
+  .row.go .wheel { animation: roll .35s linear infinite; }
+  @keyframes roll { to { transform: rotate(-360deg); } }
+  .smoke { position: absolute; left: 18%; top: -4%; width: 0; height: 0; }
+  .smoke i { position: absolute; width: 6cqmin; height: 6cqmin; border-radius: 50%; background: rgba(255, 255, 255, .95); animation: puff 2.4s ease-out infinite; opacity: 0; }
+  .smoke i:nth-child(2) { animation-delay: .8s; } .smoke i:nth-child(3) { animation-delay: 1.6s; }
+  @keyframes puff { 0% { transform: translate(-50%, 0) scale(.4); opacity: .9; } 100% { transform: translate(30%, -260%) scale(1.6); opacity: 0; } }
+  .eyes { animation: blink 4s infinite; transform-origin: center 45%; transform-box: fill-box; }
+  @keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+  .row.go .car { animation: bounce .4s ease 2; }
+  @keyframes bounce { 30% { transform: translateY(-6%); } 60% { transform: translateY(1%); } }
+  .going .car { pointer-events: none; }
+  .js .scene:not(.arrive) .half.b .train { visibility: hidden; }
+  html:not(.js) .train { transform: none; }
+
+  /* 出発のけむり（画面をおおう） */
+  .puff { position: absolute; border-radius: 50%; background: #fff; z-index: 9; pointer-events: none; }
+
+  .ver { position: absolute; right: 2.4cqw; bottom: 1.2cqh; z-index: 10; font-size: 18px; font-weight: 700; color: rgba(60, 60, 60, .5); letter-spacing: .05em; }
+
+  /* たて向き */
+  @container (orientation: portrait) {
+    .station { --W: min(94cqw, 70cqh); bottom: 32cqh; }
+    .chief { left: auto; right: 6cqw; bottom: 18cqh; width: 16cqmin; height: 16cqmin; }
+    .ticket { bottom: 6cqh; }
+    .ground { height: 32cqh; }
+    .mt { bottom: 30cqh; height: 26cqh; }
+    .trees { bottom: 31cqh; height: 7cqh; }
+    .rows { flex-direction: column; top: 16cqh; bottom: 6cqh; }
+    .train { height: min(32cqh, 44cqw); }
+    .board-in { font-size: clamp(24px, 9cqmin, 56px); margin-top: 5cqh; }
+    .half.b .row:first-child::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 28%; background: linear-gradient(#9ad874, #84c862); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cloud, .rays, .smoke i, .eyes, .wave, .lamp, .ticket, .sign span, .started .board { animation: none !important; }
+    .bg, .world { transition-duration: .01s; }
+  }
+</style>
+</head>
+<body>
+<div class="scene" data-top>
+  <!-- 遠くの景色 -->
+  <div class="bg" aria-hidden="true">
+    <div class="sun"><svg viewBox="0 0 100 100"><g class="rays" stroke="#ffd23f" stroke-width="5" stroke-linecap="round"><path d="M50 4v12M50 84v12M4 50h12M84 50h12M17 17l9 9M74 74l9 9M17 83l9-9M74 26l9-9"/></g><circle cx="50" cy="50" r="24" fill="#ffd84d"/><circle cx="50" cy="50" r="24" fill="none" stroke="#ffc22e" stroke-width="3"/></svg></div>
+    <svg class="mt" viewBox="0 0 640 100" preserveAspectRatio="none"><path d="M0 100 L50 40 L95 80 L170 14 L240 76 L300 36 L360 82 L430 22 L500 70 L560 40 L640 88 V100 Z" fill="#b9d9b0"/><path d="M0 100 L70 62 L130 90 L210 50 L290 92 L370 56 L460 90 L540 60 L640 94 V100Z" fill="#a6cf9a"/><path d="M170 14 L184 28 L175 31 L166 26 L156 26 Z M430 22 L443 35 L434 38 L426 33 L417 33 Z" fill="#fff"/></svg>
+    <div class="cloud c1"><svg viewBox="0 0 100 55"><path d="M18 50 Q0 50 4 36 Q6 24 20 26 Q22 8 42 10 Q56 0 68 14 Q86 10 88 28 Q100 32 96 44 Q94 50 82 50 Z" fill="#fff"/></svg></div>
+    <div class="cloud c2"><svg viewBox="0 0 100 55"><path d="M18 50 Q0 50 4 36 Q6 24 20 26 Q22 8 42 10 Q56 0 68 14 Q86 10 88 28 Q100 32 96 44 Q94 50 82 50 Z" fill="#fff"/></svg></div>
+    <div class="cloud c3"><svg viewBox="0 0 100 55"><path d="M18 50 Q0 50 4 36 Q6 24 20 26 Q22 8 42 10 Q56 0 68 14 Q86 10 88 28 Q100 32 96 44 Q94 50 82 50 Z" fill="#fff"/></svg></div>
+  </div>
+
+  <div class="world" data-world>
+    <div class="trees" aria-hidden="true"><svg viewBox="0 0 800 40" preserveAspectRatio="none"><g fill="#6fb35a"><circle cx="20" cy="30" r="14"/><circle cx="44" cy="26" r="18"/><circle cx="150" cy="30" r="13"/><circle cx="330" cy="28" r="16"/><circle cx="352" cy="32" r="12"/><circle cx="470" cy="30" r="14"/><circle cx="600" cy="26" r="17"/><circle cx="624" cy="32" r="12"/><circle cx="760" cy="28" r="15"/></g></svg></div>
+    <div class="ground"></div>
+
+    <!-- 1まいめ：駅の入口 -->
+    <div class="half a">
+      <div class="station">
+        <svg viewBox="0 0 400 250" aria-hidden="true">
+          <rect x="170" y="24" width="60" height="70" fill="#f4e3c6"/><polygon points="160,28 200,-6 240,28" fill="#b9472a"/>
+          <circle cx="200" cy="56" r="20" fill="#fff" stroke="#6b4a32" stroke-width="4"/>
+          <g stroke="#3a3a3a" stroke-linecap="round"><line class="hand" data-hh x1="200" y1="56" x2="200" y2="45" stroke-width="4"/><line class="hand" data-mh x1="200" y1="56" x2="200" y2="40" stroke-width="3"/></g>
+          <circle cx="200" cy="56" r="2.5" fill="#3a3a3a"/>
+          <polygon points="8,112 40,78 360,78 392,112" fill="#c8553d"/><rect x="8" y="108" width="384" height="8" fill="#a8432d"/>
+          <rect x="28" y="116" width="344" height="134" fill="#fbf1de"/>
+          <rect x="56" y="114" width="288" height="50" rx="6" fill="#fff" stroke="#3a3a3a" stroke-width="4"/>
+          <rect x="56" y="156" width="144" height="8" fill="#ff8a3d"/><rect x="200" y="156" width="144" height="8" fill="#3d7bd0"/>
+          <path d="M162 250 V196 Q200 168 238 196 V250Z" fill="#9fd3ef" stroke="#6b4a32" stroke-width="5"/><line x1="200" y1="182" x2="200" y2="250" stroke="#6b4a32" stroke-width="4"/>
+          <g fill="#cfe9f7" stroke="#6b4a32" stroke-width="4"><path d="M58 236 V196 Q82 178 106 196 V236Z"/><path d="M294 236 V196 Q318 178 342 196 V236Z"/></g>
+          <g fill="#e2683c"><rect x="54" y="236" width="56" height="10" rx="3"/><rect x="290" y="236" width="56" height="10" rx="3"/></g>
+          <g fill="#ff6f91"><circle cx="64" cy="234" r="4"/><circle cx="82" cy="232" r="4"/><circle cx="100" cy="234" r="4"/><circle cx="300" cy="234" r="4"/><circle cx="318" cy="232" r="4"/><circle cx="336" cy="234" r="4"/></g>
+          <rect x="20" y="244" width="360" height="6" fill="#d9c7a6"/>
+        </svg>
+        <h1 class="sign"><span>ひ</span><span>ら</span><span>め</span><span>き</span>&nbsp;<span>え</span><span>き</span></h1>
+      </div>
+      <div class="chief" aria-hidden="true"><svg viewBox="0 0 120 120">
+        <ellipse cx="60" cy="114" rx="30" ry="5" fill="rgba(0,0,0,.1)"/>
+        <ellipse cx="60" cy="66" rx="40" ry="44" fill="#ffd84d"/><ellipse cx="60" cy="80" rx="25" ry="22" fill="#fff0b3"/>
+        <path class="wave" d="M86 70 Q108 56 102 40" fill="none" stroke="#ffc93d" stroke-width="9" stroke-linecap="round"/>
+        <path d="M24 26 Q60 2 96 26 L92 34 H28Z" fill="#23407a"/><rect x="22" y="32" width="76" height="8" rx="4" fill="#1a2f5c"/><circle cx="60" cy="22" r="5" fill="#ffd23f"/>
+        <g class="eyes"><circle cx="46" cy="58" r="6" fill="#3a3a3a"/><circle cx="74" cy="58" r="6" fill="#3a3a3a"/><circle cx="48" cy="56" r="2" fill="#fff"/><circle cx="76" cy="56" r="2" fill="#fff"/></g>
+        <ellipse cx="34" cy="72" rx="6" ry="4" fill="#ff9fb0"/><ellipse cx="86" cy="72" rx="6" ry="4" fill="#ff9fb0"/><path d="M53 68 L67 68 L60 77 Z" fill="#ff8a3d"/>
+      </svg></div>
+      <div class="ticket" data-start role="button" aria-label="タッチしてね"><span class="tk-l">きっぷ</span><span class="tk-r">タッチしてね</span><i class="hole"></i></div>
+    </div>
+
+    <!-- 2まいめ：ホーム -->
+    <div class="half b">
+      <div class="board"><span class="board-in">どれで あそぶ？</span></div>
+      <div class="rows">
+        <div class="row">
+          <div class="rail"></div>
+          <div class="train">
+            <div class="eng"><div class="smoke"><i></i><i></i><i></i></div>
+              <svg viewBox="0 0 100 105" aria-hidden="true"><rect x="10" y="10" width="20" height="36" rx="4" fill="#555"/><rect x="10" y="24" width="20" height="5" fill="#d9a936"/><rect x="4" y="4" width="32" height="10" rx="4" fill="#444"/><rect x="4" y="40" width="64" height="52" rx="10" fill="#e0623a"/><rect x="4" y="58" width="64" height="5" fill="#d9a936"/><rect x="50" y="18" width="46" height="74" rx="10" fill="#e0623a"/><rect x="46" y="12" width="54" height="10" rx="4" fill="#b9472a"/><rect x="58" y="28" width="30" height="24" rx="6" fill="#fffaf0" stroke="#d9a936" stroke-width="3"/><rect x="0" y="86" width="100" height="10" rx="4" fill="rgba(0,0,0,.18)"/><path d="M-4 96 L10 80 L10 96Z" fill="#666"/><circle class="lamp" cx="8" cy="66" r="10" fill="#fff3a8" opacity=".7"/><circle cx="8" cy="66" r="6" fill="#ffd23f"/></svg>
+              <i class="wheel" style="left:12%"></i><i class="wheel" style="left:58%"></i></div>
+            <a class="car k1" href="app-chiiku/index.html" data-kind="chiiku" aria-label="ちいく">
+              <span class="win"><svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="112" rx="30" ry="5" fill="rgba(0,0,0,.08)"/><path d="M24 44 Q14 30 30 34" fill="#ffc93d"/><path d="M96 44 Q106 30 90 34" fill="#ffc93d"/><ellipse cx="60" cy="62" rx="44" ry="46" fill="#ffd84d"/><ellipse cx="60" cy="76" rx="28" ry="25" fill="#fff0b3"/><path d="M54 16 Q60 4 66 16" fill="none" stroke="#ffc93d" stroke-width="5" stroke-linecap="round"/><g class="eyes"><circle cx="44" cy="52" r="6.5" fill="#3a3a3a"/><circle cx="76" cy="52" r="6.5" fill="#3a3a3a"/><circle cx="46" cy="50" r="2" fill="#fff"/><circle cx="78" cy="50" r="2" fill="#fff"/></g><ellipse cx="31" cy="66" rx="7" ry="4.5" fill="#ff9fb0"/><ellipse cx="89" cy="66" rx="7" ry="4.5" fill="#ff9fb0"/><path d="M52 63 L68 63 L60 73 Z" fill="#ff8a3d"/></svg></span>
+              <span class="plate"><span class="lbl">ちいく</span></span>
+              <i class="wheel" style="left:12%"></i><i class="wheel" style="right:12%"></i>
+            </a>
+          </div>
+        </div>
+        <div class="row">
+          <div class="rail"></div>
+          <div class="train">
+            <div class="eng"><div class="smoke"><i></i><i></i><i></i></div>
+              <svg viewBox="0 0 100 105" aria-hidden="true"><rect x="10" y="10" width="20" height="36" rx="4" fill="#555"/><rect x="10" y="24" width="20" height="5" fill="#d9a936"/><rect x="4" y="4" width="32" height="10" rx="4" fill="#444"/><rect x="4" y="40" width="64" height="52" rx="10" fill="#3d7bd0"/><rect x="4" y="58" width="64" height="5" fill="#d9a936"/><rect x="50" y="18" width="46" height="74" rx="10" fill="#3d7bd0"/><rect x="46" y="12" width="54" height="10" rx="4" fill="#2d5e9e"/><rect x="58" y="28" width="30" height="24" rx="6" fill="#fffaf0" stroke="#d9a936" stroke-width="3"/><rect x="0" y="86" width="100" height="10" rx="4" fill="rgba(0,0,0,.18)"/><path d="M-4 96 L10 80 L10 96Z" fill="#666"/><circle class="lamp" cx="8" cy="66" r="10" fill="#fff3a8" opacity=".7"/><circle cx="8" cy="66" r="6" fill="#ffd23f"/></svg>
+              <i class="wheel" style="left:12%"></i><i class="wheel" style="left:58%"></i></div>
+            <a class="car k2" href="app-benkyo/index.html" data-kind="benkyo" aria-label="べんきょう">
+              <span class="win"><svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="112" rx="32" ry="5" fill="rgba(0,0,0,.08)"/><rect x="26" y="14" width="70" height="92" rx="10" fill="#fff" stroke="#d8e2ec" stroke-width="3"/><rect x="20" y="10" width="72" height="94" rx="10" fill="#5b9be0"/><rect x="20" y="10" width="14" height="94" rx="7" fill="#3f7fc8"/><rect x="44" y="20" width="38" height="10" rx="5" fill="#fff" opacity=".85"/><g class="eyes"><circle cx="50" cy="58" r="6.5" fill="#3a3a3a"/><circle cx="76" cy="58" r="6.5" fill="#3a3a3a"/><circle cx="52" cy="56" r="2" fill="#fff"/><circle cx="78" cy="56" r="2" fill="#fff"/></g><ellipse cx="42" cy="72" rx="6" ry="4" fill="#ff9fb0"/><ellipse cx="85" cy="72" rx="6" ry="4" fill="#ff9fb0"/><path d="M55 72 Q63 81 71 72" fill="none" stroke="#3a3a3a" stroke-width="4" stroke-linecap="round"/><path d="M20 70 Q8 62 12 50" fill="none" stroke="#3f7fc8" stroke-width="6" stroke-linecap="round"/><path d="M92 70 Q106 60 104 48" fill="none" stroke="#3f7fc8" stroke-width="6" stroke-linecap="round"/></svg></span>
+              <span class="plate"><span class="lbl">べんきょう</span></span>
+              <i class="wheel" style="left:12%"></i><i class="wheel" style="right:12%"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="platform"></div>
+    </div>
+  </div>
+
+  <div class="ver">ver 1.25</div>
+</div>
+<script src="shared/core.js"></script>
+<script src="shared/storage.js"></script>
+<script src="shared/sfx.js"></script>
+<script src="shared/voice-clips.js"></script>
+<script src="shared/voice.js"></script>
+<script>
+/* 試作C の動き。通信は行わない。 */
+(function () {
+  'use strict';
+  var C = window.Chiid || {};
+  var TARGET = { chiiku: 'app-chiiku/index.html', benkyo: 'app-benkyo/index.html' };
+  var scene = document.querySelector('[data-top]');
+  var started = false, going = false, sfxOn = true, ac = null;
+  var calm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var PAN_MS = calm ? 50 : 1800;
+  function settings() { try { return C.storage.getSettings(); } catch (e) { return { bgmOn: true, sfxOn: true }; } }
+
+  // 駅の とけいを 今の時刻に
+  function clock() {
+    var d = new Date(), h = d.getHours() % 12, m = d.getMinutes();
+    var hh = document.querySelector('[data-hh]'), mh = document.querySelector('[data-mh]');
+    if (hh) hh.setAttribute('transform', 'rotate(' + (h * 30 + m / 2) + ' 200 56)');
+    if (mh) mh.setAttribute('transform', 'rotate(' + (m * 6) + ' 200 56)');
+  }
+  clock(); setInterval(clock, 20000);
+
+  // きっぷに穴をあける音「パチン」
+  function punch() {
+    if (!sfxOn) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      var t = ac.currentTime, n = Math.floor(ac.sampleRate * 0.06), buf = ac.createBuffer(1, n, ac.sampleRate), ch = buf.getChannelData(0);
+      for (var i = 0; i < n; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3);
+      var src = ac.createBufferSource(), hp = ac.createBiquadFilter(), g = ac.createGain();
+      src.buffer = buf; hp.type = 'highpass'; hp.frequency.value = 1500; g.gain.value = 0.5;
+      src.connect(hp); hp.connect(g); g.connect(ac.destination); src.start(t);
+    } catch (e) { /* 音が出なくても止めない */ }
+  }
+
+  function start() {
+    if (started) return;
+    started = true;
+    var st = settings(); sfxOn = st.sfxOn !== false;
+    try { C.sfx.setSfxOn(st.sfxOn); C.sfx.setBgmOn(st.bgmOn); } catch (e) {}
+    punch();
+    scene.classList.add('punched');
+    setTimeout(function () {
+      scene.classList.add('started', 'panned');
+      try { C.sfx.play('whistle'); } catch (e) {}
+      if (st.bgmOn) { try { C.sfx.startTopBgm(); } catch (e) {} }
+    }, calm ? 50 : 450);
+    setTimeout(function () { scene.classList.add('arrive'); }, calm ? 100 : 450 + PAN_MS * 0.55);
+    setTimeout(function () { try { C.voice.speak('どれで あそぶ？'); } catch (e) {} }, calm ? 300 : 450 + PAN_MS * 0.55 + 2400);
+  }
+
+  // 出発：汽車が走り出し、けむりが画面をおおう → 次の画面へ
+  function go(kind, row) {
+    if (going || !TARGET[kind]) return;
+    going = true;
+    scene.classList.add('going');
+    try { C.sfx.play('whistle'); } catch (e) {}
+    row.classList.add('go');
+    var box = scene.getBoundingClientRect(), e = row.querySelector('.eng').getBoundingClientRect();
+    var cx = e.left + e.width * .25 - box.left, cy = e.top - box.top;
+    var R = Math.hypot(box.width, box.height);
+    for (var i = 0; i < 9; i++) {
+      var p = document.createElement('div'), s = R * (0.18 + Math.random() * 0.12);
+      p.className = 'puff';
+      p.style.width = p.style.height = s + 'px';
+      var x = cx + (Math.random() - 0.4) * R * 0.9, y = cy + (Math.random() - 0.6) * R * 0.6;
+      p.style.left = (x - s / 2) + 'px'; p.style.top = (y - s / 2) + 'px';
+      scene.appendChild(p);
+      p.animate([{ transform: 'translate(' + (cx - x) + 'px,' + (cy - y) + 'px) scale(0)', opacity: .9 }, { transform: 'translate(0,0) scale(3.2)', opacity: 1 }],
+        { duration: calm ? 10 : 900, delay: calm ? 0 : 350 + i * 60, easing: 'cubic-bezier(.2,.6,.3,1)', fill: 'both' });
+    }
+    setTimeout(function () { location.href = TARGET[kind]; }, calm ? 300 : 1700);
+  }
+
+  document.documentElement.classList.add('js');
+  try { C.storage.init().catch(function () {}); } catch (e) {}
+  scene.addEventListener('click', function (ev) {
+    if (!started) { ev.preventDefault(); start(); return; }
+    var car = ev.target.closest('[data-kind]');
+    if (!car) return;
+    ev.preventDefault();
+    if (!scene.classList.contains('arrive')) return;
+    go(car.getAttribute('data-kind'), car.closest('.row'));
+  });
+  window.addEventListener('pageshow', function (ev) { if (ev.persisted) location.reload(); });
+  C.topTrain = { start: start, go: go };
+})();
+</script>
+</body>
+</html>

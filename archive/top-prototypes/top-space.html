@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>きらり ほしぞら</title>
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="shared/ui.css">
+<style>
+  /* ===== トップ画面の試作B「きらり ほしぞら」（宇宙）=====
+     星がまたたき、流れ星が流れる。惑星をさわると、大きな流れ星が惑星へ飛んでいき、
+     光が広がって 次の画面へ切りかわる。大きさは画面（.scene）を基準にした cq 単位。スクロールは出さない。 */
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body { -webkit-user-select: none; user-select: none; background: #0b1033; }
+  .scene { position: fixed; top: var(--safe-t, 0px); right: var(--safe-r, 0px); bottom: var(--safe-b, 0px); left: var(--safe-l, 0px);
+    overflow: hidden; container-type: size; color: #fff;
+    background:
+      radial-gradient(ellipse 70% 55% at 80% 105%, rgba(120, 80, 190, .55), transparent 70%),
+      radial-gradient(ellipse 60% 45% at 10% -5%, rgba(60, 110, 200, .45), transparent 70%),
+      linear-gradient(#0a0f30, #18205a 62%, #2a2266); }
+
+  /* 星空（JSで星をまく）。えらんだら 星空が手前へ流れる */
+  .sky { position: absolute; inset: 0; transition: transform 1.4s cubic-bezier(.5, 0, .9, .4), opacity 1.4s; }
+  .sky i { position: absolute; border-radius: 50%; background: #fff; opacity: .7; animation: tw var(--d, 3s) ease-in-out var(--dl, 0s) infinite; }
+  @keyframes tw { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+  .go .sky { transform: scale(1.8); opacity: .25; }
+  /* 星座（かざり） */
+  .cons { position: absolute; right: 5cqw; top: 6cqh; width: 22cqmin; opacity: .7; }
+  .cons svg { display: block; width: 100%; }
+
+  /* 流れ星（ときどき） */
+  .shoot { position: absolute; width: 0; height: 0; pointer-events: none; }
+  .shoot b { position: absolute; right: 0; top: -1px; width: var(--len, 26cqmin); height: 2px; border-radius: 2px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, .9)); }
+  .shoot b::after { content: ""; position: absolute; right: -2px; top: -2px; width: 6px; height: 6px; border-radius: 50%; background: #fff; box-shadow: 0 0 8px 2px rgba(255, 255, 255, .8); }
+
+  /* 題名 */
+  .title { position: absolute; left: 0; right: 0; top: 5cqh; margin: 0; text-align: center; z-index: 5; white-space: nowrap; line-height: 1.1;
+    font-size: clamp(32px, 12cqmin, 84px); font-weight: 900; letter-spacing: .08em; color: #ffe08a;
+    text-shadow: 0 0 .25em rgba(255, 210, 110, .75), 0 0 .8em rgba(255, 190, 80, .35); }
+  .title span { display: inline-block; opacity: 0; transform: translateY(.3em) scale(.6); }
+  .started .title span { animation: t-in .7s cubic-bezier(.2, 1.4, .4, 1) forwards, t-glow 3.6s ease-in-out 1.2s infinite; }
+  .title span:nth-child(2) { animation-delay: .08s, 1.3s; } .title span:nth-child(3) { animation-delay: .16s, 1.4s; }
+  .title span:nth-child(5) { animation-delay: .32s, 1.6s; } .title span:nth-child(6) { animation-delay: .4s, 1.7s; }
+  .title span:nth-child(7) { animation-delay: .48s, 1.8s; } .title span:nth-child(8) { animation-delay: .56s, 1.9s; }
+  @keyframes t-in { to { opacity: 1; transform: none; } }
+  @keyframes t-glow { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
+  .sub { display: block; margin-top: .9cqmin; font-size: clamp(18px, 3.4cqmin, 26px); font-weight: 700; letter-spacing: .5em; color: #9fb0ee; text-shadow: none; opacity: 0; transition: opacity 1s .8s; }
+  .started .sub { opacity: 1; }
+
+  /* 惑星（入口） */
+  .planets { position: absolute; left: 0; right: 0; top: 27cqh; bottom: 7cqh; display: flex; align-items: center; justify-content: center; gap: 14cqw; z-index: 4; }
+  .planet { --S: min(44cqh, 28cqw); display: flex; flex-direction: column; align-items: center; gap: 2cqmin; text-decoration: none; color: inherit;
+    cursor: pointer; -webkit-tap-highlight-color: transparent; transform: scale(0); opacity: 0; }
+  .started .planet { animation: p-in .9s cubic-bezier(.2, 1.5, .4, 1) .5s forwards; }
+  .started .planet + .planet { animation-delay: .75s; }
+  @keyframes p-in { to { transform: none; opacity: 1; } }
+  .orb { width: var(--S); height: var(--S); position: relative; animation: float 5s ease-in-out infinite; }
+  .planet + .planet .orb { animation-delay: -2.5s; }
+  .orb svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4%); } }
+  .moon { transform-origin: 60px 60px; animation: orbit 9s linear infinite; }
+  @keyframes orbit { to { transform: rotate(360deg); } }
+  .nm { min-height: 56px; box-sizing: border-box; display: flex; align-items: center; padding: 0 5cqmin; border-radius: 999px;
+    background: rgba(255, 255, 255, .12); border: 2px solid rgba(255, 255, 255, .4);
+    font-size: clamp(22px, 6.4cqmin, 42px); font-weight: 900; letter-spacing: .06em; white-space: nowrap; }
+  .planet:active .orb { filter: brightness(1.15); }
+  .go .planet { pointer-events: none; }
+  .go .planet:not(.chosen) { transition: opacity .5s; opacity: 0 !important; }
+
+  /* えらんだときの 大きな流れ星と、広がる光 */
+  .comet { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 8; pointer-events: none; }
+  .comet b { position: absolute; right: 0; top: -.8cqmin; width: 60cqmin; height: 1.6cqmin; border-radius: 1cqmin;
+    background: linear-gradient(90deg, rgba(255, 230, 150, 0), rgba(255, 240, 190, .95)); }
+  .comet b::after { content: ""; position: absolute; right: -2.4cqmin; top: -1.6cqmin; width: 4.8cqmin; height: 4.8cqmin; border-radius: 50%;
+    background: #fffbe8; box-shadow: 0 0 2cqmin 1cqmin rgba(255, 230, 150, .9); }
+  .burst { position: absolute; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; z-index: 9; pointer-events: none; }
+
+  .ver { position: absolute; right: 2.4cqw; bottom: 1.6cqh; z-index: 6; font-size: 18px; font-weight: 700; color: rgba(190, 200, 255, .55); letter-spacing: .05em; }
+
+  /* はじめの「タッチしてね」（スクリプトが動くときだけ） */
+  .start { display: none; }
+  .js .start { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3cqmin;
+    cursor: pointer; transition: opacity .6s; }
+  .started .start { opacity: 0; pointer-events: none; }
+  .s-star { width: clamp(70px, 24cqmin, 170px); animation: s-spin 6s linear infinite; }
+  .s-star svg { display: block; width: 100%; }
+  @keyframes s-spin { to { transform: rotate(360deg); } }
+  .s-say { font-size: clamp(24px, 8cqmin, 52px); font-weight: 900; color: #ffe08a; letter-spacing: .1em; animation: s-pulse 1.4s ease-in-out infinite;
+    text-shadow: 0 0 .4em rgba(255, 210, 110, .6); }
+  @keyframes s-pulse { 0%, 100% { opacity: .6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.06); } }
+  html:not(.js) .planet, html:not(.js) .title span { transform: none; opacity: 1; }
+
+  /* たて向き：惑星を上下に */
+  @container (orientation: portrait) {
+    .title { top: 7cqh; font-size: clamp(28px, 10.5cqmin, 70px); }
+    .planets { flex-direction: column; top: 24cqh; bottom: 6cqh; gap: 5cqh; }
+    .planet { --S: min(25cqh, 56cqw); }
+    .cons { top: auto; bottom: 2cqh; left: 4cqw; right: auto; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sky i, .orb, .moon, .s-star, .s-say, .started .title span { animation-duration: .01s; animation-iteration-count: 1; }
+    .started .title span { animation: t-in .01s forwards; }
+  }
+</style>
+</head>
+<body>
+<div class="scene" data-top>
+  <div class="sky" data-sky></div>
+  <div class="cons" aria-hidden="true"><svg viewBox="0 0 100 60"><path d="M6 40 L28 22 L52 30 L74 10 L94 26" stroke="#8fa0e0" stroke-width="1" fill="none"/><g fill="#ffe08a"><circle cx="6" cy="40" r="2.4"/><circle cx="28" cy="22" r="3"/><circle cx="52" cy="30" r="2.4"/><circle cx="74" cy="10" r="3.2"/><circle cx="94" cy="26" r="2.4"/></g></svg></div>
+
+  <h1 class="title"><span>き</span><span>ら</span><span>り</span> <span>ほ</span><span>し</span><span>ぞ</span><span>ら</span><small class="sub">KIRARI HOSHIZORA</small></h1>
+
+  <div class="planets">
+    <a class="planet" href="app-chiiku/index.html" data-kind="chiiku" aria-label="ちいく">
+      <span class="orb"><svg viewBox="0 0 120 120" aria-hidden="true">
+        <defs><radialGradient id="pa" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#ffd2a0"/><stop offset=".55" stop-color="#f7935f"/><stop offset="1" stop-color="#c8503e"/></radialGradient></defs>
+        <circle cx="60" cy="60" r="62" fill="#ffb37a" opacity=".12"/>
+        <path d="M6 70 Q60 40 114 50" fill="none" stroke="#ffe3b8" stroke-width="5" stroke-linecap="round" opacity=".55"/>
+        <circle cx="60" cy="60" r="40" fill="url(#pa)"/>
+        <circle cx="46" cy="70" r="6" fill="#d9674a" opacity=".55"/><circle cx="72" cy="48" r="4" fill="#d9674a" opacity=".5"/><circle cx="74" cy="76" r="3" fill="#d9674a" opacity=".5"/>
+        <path d="M6 70 Q60 92 114 50" fill="none" stroke="#ffe3b8" stroke-width="5" stroke-linecap="round"/>
+        <path d="M100 18 l2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2z" fill="#fff"/>
+      </svg></span>
+      <span class="nm">ちいく</span>
+    </a>
+    <a class="planet" href="app-benkyo/index.html" data-kind="benkyo" aria-label="べんきょう">
+      <span class="orb"><svg viewBox="0 0 120 120" aria-hidden="true">
+        <defs><radialGradient id="pb" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#bfe0ff"/><stop offset=".55" stop-color="#5d8cf0"/><stop offset="1" stop-color="#2c3fa8"/></radialGradient>
+          <clipPath id="cb"><circle cx="60" cy="60" r="40"/></clipPath></defs>
+        <circle cx="60" cy="60" r="62" fill="#7ea6f5" opacity=".12"/>
+        <circle cx="60" cy="60" r="40" fill="url(#pb)"/>
+        <g clip-path="url(#cb)" fill="none" stroke="#ffffff" stroke-opacity=".22" stroke-width="6"><path d="M10 50 Q60 40 110 52"/><path d="M10 74 Q60 64 110 78"/></g>
+        <g class="moon"><circle cx="60" cy="6" r="8" fill="#e8ecff"/><circle cx="57" cy="4" r="2" fill="#c6cdf0"/></g>
+      </svg></span>
+      <span class="nm">べんきょう</span>
+    </a>
+  </div>
+
+  <div class="ver">ver 1.25</div>
+
+  <div class="start" data-start>
+    <div class="s-star"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 4 L61 38 L96 38 L68 59 L78 94 L50 73 L22 94 L32 59 L4 38 L39 38 Z" fill="#ffe08a"/><circle cx="50" cy="52" r="10" fill="#fff6c8"/></svg></div>
+    <div class="s-say">タッチしてね</div>
+  </div>
+</div>
+<script src="shared/core.js"></script>
+<script src="shared/storage.js"></script>
+<script src="shared/sfx.js"></script>
+<script src="shared/voice-clips.js"></script>
+<script src="shared/voice.js"></script>
+<script>
+/* 試作B の動き。通信は行わない。 */
+(function () {
+  'use strict';
+  var C = window.Chiid || {};
+  var TARGET = { chiiku: 'app-chiiku/index.html', benkyo: 'app-benkyo/index.html' };
+  var scene = document.querySelector('[data-top]'), sky = document.querySelector('[data-sky]');
+  var started = false, going = false, timers = [];
+  var calm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
+  function settings() { try { return C.storage.getSettings(); } catch (e) { return { bgmOn: true, sfxOn: true }; } }
+
+  // 星をまく（大きさ・明るさ・またたきの速さを ばらばらに）
+  for (var i = 0; i < 110; i++) {
+    var s = document.createElement('i'), r = Math.random();
+    var px = r < .75 ? 1.5 : r < .95 ? 2.5 : 3.5;
+    s.style.cssText = 'left:' + (Math.random() * 100) + '%;top:' + (Math.random() * 100) + '%;width:' + px + 'px;height:' + px + 'px;--d:' + (2 + Math.random() * 4).toFixed(1) + 's;--dl:-' + (Math.random() * 5).toFixed(1) + 's';
+    sky.appendChild(s);
+  }
+
+  // ときどき 流れ星
+  function shoot() {
+    if (going || calm || document.hidden) return;
+    var w = scene.clientWidth, h = scene.clientHeight;
+    var el = document.createElement('div'), b = document.createElement('b');
+    el.className = 'shoot'; el.appendChild(b);
+    var x = w * (0.05 + Math.random() * 0.6), y = h * (Math.random() * 0.35);
+    var ang = 20 + Math.random() * 20, dist = Math.min(w, h) * (0.45 + Math.random() * 0.3);
+    el.style.left = x + 'px'; el.style.top = y + 'px';
+    sky.appendChild(el);
+    var rad = ang * Math.PI / 180, dx = Math.cos(rad) * dist, dy = Math.sin(rad) * dist;
+    var a = el.animate([
+      { transform: 'translate(0,0) rotate(' + ang + 'deg)', opacity: 0 },
+      { opacity: 1, offset: .15 },
+      { transform: 'translate(' + dx + 'px,' + dy + 'px) rotate(' + ang + 'deg)', opacity: 0 }
+    ], { duration: 900 + Math.random() * 500, easing: 'ease-in' });
+    a.onfinish = function () { el.remove(); };
+  }
+  (function loop() { shoot(); setTimeout(loop, 1800 + Math.random() * 2600); })();
+
+  function start() {
+    if (started) return;
+    started = true;
+    var st = settings();
+    try { C.sfx.setSfxOn(st.sfxOn); C.sfx.setBgmOn(st.bgmOn); } catch (e) {}
+    try { C.sfx.play('star'); } catch (e) {}
+    if (st.bgmOn) { try { C.sfx.startTopBgm(); } catch (e) {} }
+    scene.classList.add('started');
+    later(shoot, 300); later(shoot, 900);
+    later(function () { try { C.voice.speak('どれで あそぶ？'); } catch (e) {} }, 1800);
+  }
+
+  // えらんだ惑星へ 大きな流れ星 → 光が広がって 次の画面へ
+  function go(kind, planet) {
+    if (going || !TARGET[kind]) return;
+    going = true;
+    try { C.sfx.play('star'); } catch (e) {}
+    planet.classList.add('chosen');
+    scene.classList.add('go');
+    var box = scene.getBoundingClientRect(), o = planet.querySelector('.orb').getBoundingClientRect();
+    var x1 = o.left + o.width / 2 - box.left, y1 = o.top + o.height / 2 - box.top;
+    var x0 = x1 < box.width / 2 ? box.width * 1.05 : -box.width * 0.05, y0 = -box.height * 0.08;
+    var ang = Math.atan2(y1 - y0, x1 - x0) * 180 / Math.PI;
+    var color = kind === 'chiiku' ? '#ffd2a0' : '#bfe0ff';
+    var comet = document.createElement('div'), b = document.createElement('b');
+    comet.className = 'comet'; comet.appendChild(b); scene.appendChild(comet);
+    var fly = calm ? 10 : 650;
+    comet.animate([
+      { transform: 'translate(' + x0 + 'px,' + y0 + 'px) rotate(' + ang + 'deg)' },
+      { transform: 'translate(' + x1 + 'px,' + y1 + 'px) rotate(' + ang + 'deg)' }
+    ], { duration: fly, easing: 'cubic-bezier(.45,0,.85,.6)', fill: 'forwards' });
+    later(function () {
+      comet.remove();
+      var burst = document.createElement('div');
+      burst.className = 'burst';
+      burst.style.left = x1 + 'px'; burst.style.top = y1 + 'px';
+      burst.style.background = 'radial-gradient(circle, #fffdf2 0%, ' + color + ' 55%, ' + color + ' 100%)';
+      scene.appendChild(burst);
+      var k = Math.hypot(box.width, box.height) / 10 + 2;
+      burst.animate([{ transform: 'scale(0)' }, { transform: 'scale(' + k + ')' }], { duration: calm ? 10 : 750, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' });
+      try { C.sfx.play('whoosh'); } catch (e) {}
+    }, fly);
+    later(function () { location.href = TARGET[kind]; }, fly + (calm ? 200 : 900));
+  }
+
+  function reset() {
+    timers.forEach(clearTimeout); timers = [];
+    started = false; going = false;
+    try { C.sfx.stopBgm(); } catch (e) {}
+    scene.classList.remove('started', 'go');
+    Array.prototype.forEach.call(scene.querySelectorAll('.chosen'), function (p) { p.classList.remove('chosen'); });
+    Array.prototype.forEach.call(scene.querySelectorAll('.burst, .comet'), function (n) { n.remove(); });
+  }
+
+  document.documentElement.classList.add('js');
+  try { C.storage.init().catch(function () {}); } catch (e) {}
+  scene.addEventListener('click', function (ev) {
+    if (ev.target.closest('[data-start]')) { start(); return; }
+    var p = ev.target.closest('[data-kind]');
+    if (!p) return;
+    ev.preventDefault();
+    if (!started) { start(); return; }
+    go(p.getAttribute('data-kind'), p);
+  });
+  window.addEventListener('pageshow', function (ev) { if (ev.persisted) reset(); });
+  C.topSpace = { start: start, go: go, reset: reset };
+})();
+</script>
+</body>
+</html>

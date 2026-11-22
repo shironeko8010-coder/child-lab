@@ -29,8 +29,10 @@ jobs:
           cp -r index.html top.js manifest.json sw.js icons app-chiiku app-benkyo shared _site/
           mkdir -p _site/voice && cp -r voice/z _site/voice/
           touch _site/.nojekyll
-      - uses: actions/upload-pages-artifact@v3
+      # 2026-11-20 から、古い版（v3／v4）の組み合わせでは公開に失敗するようになったため、新しい版（v5）にした
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
+          include-hidden-files: true
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

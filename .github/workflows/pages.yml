@@ -15,12 +15,11 @@ concurrency:
   group: pages
   cancel-in-progress: true
 
+# 2026-11-20 から、集める・アップロード・公開を 1つの仕事でまとめて行うと「ファイルが見つからない」で失敗するようになった。
+# そのため GitHub のお手本どおり、「集めてアップロードする仕事（build）」と「公開する仕事（deploy）」に分けた。
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - name: 公開するファイルだけを集める
@@ -29,10 +28,17 @@ jobs:
           cp -r index.html top.js manifest.json sw.js icons app-chiiku app-benkyo shared _site/
           mkdir -p _site/voice && cp -r voice/z _site/voice/
           touch _site/.nojekyll
-      # 2026-11-20 から、古い版（v3／v4）の組み合わせでは公開に失敗するようになったため、新しい版（v5）にした
       - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
           include-hidden-files: true
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v5

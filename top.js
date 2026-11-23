@@ -8,8 +8,8 @@
   var C = (window.Chiid = window.Chiid || {});
 
   var APP_NAME = 'はてなの きっぷ';
-  // バージョン：あそびを1つ足すたびに 0.01 上げる（1.25 → 1.26）。小さな直しは 1.25.1 のように うしろに足す
-  var VERSION = '1.25';
+  // バージョン：あそびや ずかんの テーマを1つ足すたびに 0.01 上げる（1.25 → 1.26）。小さな直しは 1.25.1 のように うしろに足す
+  var VERSION = '1.26';
   var TARGET = { chiiku: 'app-chiiku/index.html', benkyo: 'app-benkyo/index.html' };
   var calm = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var PUNCH_MS = calm ? 50 : 450;      // 穴があいてから カメラが動きだすまで

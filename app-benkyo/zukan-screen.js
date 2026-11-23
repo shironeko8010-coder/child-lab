@@ -63,7 +63,7 @@
     var run = st = {
       profileId: pid, cards: {}, theme: null, usedIds: [], pagesDone: 0,
       page: null, quiz: null, qIndex: 0, tries: 0, tried: [], revealed: false, allFirst: true,
-      got: null, bookTheme: null, bookPageId: null, bookSheet: 'text', sheetTwo: false, phase: 'loading', message: '', mood: 'normal',
+      themePage: 0, got: null, bookTheme: null, bookPageId: null, bookSheet: 'text', sheetTwo: false, phase: 'loading', message: '', mood: 'normal',
       rng: ctx.rng || Math.random
     };
     pendingFn = null;
@@ -334,7 +334,10 @@
     var body = ui.el('div', 'zk-themes-body');
     body.appendChild(ui.elR('h1', 'zk-title', 'どの ずかんを {読|よ}む？'));
     var grid = ui.el('div', 'zk-themes');
-    C.zukanData.THEMES.forEach(function (t) {
+    var pages = Z().themePages();
+    if (st.themePage >= pages.length) st.themePage = 0;
+    if ((pages[st.themePage] || []).length <= 2) grid.className += ' few';
+    (pages[st.themePage] || []).forEach(function (t) {
       var n = Z().countFor(t.id, st.cards);
       var b = ui.button('zk-theme', function () { ui.play('tap'); startTheme(t.id); });
       b.setAttribute('data-theme', t.id);
@@ -346,10 +349,50 @@
       grid.appendChild(b);
     });
     body.appendChild(grid);
+    // 下の行：◀ ●○ わたしの ずかん ▶（テーマが 1ページに 入りきらないときは、◀ ▶ で めくる。横にさっと動かしても めくれる）
+    var foot = ui.el('div', 'zk-themes-foot');
     var book = ui.button('btn-big zk-book-btn', function () { ui.play('tap'); openBook(); });
     book.appendChild(ui.el('span', null, '📖 わたしの ずかん'));
-    body.appendChild(book);
+    if (pages.length > 1) {
+      var prev = ui.button('icon-btn zk-page-prev', function () { turnThemes(-1); });
+      prev.setAttribute('aria-label', 'まえの ページ');
+      prev.appendChild(ui.svg('<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15.5 4.5 7 12l8.5 7.5z"/></svg>'));
+      prev.disabled = st.themePage <= 0;
+      var next = ui.button('icon-btn zk-page-next', function () { turnThemes(1); });
+      next.setAttribute('aria-label', 'つぎの ページ');
+      next.appendChild(ui.svg('<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.5 4.5 17 12l-8.5 7.5z"/></svg>'));
+      next.disabled = st.themePage >= pages.length - 1;
+      var dots = ui.el('div', 'zk-page-dots');
+      for (var i = 0; i < pages.length; i++) dots.appendChild(ui.el('span', 'zk-page-dot' + (i === st.themePage ? ' on' : '')));
+      foot.appendChild(prev); foot.appendChild(dots); foot.appendChild(book); foot.appendChild(next);
+      swipeTurn(grid);
+    } else {
+      foot.appendChild(book);
+    }
+    body.appendChild(foot);
     app.appendChild(body);
+  }
+  // テーマ一覧を めくる（d：-1 まえ、+1 つぎ）
+  function turnThemes(d) {
+    if (!st || st.phase !== 'themes') return;
+    var np = Math.max(0, Math.min(Z().themePages().length - 1, st.themePage + d));
+    if (np === st.themePage) return;
+    st.themePage = np;
+    if (drawing()) U().play('tap');
+    renderThemes();
+  }
+  function swipeTurn(box) {
+    var sx = null, sy = 0, swiped = false;
+    box.style.touchAction = 'pan-y';
+    box.addEventListener('pointerdown', function (ev) { sx = ev.clientX; sy = ev.clientY; swiped = false; });
+    box.addEventListener('pointerup', function (ev) {
+      if (sx === null) return;
+      var dx = ev.clientX - sx, dy = ev.clientY - sy; sx = null;
+      if (Math.abs(dx) >= 40 && Math.abs(dx) > Math.abs(dy)) { swiped = true; turnThemes(dx < 0 ? 1 : -1); }
+    });
+    // めくったときは、指をはなした所の テーマを 押したことにしない
+    box.addEventListener('click', function (ev) { if (swiped) { swiped = false; ev.stopPropagation(); ev.preventDefault(); } }, true);
+    box.addEventListener('pointercancel', function () { sx = null; });
   }
 
   function renderPage() {
@@ -630,7 +673,7 @@
     return {
       phase: st.phase, theme: st.theme, pageId: st.phase === 'bookPage' ? st.bookPageId : (st.page ? st.page.id : null),
       qIndex: st.qIndex, answer: it ? it.answer : -1, tried: st.tried.slice(), tries: st.tries, revealed: st.revealed,
-      got: st.got, pagesDone: st.pagesDone, message: st.message,
+      got: st.got, pagesDone: st.pagesDone, message: st.message, themePage: st.themePage,
       mame: st.phase === 'bookPage' ? Z().pageById(st.bookPageId).mame : (st.page ? st.page.mame : null)
     };
   }
@@ -644,6 +687,7 @@
     _choose: choose,
     _next: flush,
     _flush: flush,
+    _themePage: turnThemes,
     _openBook: function () { if (st && st.phase === 'themes') openBook(); },
     _bookTheme: function (id) { if (st && (st.phase === 'book' || st.phase === 'bookPage')) openBook(id); },
     _openCard: openCard,

@@ -247,7 +247,7 @@
 
   /* ---------- ふりがなの一覧（読みのまちがい調べ用）：漢字<TAB>読み（ソースの {漢字|よみ} から） ---------- */
   var RUBY_SOURCES = SOURCES.concat(['app-benkyo/subjects/doutoku.js', 'app-benkyo/subjects/japan.js', 'app-benkyo/subjects/japan-data.js',
-    'app-benkyo/subjects/world.js', 'app-benkyo/subjects/world-data.js', 'app-benkyo/subjects/nagasa.js', 'app-benkyo/subjects/hantai.js', 'app-benkyo/subjects/zukan-data.js', 'app-benkyo/subjects/zukan-pages-1.js', 'app-benkyo/subjects/zukan-pages-2.js', 'app-benkyo/subjects/zukan-pages-3.js', 'app-benkyo/subjects/zukan.js']);
+    'app-benkyo/subjects/world.js', 'app-benkyo/subjects/world-data.js', 'app-benkyo/subjects/nagasa.js', 'app-benkyo/subjects/hantai.js', 'app-benkyo/subjects/zukan-data.js', 'app-benkyo/subjects/zukan-pages-1.js', 'app-benkyo/subjects/zukan-pages-2.js', 'app-benkyo/subjects/zukan-pages-3.js', 'app-benkyo/subjects/zukan-pages-4.js', 'app-benkyo/subjects/zukan.js']);
   function rubyList() {
     var seen = {}, rows = [];
     return Promise.all(RUBY_SOURCES.map(function (f) {

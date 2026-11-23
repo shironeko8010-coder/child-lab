@@ -1286,6 +1286,27 @@ ruby rt { font-size: .5em; font-weight: bold; }   /* .5em：本文 18px で ふ�
 .zk-theme-count { font-size: 18px; color: #56616d; }
 .zk-kira-n { color: #c48a00; }
 .zk-book-btn { margin-top: 4px; }
+/* テーマ一覧の 下の行（◀ ●○ わたしの ずかん ▶）。2ページ目へ めくる */
+.zk-themes-foot { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: nowrap; }
+.zk-themes-foot .zk-book-btn { margin-top: 0; }
+.zk-themes-foot .icon-btn { width: 56px; height: 56px; flex: 0 0 auto; }
+.zk-page-prev:disabled, .zk-page-next:disabled { opacity: .3; cursor: default; }
+.zk-page-dots { display: flex; gap: 8px; }
+.zk-page-dot { width: 12px; height: 12px; border-radius: 50%; background: #e5d3b8; }
+.zk-page-dot.on { background: var(--c-primary); }
+.zk-themes-foot .zk-book-btn { white-space: nowrap; }
+/* めくっても ◀ ▶ の場所が かわらないように、下の行は いつも 下に置き、テーマは そのあいだの まん中に */
+.zk-themes-body > .zk-themes { margin-block: auto; }
+.zk-themes-body > .zk-themes-foot { margin-top: 0; }
+/* テーマが少ないページ（2ページ目）は、ボタンを横に広げて 長い名前も 1行に入れる */
+.zk-themes.few .zk-theme { grid-column: 1 / -1; justify-self: center; width: min(100%, 460px); }
+/* たて向きの せまい画面では ●○ を出さない（◀ ▶ と「わたしの ずかん」を 1行に入れるため） */
+@media (orientation: portrait) and (max-width: 520px) {
+  .zk-themes-foot { gap: 8px; }
+  .zk-page-dots { display: none; }
+  .zk-themes-foot .zk-book-btn { font-size: 20px; padding: 6px 12px; }
+  .zk-themes-foot .icon-btn.zk-page-prev, .zk-themes-foot .icon-btn.zk-page-next { width: 56px; height: 56px; padding: 0; }
+}
 
 .zk-page { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; gap: 32px; width: 100%; max-width: 1000px; margin: 0 auto; }
 .zk-pic { flex: 0 0 auto; width: min(36vw, calc(var(--vh) * 46), 340px); aspect-ratio: 1; display: flex; align-items: center; justify-content: center;

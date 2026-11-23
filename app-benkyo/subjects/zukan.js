@@ -7,6 +7,7 @@
 
   var AREA = 'zukan';
   var PAGES_PER_ROUND = 3;
+  var THEMES_PER_PAGE = 12;   // テーマ一覧の 1ページに ならべる数（3列×4だん）
   var TEXT = { card: 'カードを ゲット！', kira: 'きらきらカード ゲット！', keep: 'きらきらカードは そのままだよ', ready: '{読|よ}めた！' };
 
   function D() { return C.zukanData; }
@@ -56,11 +57,17 @@
       return { ask: q.ask, choices: choices, answer: choices.indexOf(q.a) };
     });
   }
+  // テーマ一覧を ページに分ける（[[1ページ目のテーマ…], [2ページ目…]]）
+  function themePages() {
+    var all = D().THEMES, out = [];
+    for (var i = 0; i < all.length; i += THEMES_PER_PAGE) out.push(all.slice(i, i + THEMES_PER_PAGE));
+    return out;
+  }
   function check(item, index) { return !!item && Number(index) === item.answer; }
   function answerText(item) { return 'こたえは｜' + item.choices[item.answer] + '｜だよ。｜つぎは できるよ！'; }
 
   C.zukan = {
-    AREA: AREA, PAGES_PER_ROUND: PAGES_PER_ROUND, TEXT: TEXT,
+    AREA: AREA, PAGES_PER_ROUND: PAGES_PER_ROUND, THEMES_PER_PAGE: THEMES_PER_PAGE, TEXT: TEXT, themePages: themePages,
     pagesOf: pagesOf, pageById: pageById, themeById: themeById,
     cardsFromLogs: cardsFromLogs, countFor: countFor, pickPage: pickPage,
     makeQuiz: makeQuiz, check: check, answerText: answerText

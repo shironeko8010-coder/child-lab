@@ -18,14 +18,14 @@
   }
 
   // 回ごとに書きかえる（1回目：9テーマ×12ページ。2回目・3回目で ふえる）
-  var EXPECT = { themes: 12, perTheme: 16 };
+  var EXPECT = { themes: 13, perTheme: 16 };
   // はじめの108ページの id（記録をそのまま使うため、どの回でも 消さない）
   var OLD_IDS = 'lion kirin zou panda koara kangaru shimauma gorira tora usagi namakemono kaba penguin fukurou niwatori washi hato ahiru kujaku flamingo oumu hakuchou suzume hiyoko dangomushi semi kabutomushi tentoumushi chou ari mitsubachi batta kumo aomushi katatsumuri ka asagao himawari tulip sakura tanpopo saboten kinoko minitomato toumorokoshi ine momiji take zarigani medaka kame kujira iruka tako ika kani same fugu ebi rakko tirano burakio torikera sutego puterano ankiro supino raputoru futaba kaseki inseki kyoryu-tamago tsuki taiyou chikyu dosei nagareboshi hoshi niji kaminari yuki kumo-ten taifu tsuyu shinzou hone ha me mimi hana shita te ashi nou chi kushami shinkansen shoubousha kyukyusha patoka heri roketto fune hikouki densha basu jitensha torakuta'.split(' ');
 
   C.test('zukan-data: テーマとページの数（EXPECT）、id が重ならない、はじめの108ページが すべてある', function () {
     var d = D();
     C.assertEq(d.THEMES.length, EXPECT.themes);
-    C.assertEq(d.THEMES.map(function (t) { return t.id; }), ['doubutsu', 'tori', 'mushi', 'shokubutsu', 'mizu', 'kyoryu', 'uchu', 'karada', 'norimono', 'tabemono', 'kisetsu', 'disney']);
+    C.assertEq(d.THEMES.map(function (t) { return t.id; }), ['doubutsu', 'tori', 'mushi', 'shokubutsu', 'mizu', 'kyoryu', 'uchu', 'karada', 'norimono', 'tabemono', 'kisetsu', 'disney', 'usj']);
     C.assertEq(d.PAGES.length, EXPECT.themes * EXPECT.perTheme);
     d.THEMES.forEach(function (t) { C.assertEq(d.PAGES.filter(function (p) { return p.theme === t.id; }).length, EXPECT.perTheme); });
     var ids = {};
@@ -411,5 +411,63 @@
     var ids = disney().map(function (p) { return p.id; });
     var land = LAND.filter(function (id) { return ids.indexOf(id) >= 0; }).length, sea = SEA.filter(function (id) { return ids.indexOf(id) >= 0; }).length;
     C.assertEq(land + sea >= 8 && land >= 3 && sea >= 3, true);
+  });
+})();
+
+/* ずかん 4回目：ユニバーサル・スタジオ・ジャパン（USJ）と、テーマ一覧の2ページ */
+(function () {
+  'use strict';
+  var C = window.Chiid;
+  var S = function () { return C.benkyo.zukanScreen; };
+  // キャラクターの名前は、アトラクション・エリア・建物の名前に入っているときだけ使う
+  var CHARA = ['ハリー', 'マリオ', 'ルイージ', 'クッパ', 'ヨッシー', 'ピーチ', 'ドンキー', 'ミニオン', 'スヌーピー', 'エルモ', 'キティ', 'スパイダー'];
+  var PLACE = /(ライド|アドベンチャー|ジャーニー|ワールド|トロッコ|カート|カントリー|パーク)/;
+  function usj() { return C.zukanData.PAGES.filter(function (p) { return p.theme === 'usj'; }); }
+  C.test('zukan-data: USJ：キャラクターの名前だけの ページや、キャラクターの絵文字がない', function () {
+    var bad = [];
+    usj().forEach(function (p) {
+      var name = String(p.name).replace(/\{([^|{}]+)\|[^|{}]+\}/g, '$1');
+      CHARA.forEach(function (c) { if (name.indexOf(c) >= 0 && !PLACE.test(name)) bad.push(p.id); });
+      if (['🦍', '🐒', '🐵', '🧙', '🧙‍♂️', '🕷️', '🕷', '🐶', '🐱'].indexOf(p.pic) >= 0) bad.push(p.id + ' ' + p.pic);
+      if (!/^usj-/.test(p.id)) bad.push(p.id + '（id は usj- ではじめる）');
+    });
+    if (bad.length) throw new Error(bad.join(' / '));
+  });
+  C.test('zukan-data: USJ：アトラクション・ショーが8ページ以上', function () {
+    var RIDES = ['usj-flyingdino', 'usj-jurassic', 'usj-hollywood', 'usj-jaws', 'usj-waterworld', 'usj-forbidden', 'usj-mariokart', 'usj-yoshi', 'usj-donkey', 'usj-minion'];
+    var ids = usj().map(function (p) { return p.id; });
+    C.assertEq(RIDES.filter(function (id) { return ids.indexOf(id) >= 0; }).length >= 8, true);
+  });
+  C.test('zukan: テーマ一覧は 1ページ 12こまで（themePages）', function () {
+    var pages = C.zukan.themePages();
+    C.assertEq(C.zukan.THEMES_PER_PAGE, 12);
+    C.assertEq(pages.length, 2);
+    C.assertEq(pages[0].length, 12);
+    C.assertEq(pages[1].map(function (t) { return t.id; }), ['usj']);
+  });
+  C.test('zukanScreen: テーマ一覧の2ページ目へ めくって USJ を えらべる。もどると 2ページ目のまま', function () {
+    function done() { C.storage._forceMemory(false); S()._twoSheets(null); }
+    C.storage._forceMemory(true);
+    return C.storage.init().then(function () { return C.storage.resetAll(); }).then(function () {
+      var pid = C.storage.addProfile('はなこ', 'benkyo');
+      C.storage.setActive(pid);
+      S()._twoSheets(false);
+      return S().show({ profileId: pid });
+    }).then(function () {
+      C.assertEq(S()._state().phase, 'themes');
+      C.assertEq(S()._state().themePage, 0);
+      S()._themePage(1);
+      C.assertEq(S()._state().themePage, 1);
+      S()._themePage(1);   // 2ページより先には めくれない
+      C.assertEq(S()._state().themePage, 1);
+      S()._theme('usj');
+      C.assertEq(S()._state().theme, 'usj');
+      C.assertEq(S()._state().phase, 'page');
+      S()._back();
+      C.assertEq(S()._state().phase, 'themes');
+      C.assertEq(S()._state().themePage, 1);
+      S()._themePage(-1);
+      C.assertEq(S()._state().themePage, 0);
+    }).then(done, function (e) { done(); throw e; });
   });
 })();

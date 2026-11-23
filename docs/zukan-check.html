@@ -34,7 +34,7 @@
 <body>
 <header>
   <h1>ずかん 確認ページ（グレードアップ 3回目：新しい3テーマ 48ページ）</h1>
-  <p class="lead">4回目で足した テーマ（ユニバーサル・スタジオ・ジャパン）だけを出しています（ページぜんぶを見るときは、アドレスの最後に #all）。黄色は まめちしき・3問目。<span class="a">緑</span>が答え、灰色が まちがいの選択肢。直したい所は、ページの名前と一緒に教えてください。</p>
+  <p class="lead">5回目で足した テーマ（しまスペイン村・なごやの まち）だけを出しています（ページぜんぶを見るときは、アドレスの最後に #all）。黄色は まめちしき・3問目。<span class="a">緑</span>が答え、灰色が まちがいの選択肢。直したい所は、ページの名前と一緒に教えてください。</p>
   <nav id="nav"></nav>
 </header>
 <main id="main"></main>
@@ -44,6 +44,7 @@
 <script src="../app-benkyo/subjects/zukan-pages-2.js"></script>
 <script src="../app-benkyo/subjects/zukan-pages-3.js"></script>
 <script src="../app-benkyo/subjects/zukan-pages-4.js"></script>
+<script src="../app-benkyo/subjects/zukan-pages-5.js"></script>
 <script src="../app-benkyo/zukan-art.js"></script>
 <script>
 (function () {
@@ -59,7 +60,7 @@
   var showAll = location.hash === '#all';
   var nav = document.getElementById('nav'), main = document.getElementById('main'), total = 0;
   D.THEMES.forEach(function (t) {
-    var ROUND = ['usj'];   // この回の テーマ（2026-11-23：ユニバーサル・スタジオ・ジャパン。ほかは #all で見られる）
+    var ROUND = ['shima', 'nagoya'];   // この回の テーマ（しまスペイン村・なごやの まち。ほかは #all で見られる）
     if (!showAll && ROUND.indexOf(t.id) < 0) return;
     var pages = D.PAGES.filter(function (p) { return p.theme === t.id; });
     nav.insertAdjacentHTML('beforeend', '<a href="#t-' + t.id + '">' + t.icon + ' ' + ruby(t.name) + '（' + pages.length + '）</a>');

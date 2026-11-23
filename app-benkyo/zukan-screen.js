@@ -336,7 +336,7 @@
     var grid = ui.el('div', 'zk-themes');
     var pages = Z().themePages();
     if (st.themePage >= pages.length) st.themePage = 0;
-    if ((pages[st.themePage] || []).length <= 2) grid.className += ' few';
+    if ((pages[st.themePage] || []).length <= 3) grid.className += ' few';
     (pages[st.themePage] || []).forEach(function (t) {
       var n = Z().countFor(t.id, st.cards);
       var b = ui.button('zk-theme', function () { ui.play('tap'); startTheme(t.id); });

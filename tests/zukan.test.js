@@ -18,14 +18,14 @@
   }
 
   // 回ごとに書きかえる（1回目：9テーマ×12ページ。2回目・3回目で ふえる）
-  var EXPECT = { themes: 13, perTheme: 16 };
+  var EXPECT = { themes: 15, perTheme: 16 };
   // はじめの108ページの id（記録をそのまま使うため、どの回でも 消さない）
   var OLD_IDS = 'lion kirin zou panda koara kangaru shimauma gorira tora usagi namakemono kaba penguin fukurou niwatori washi hato ahiru kujaku flamingo oumu hakuchou suzume hiyoko dangomushi semi kabutomushi tentoumushi chou ari mitsubachi batta kumo aomushi katatsumuri ka asagao himawari tulip sakura tanpopo saboten kinoko minitomato toumorokoshi ine momiji take zarigani medaka kame kujira iruka tako ika kani same fugu ebi rakko tirano burakio torikera sutego puterano ankiro supino raputoru futaba kaseki inseki kyoryu-tamago tsuki taiyou chikyu dosei nagareboshi hoshi niji kaminari yuki kumo-ten taifu tsuyu shinzou hone ha me mimi hana shita te ashi nou chi kushami shinkansen shoubousha kyukyusha patoka heri roketto fune hikouki densha basu jitensha torakuta'.split(' ');
 
   C.test('zukan-data: テーマとページの数（EXPECT）、id が重ならない、はじめの108ページが すべてある', function () {
     var d = D();
     C.assertEq(d.THEMES.length, EXPECT.themes);
-    C.assertEq(d.THEMES.map(function (t) { return t.id; }), ['doubutsu', 'tori', 'mushi', 'shokubutsu', 'mizu', 'kyoryu', 'uchu', 'karada', 'norimono', 'tabemono', 'kisetsu', 'disney', 'usj']);
+    C.assertEq(d.THEMES.map(function (t) { return t.id; }), ['doubutsu', 'tori', 'mushi', 'shokubutsu', 'mizu', 'kyoryu', 'uchu', 'karada', 'norimono', 'tabemono', 'kisetsu', 'disney', 'usj', 'shima', 'nagoya']);
     C.assertEq(d.PAGES.length, EXPECT.themes * EXPECT.perTheme);
     d.THEMES.forEach(function (t) { C.assertEq(d.PAGES.filter(function (p) { return p.theme === t.id; }).length, EXPECT.perTheme); });
     var ids = {};
@@ -443,7 +443,7 @@
     C.assertEq(C.zukan.THEMES_PER_PAGE, 12);
     C.assertEq(pages.length, 2);
     C.assertEq(pages[0].length, 12);
-    C.assertEq(pages[1].map(function (t) { return t.id; }), ['usj']);
+    C.assertEq(pages[1].map(function (t) { return t.id; }), ['usj', 'shima', 'nagoya']);
   });
   C.test('zukanScreen: テーマ一覧の2ページ目へ めくって USJ を えらべる。もどると 2ページ目のまま', function () {
     function done() { C.storage._forceMemory(false); S()._twoSheets(null); }
@@ -469,5 +469,31 @@
       S()._themePage(-1);
       C.assertEq(S()._state().themePage, 0);
     }).then(done, function (e) { done(); throw e; });
+  });
+})();
+
+/* ずかん 5回目：しまスペイン村・なごやの まち */
+(function () {
+  'use strict';
+  var C = window.Chiid;
+  function of(theme) { return C.zukanData.PAGES.filter(function (p) { return p.theme === theme; }); }
+  C.test('zukan-data: しまスペイン村：パーク11・スペインの文化5（フラメンコ・パエリア・チュロス・ドン・キホーテ・ことば）', function () {
+    var ids = of('shima').map(function (p) { return p.id; });
+    ['shima-flamenco', 'shima-paella', 'shima-churros', 'shima-quixote', 'shima-hola'].forEach(function (id) { if (ids.indexOf(id) < 0) throw new Error('ない: ' + id); });
+    ['shima-pirenee', 'shima-granmon', 'shima-splash', 'shima-ironbull', 'shima-kiddy', 'shima-alice', 'shima-javier', 'shima-parade', 'shima-hotel', 'shima-himawari', 'shima-basho'].forEach(function (id) { if (ids.indexOf(id) < 0) throw new Error('ない: ' + id); });
+  });
+  C.test('zukan-data: なごやの まち：やまとさんが えらんだ ページが ある', function () {
+    var ids = of('nagoya').map(function (p) { return p.id; });
+    ['nagoya-denki', 'nagoya-tsuruma', 'nagoya-chikatetsu', 'nagoya-morning', 'nagoya-uirou', 'nagoya-kagakukan', 'nagoya-suizokukan', 'nagoya-shiro'].forEach(function (id) { if (ids.indexOf(id) < 0) throw new Error('ない: ' + id); });
+  });
+  C.test('zukan-data: しまスペイン村・なごや：id は テーマ名- ではじめ、キャラクターの絵文字を使わない', function () {
+    var bad = [];
+    ['shima', 'nagoya'].forEach(function (t) {
+      of(t).forEach(function (p) {
+        if (p.id.indexOf(t + '-') !== 0) bad.push(p.id);
+        if (['🐭', '🐁', '🦆', '🐻', '🧜', '🧚', '👸', '🤴', '🧙'].indexOf(p.pic) >= 0) bad.push(p.id + ' ' + p.pic);
+      });
+    });
+    if (bad.length) throw new Error(bad.join(' / '));
   });
 })();

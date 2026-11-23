@@ -1298,7 +1298,7 @@ ruby rt { font-size: .5em; font-weight: bold; }   /* .5em：本文 18px で ふ�
 /* めくっても ◀ ▶ の場所が かわらないように、下の行は いつも 下に置き、テーマは そのあいだの まん中に */
 .zk-themes-body > .zk-themes { margin-block: auto; }
 .zk-themes-body > .zk-themes-foot { margin-top: 0; }
-/* テーマが少ないページ（2ページ目）は、ボタンを横に広げて 長い名前も 1行に入れる */
+/* テーマが少ないページ（3こまで）は、ボタンを横に広げて たてに ならべ、長い名前も 1行に入れる */
 .zk-themes.few .zk-theme { grid-column: 1 / -1; justify-self: center; width: min(100%, 460px); }
 /* たて向きの せまい画面では ●○ を出さない（◀ ▶ と「わたしの ずかん」を 1行に入れるため） */
 @media (orientation: portrait) and (max-width: 520px) {
@@ -1884,6 +1884,12 @@ ruby rt { font-size: .5em; font-weight: bold; }   /* .5em：本文 18px で ふ�
 }
 /* わたしのずかん：テーマのボタン12こ。名前と「もどる」は ボタンの 行に ならべる */
 .zk-tabs .zk-book-head { flex: 0 1 auto; margin: 0 6px; }
+/* スマホ横向き：テーマが15こに ふえても、テーマの ボタンの 2だん目の あいた所に 名前と「もどる」を 入れる（長い名前は 2行） */
+@media (orientation: landscape) and (max-height: 520px) {
+  .zk-tabs .zk-book-head { flex: 1 1 0; min-width: 220px; flex-wrap: nowrap; gap: 8px; }
+  .zk-tabs .zk-book-head .zk-book-title { flex: 1 1 auto; min-width: 0; font-size: 18px; line-height: 1.2; text-align: center; }
+  .zk-tabs .zk-book-head .zk-back { flex: 0 0 auto; white-space: nowrap; padding: 4px 14px; }
+}
 @media (orientation: landscape) and (max-height: 520px) {
   .zk-theme-name { font-size: 16px; word-break: break-all; }
   .zk-book .zk-tabs { gap: 3px; }

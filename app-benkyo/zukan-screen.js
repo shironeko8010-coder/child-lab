@@ -341,6 +341,7 @@
       var n = Z().countFor(t.id, st.cards);
       var b = ui.button('zk-theme', function () { ui.play('tap'); startTheme(t.id); });
       b.setAttribute('data-theme', t.id);
+      if (String(t.name).replace(/\{([^|{}]+)\|[^|{}]+\}/g, '$1').length > 10) b.className += ' long';   // 長い名前は 行を つめて 入れる
       b.appendChild(ui.el('span', 'zk-theme-ico', t.icon));
       b.appendChild(ui.elR('span', 'zk-theme-name', t.name));
       var cnt = ui.el('span', 'zk-theme-count', n.got + '/' + n.total);
@@ -594,12 +595,23 @@
     app.appendChild(ui.topBar({ home: true }));
     var body = ui.el('div', 'zk-book');
     var tabs = ui.el('div', 'zk-tabs');
-    C.zukanData.THEMES.forEach(function (t) {
+    // テーマの ボタンは、テーマ一覧と おなじ ページごとに 出す（たくさん あっても 2だんに 入るように）。▶ ◀ で もう1つの ページへ
+    var groups = Z().themePages(), gi = Z().themeGroup(st.bookTheme);
+    (groups[gi] || []).forEach(function (t) {
       var b = ui.button('zk-tab' + (t.id === st.bookTheme ? ' on' : ''), function () { ui.play('tap'); openBook(t.id); });
       b.setAttribute('aria-label', t.name);
       b.appendChild(ui.el('span', 'zk-tab-ico', t.icon));
       tabs.appendChild(b);
     });
+    if (groups.length > 1) {
+      var ng = (gi + 1) % groups.length;
+      var sw = ui.button('zk-tab zk-tab-more', function () { ui.play('tap'); openBook(groups[ng][0].id); });
+      sw.setAttribute('aria-label', ng > gi ? 'つぎの テーマ' : 'まえの テーマ');
+      sw.appendChild(ui.svg(ng > gi
+        ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.5 4.5 17 12l-8.5 7.5z"/></svg>'
+        : '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15.5 4.5 7 12l8.5 7.5z"/></svg>'));
+      tabs.appendChild(sw);
+    }
     body.appendChild(tabs);
     var th = Z().themeById(st.bookTheme), n = Z().countFor(st.bookTheme, st.cards);
     var title = ui.el('div', 'zk-book-title');

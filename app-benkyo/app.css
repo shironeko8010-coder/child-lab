@@ -1295,6 +1295,8 @@ ruby rt { font-size: .5em; font-weight: bold; }   /* .5em：本文 18px で ふ�
 .zk-page-dot { width: 12px; height: 12px; border-radius: 50%; background: #e5d3b8; }
 .zk-page-dot.on { background: var(--c-primary); }
 .zk-themes-foot .zk-book-btn { white-space: nowrap; }
+/* 長い テーマ名（ユニバーサル・スタジオ・ジャパン など）は、行の 間を つめて ボタンに 入れる */
+.zk-theme.long .zk-theme-name { line-height: 1.05; white-space: normal; text-align: center; }
 /* めくっても ◀ ▶ の場所が かわらないように、下の行は いつも 下に置き、テーマは そのあいだの まん中に */
 .zk-themes-body > .zk-themes { margin-block: auto; }
 .zk-themes-body > .zk-themes-foot { margin-top: 0; }
@@ -1884,6 +1886,9 @@ ruby rt { font-size: .5em; font-weight: bold; }   /* .5em：本文 18px で ふ�
 }
 /* わたしのずかん：テーマのボタン12こ。名前と「もどる」は ボタンの 行に ならべる */
 .zk-tabs .zk-book-head { flex: 0 1 auto; margin: 0 6px; }
+/* わたしのずかん：テーマの もう1つの ページへ うつる ボタン（▶ ◀） */
+.zk-tab-more { display: inline-flex; align-items: center; justify-content: center; color: var(--c-primary-dark); background: #eaf3ff; }
+.zk-tab-more svg { width: 60%; height: 60%; display: block; }
 /* スマホ横向き：テーマが15こに ふえても、テーマの ボタンの 2だん目の あいた所に 名前と「もどる」を 入れる（長い名前は 2行） */
 @media (orientation: landscape) and (max-height: 520px) {
   .zk-tabs .zk-book-head { flex: 1 1 0; min-width: 220px; flex-wrap: nowrap; gap: 8px; }

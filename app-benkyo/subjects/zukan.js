@@ -63,11 +63,19 @@
     for (var i = 0; i < all.length; i += THEMES_PER_PAGE) out.push(all.slice(i, i + THEMES_PER_PAGE));
     return out;
   }
+  // テーマが 一覧の 何ページ目に あるか（0から。ない テーマは 0）
+  function themeGroup(themeId) {
+    var pages = themePages();
+    for (var i = 0; i < pages.length; i++) {
+      if (pages[i].some(function (t) { return t.id === themeId; })) return i;
+    }
+    return 0;
+  }
   function check(item, index) { return !!item && Number(index) === item.answer; }
   function answerText(item) { return 'こたえは｜' + item.choices[item.answer] + '｜だよ。｜つぎは できるよ！'; }
 
   C.zukan = {
-    AREA: AREA, PAGES_PER_ROUND: PAGES_PER_ROUND, THEMES_PER_PAGE: THEMES_PER_PAGE, TEXT: TEXT, themePages: themePages,
+    AREA: AREA, PAGES_PER_ROUND: PAGES_PER_ROUND, THEMES_PER_PAGE: THEMES_PER_PAGE, TEXT: TEXT, themePages: themePages, themeGroup: themeGroup,
     pagesOf: pagesOf, pageById: pageById, themeById: themeById,
     cardsFromLogs: cardsFromLogs, countFor: countFor, pickPage: pickPage,
     makeQuiz: makeQuiz, check: check, answerText: answerText

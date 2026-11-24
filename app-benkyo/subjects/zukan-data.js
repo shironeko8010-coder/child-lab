@@ -1,4 +1,4 @@
-/* ずかんの テーマと 入れもの。Chiid.zukanData（ページは zukan-pages-1〜5.js が addRows で足す）
+/* ずかんの テーマと 入れもの。Chiid.zukanData（ページは zukan-pages-1〜7.js が addRows で足す）
    設計書 docs/superpowers/specs/2026-11-12-benkyo-zukan-design.md の 7章。
    画面の字：1年生の漢字はそのまま、2年生の漢字は {漢字|よみ}、3年生以上は ひらがな。名前は カタカナ。
    pic は Unicode 12 以前の絵文字。絵文字がないページは art（zukan-art.js の SVG の名前）。 */
@@ -21,7 +21,12 @@
     { id: 'disney', name: 'ディズニーリゾート', icon: '🏰' },
     { id: 'usj', name: 'ユニバーサル・スタジオ・ジャパン', icon: '🎬' },
     { id: 'shima', name: 'しまスペイン村', icon: '💃' },
-    { id: 'nagoya', name: 'なごやの まち', icon: '🏯' }
+    { id: 'nagoya', name: 'なごやの まち', icon: '🏯' },
+    { id: 'sekai', name: '日本の せかいいさん', icon: '🗻' },
+    { id: 'shigoto', name: 'しごと', icon: '💼' },
+    { id: 'sports', name: 'スポーツ', icon: '⚽' },
+    { id: 'saigai', name: 'しぜんさいがいと そなえ', icon: '⛑️' },
+    { id: 'ghibli', name: 'ジブリパーク', icon: '🌳' }
   ];
 
   var PAGES = [];

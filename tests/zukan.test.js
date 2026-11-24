@@ -18,14 +18,14 @@
   }
 
   // 回ごとに書きかえる（1回目：9テーマ×12ページ。2回目・3回目で ふえる）
-  var EXPECT = { themes: 15, perTheme: 16 };
+  var EXPECT = { themes: 20, perTheme: 16 };
   // はじめの108ページの id（記録をそのまま使うため、どの回でも 消さない）
   var OLD_IDS = 'lion kirin zou panda koara kangaru shimauma gorira tora usagi namakemono kaba penguin fukurou niwatori washi hato ahiru kujaku flamingo oumu hakuchou suzume hiyoko dangomushi semi kabutomushi tentoumushi chou ari mitsubachi batta kumo aomushi katatsumuri ka asagao himawari tulip sakura tanpopo saboten kinoko minitomato toumorokoshi ine momiji take zarigani medaka kame kujira iruka tako ika kani same fugu ebi rakko tirano burakio torikera sutego puterano ankiro supino raputoru futaba kaseki inseki kyoryu-tamago tsuki taiyou chikyu dosei nagareboshi hoshi niji kaminari yuki kumo-ten taifu tsuyu shinzou hone ha me mimi hana shita te ashi nou chi kushami shinkansen shoubousha kyukyusha patoka heri roketto fune hikouki densha basu jitensha torakuta'.split(' ');
 
   C.test('zukan-data: テーマとページの数（EXPECT）、id が重ならない、はじめの108ページが すべてある', function () {
     var d = D();
     C.assertEq(d.THEMES.length, EXPECT.themes);
-    C.assertEq(d.THEMES.map(function (t) { return t.id; }), ['doubutsu', 'tori', 'mushi', 'shokubutsu', 'mizu', 'kyoryu', 'uchu', 'karada', 'norimono', 'tabemono', 'kisetsu', 'disney', 'usj', 'shima', 'nagoya']);
+    C.assertEq(d.THEMES.map(function (t) { return t.id; }), ['doubutsu', 'tori', 'mushi', 'shokubutsu', 'mizu', 'kyoryu', 'uchu', 'karada', 'norimono', 'tabemono', 'kisetsu', 'disney', 'usj', 'shima', 'nagoya', 'sekai', 'shigoto', 'sports', 'saigai', 'ghibli']);
     C.assertEq(d.PAGES.length, EXPECT.themes * EXPECT.perTheme);
     d.THEMES.forEach(function (t) { C.assertEq(d.PAGES.filter(function (p) { return p.theme === t.id; }).length, EXPECT.perTheme); });
     var ids = {};
@@ -443,7 +443,7 @@
     C.assertEq(C.zukan.THEMES_PER_PAGE, 12);
     C.assertEq(pages.length, 2);
     C.assertEq(pages[0].length, 12);
-    C.assertEq(pages[1].map(function (t) { return t.id; }), ['usj', 'shima', 'nagoya']);
+    C.assertEq(pages[1].map(function (t) { return t.id; }), ['usj', 'shima', 'nagoya', 'sekai', 'shigoto', 'sports', 'saigai', 'ghibli']);
   });
   C.test('zukanScreen: テーマ一覧の2ページ目へ めくって USJ を えらべる。もどると 2ページ目のまま', function () {
     function done() { C.storage._forceMemory(false); S()._twoSheets(null); }
@@ -495,5 +495,58 @@
       });
     });
     if (bad.length) throw new Error(bad.join(' / '));
+  });
+})();
+
+/* ずかん 6回目：日本の せかいいさん・しごと・スポーツ・しぜんさいがいと そなえ・ジブリパーク */
+(function () {
+  'use strict';
+  var C = window.Chiid;
+  function of(theme) { return C.zukanData.PAGES.filter(function (p) { return p.theme === theme; }); }
+  function has(theme, ids) {
+    var got = of(theme).map(function (p) { return p.id; });
+    var miss = ids.filter(function (id) { return got.indexOf(id) < 0; });
+    if (miss.length) throw new Error('ない: ' + miss.join(' '));
+  }
+  C.test('zukan-data: 6回目：やまとさんが えらんだ ページが ある（ぐんかんじま・かぐしょくにん・ダンス など）', function () {
+    has('sekai', ['sekai-fuji', 'sekai-gunkanjima', 'sekai-kofun']);
+    if (of('sekai').some(function (p) { return /しらかみ/.test(p.name); })) throw new Error('しらかみさんちは 入れない');
+    has('shigoto', ['shigoto-kagu', 'shigoto-keisatsu']);
+    if (of('shigoto').some(function (p) { return /たくはい/.test(p.name); })) throw new Error('たくはいびんの人は 入れない');
+    has('sports', ['sports-dance', 'sports-olympic', 'sports-para']);
+    if (of('sports').some(function (p) { return /けんどう/.test(p.name); })) throw new Error('けんどうは 入れない');
+    has('saigai', ['saigai-jishin', 'saigai-ohashimo', 'saigai-bag']);
+    has('ghibli', ['ghibli-basho', 'ghibli-linimo', 'ghibli-souko', 'ghibli-tenku']);
+  });
+  C.test('zukan-data: 6回目：id は テーマ名- ではじめる', function () {
+    var bad = [];
+    ['sekai', 'shigoto', 'sports', 'saigai', 'ghibli'].forEach(function (t) { of(t).forEach(function (p) { if (p.id.indexOf(t + '-') !== 0) bad.push(p.id); }); });
+    if (bad.length) throw new Error(bad.join(' / '));
+  });
+  C.test('zukan-data: しぜんさいがい：こわがらせる ことば（しぬ・ひがい など）を 使わない', function () {
+    var bad = [];
+    of('saigai').forEach(function (p) {
+      var all = [p.name, p.text, p.mame].concat(p.qs.map(function (q) { return q.ask + q.a + q.wrong.join(''); })).join(' ');
+      if (/(しぬ|ひがい|ぎせい|死|なくなった)/.test(all.replace(/じしん/g, ""))) bad.push(p.id);
+    });
+    if (bad.length) throw new Error(bad.join(' / '));
+  });
+  C.test('zukan-data: ジブリパーク：キャラクターの名前は たてもの・へや の名前に入るときだけ。キャラクターの絵文字を使わない', function () {
+    var CHARA = ['トトロ', 'キキ', 'ハウル', 'サツキ', 'ネコバス', 'カオナシ', 'ジジ', 'ポニョ', 'シータ', 'パズー'];
+    var PLACE = /(家|しろ|ルーム|おか|森|里|谷|とう|てい|にわ|ざ)/;
+    var bad = [];
+    of('ghibli').forEach(function (p) {
+      var name = String(p.name).replace(/\{([^|{}]+)\|[^|{}]+\}/g, '$1');
+      CHARA.forEach(function (c) { if (name.indexOf(c) >= 0 && !PLACE.test(name)) bad.push(p.id); });
+      if (['🐱', '🐈', '🐾', '🐭', '🦉', '🐻'].indexOf(p.pic) >= 0) bad.push(p.id + ' ' + p.pic);
+    });
+    if (bad.length) throw new Error(bad.join(' / '));
+  });
+  C.test('zukan: themeGroup は テーマが 一覧の 何ページ目にあるか（わたしのずかんの テーマのボタンも ページごとに出す）', function () {
+    C.assertEq(C.zukan.themeGroup('doubutsu'), 0);
+    C.assertEq(C.zukan.themeGroup('disney'), 0);
+    C.assertEq(C.zukan.themeGroup('usj'), 1);
+    C.assertEq(C.zukan.themeGroup('ghibli'), 1);
+    C.assertEq(C.zukan.themeGroup('nai'), 0);
   });
 })();

@@ -103,6 +103,12 @@
     where = 'ちいく かげあわせ';
     Object.keys(C.kage.TEXT).forEach(function (k) { add(C.kage.TEXT[k]); });
 
+    where = 'ちいく てんつなぎ';
+    var TN = C.tentsunagi;
+    Object.keys(TN.TEXT).forEach(function (k) { add(TN.TEXT[k]); });
+    range(1, 14).forEach(function (n) { add(TN.numYomi(n)); add(TN.nextText(n)); });
+    TN.PICS.forEach(function (p) { add(TN.doneText(p)); });
+
     where = 'ちいく どうとく';
     var D = C.chiikuDoutoku;
     D.SCENES.concat(D.OPEN).forEach(function (sc) {

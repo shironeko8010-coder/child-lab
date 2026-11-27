@@ -8,9 +8,9 @@
     C.assertEq(C.top.TARGET.benkyo, 'app-benkyo/index.html');
   });
 
-  C.test('top: アプリの名前は「はてなの きっぷ」、バージョンは 1.34', function () {
+  C.test('top: アプリの名前は「はてなの きっぷ」、バージョンは 1.35', function () {
     C.assertEq(C.top.APP_NAME, 'はてなの きっぷ');
-    C.assertEq(C.top.VERSION, '1.34');
+    C.assertEq(C.top.VERSION, '1.35');
   });
 
   C.test('top: 画面が無いときは start / go をよんでも 何もしない（音も鳴らさない）', function () {

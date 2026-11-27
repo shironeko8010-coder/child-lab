@@ -1262,3 +1262,40 @@
   .kg-choice-pic { font-size: min(15vw, calc(var(--vh) * 8.5), 78px); }
 }
 @media (prefers-reduced-motion: reduce) { .kg-choice.right { animation: none; } .kg-shadow-pic { transition: none; } }
+
+/* ===== てんつなぎ（tentsunagi.js）。設計書：docs/superpowers/specs/2026-11-27-chiiku-tentsunagi-design.md ===== */
+.hc-ten { background: #e07a4f; }
+.scr-tentsunagi .topbar { gap: 8px; }
+.tn-body { flex: 1 1 auto; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; }
+.tn-box { width: min(94vw, calc((var(--vh) * 100 - 120px) * 4 / 3), 1000px); aspect-ratio: 4 / 3; border-radius: 22px; overflow: hidden; box-shadow: 0 6px 0 #e2d6c2; background: #fff; touch-action: none; cursor: pointer; }
+.tn-box svg { display: block; width: 100%; height: 100%; }
+.tn-line { stroke: #e2483d; stroke-width: 5; stroke-linecap: round; }
+.tn-pic.done .tn-line { stroke: #5a4632; stroke-width: 3; }
+.tn-dot { fill: #fff; stroke: #5a4632; stroke-width: 3; }
+.tn-dot.on { fill: #ffd7c9; stroke: #e2483d; }
+.tn-dot.next { fill: #fff3b0; }
+.tn-num { font-size: 18px; font-weight: 700; fill: #3a3a3a; pointer-events: none; font-family: inherit; }
+.tn-dotg { transform-box: fill-box; transform-origin: center; }
+.tn-dotg.hint .tn-dot { fill: #ffd23f; animation: tn-glow .7s ease-in-out infinite alternate; }
+@keyframes tn-glow { from { stroke-width: 3; } to { stroke-width: 9; stroke: #ffb300; } }
+.tn-dotg.shake { animation: tn-shake .4s ease-in-out; }
+@keyframes tn-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.tn-fill { animation: tn-fade .5s ease-out; }
+@keyframes tn-fade { from { opacity: 0; } to { opacity: 1; } }
+.tn-pic.done { transform-box: fill-box; transform-origin: center; animation-duration: 1.2s; animation-iteration-count: 2; animation-timing-function: ease-in-out; animation-delay: .4s; }
+.tn-pic.anim-bounce { animation-name: tn-bounce; }
+.tn-pic.anim-beat { animation-name: tn-beat; }
+.tn-pic.anim-swim { animation-name: tn-swim; }
+.tn-pic.anim-fly { animation-name: tn-fly; }
+.tn-pic.anim-drive { animation-name: tn-drive; }
+@keyframes tn-bounce { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-18px); } 60% { transform: translateY(0); } 75% { transform: translateY(-6px); } }
+@keyframes tn-beat { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.1); } 60% { transform: scale(.96); } }
+@keyframes tn-swim { 0%, 100% { transform: translate(0, 0) rotate(0); } 25% { transform: translate(14px, -6px) rotate(3deg); } 75% { transform: translate(-14px, 6px) rotate(-3deg); } }
+@keyframes tn-fly { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-24px); } }
+@keyframes tn-drive { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(26px); } }
+@media (orientation: portrait) {
+  .scr-tentsunagi .topbar { flex-wrap: wrap; row-gap: 6px; }
+  .scr-tentsunagi .kg-talk { order: 3; flex-basis: 100%; }
+  .tn-box { width: min(94vw, 760px); }
+}
+@media (prefers-reduced-motion: reduce) { .tn-pic.done, .tn-dotg.hint .tn-dot, .tn-dotg.shake, .tn-fill { animation: none; } }

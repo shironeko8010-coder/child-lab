@@ -316,10 +316,11 @@
     dou: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 56S8 41 8 24a12 12 0 0 1 24-4 12 12 0 0 1 24 4c0 17-24 32-24 32z" fill="#ff6f91"/><path d="M22 26q3-6 8-4" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/></svg>',
     meiro: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="6" width="52" height="52" rx="8" fill="#fff6dc"/><path d="M6 6H58V58H6Z M20 6V34 M6 46H34 M34 20V46 M46 20H58 M46 20V58" fill="none" stroke="#5aa64a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="13" cy="52" r="5.5" fill="#ffd84d"/><circle cx="11" cy="51" r="1" fill="#3a3a3a"/><circle cx="15" cy="51" r="1" fill="#3a3a3a"/><circle cx="52" cy="12" r="4" fill="#ff8a5b"/></svg>',
     kioku: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="10" width="22" height="30" rx="5" fill="#6fa8f0"/><rect x="10" y="14" width="14" height="22" rx="3" fill="none" stroke="#fff" stroke-width="2.5"/><rect x="36" y="24" width="22" height="30" rx="5" fill="#fff" stroke="#ff8a5b" stroke-width="3"/><circle cx="47" cy="39" r="7" fill="#ffd84d"/><circle cx="44.5" cy="37.5" r="1.3" fill="#3a3a3a"/><circle cx="49.5" cy="37.5" r="1.3" fill="#3a3a3a"/><path d="M45.5 41h3l-1.5 2z" fill="#ff8a3d"/><path d="M30 20q4-6 8 0" fill="none" stroke="#3a3a3a" stroke-width="2.5" stroke-linecap="round"/></svg>',
-    kage: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="21" cy="30" r="15" fill="#2b2b33"/><circle cx="11" cy="16" r="6" fill="#2b2b33"/><circle cx="31" cy="16" r="6" fill="#2b2b33"/><circle cx="45" cy="38" r="13" fill="#ffd84d"/><circle cx="36" cy="27" r="5" fill="#ffd84d"/><circle cx="54" cy="27" r="5" fill="#ffd84d"/><circle cx="41" cy="36" r="1.8" fill="#3a3a3a"/><circle cx="49" cy="36" r="1.8" fill="#3a3a3a"/><path d="M43 42q2 2 4 0" stroke="#3a3a3a" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>'
+    kage: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="21" cy="30" r="15" fill="#2b2b33"/><circle cx="11" cy="16" r="6" fill="#2b2b33"/><circle cx="31" cy="16" r="6" fill="#2b2b33"/><circle cx="45" cy="38" r="13" fill="#ffd84d"/><circle cx="36" cy="27" r="5" fill="#ffd84d"/><circle cx="54" cy="27" r="5" fill="#ffd84d"/><circle cx="41" cy="36" r="1.8" fill="#3a3a3a"/><circle cx="49" cy="36" r="1.8" fill="#3a3a3a"/><path d="M43 42q2 2 4 0" stroke="#3a3a3a" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>',
+    ten: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="6" width="52" height="52" rx="10" fill="#fff6dc"/><path d="M32 12 L52 28 L52 52 L12 52 L12 28" fill="none" stroke="#ff8a5b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 28 L32 12" stroke="#ff8a5b" stroke-width="4" stroke-dasharray="4 5" stroke-linecap="round"/><circle cx="32" cy="12" r="5" fill="#fff" stroke="#3a3a3a" stroke-width="2.5"/><circle cx="52" cy="28" r="5" fill="#fff" stroke="#3a3a3a" stroke-width="2.5"/><circle cx="52" cy="52" r="5" fill="#fff" stroke="#3a3a3a" stroke-width="2.5"/><circle cx="12" cy="52" r="5" fill="#fff" stroke="#3a3a3a" stroke-width="2.5"/><circle cx="12" cy="28" r="5" fill="#ffd84d" stroke="#3a3a3a" stroke-width="2.5"/></svg>'
   };
   // ホームの並び（設計書7章）。1ページ6まい。いまのページは画面の中だけで覚える（保存しない）
-  var HOME_ORDER = ['hira', 'kazu', 'tokei', 'iro', 'machi', 'kai', 'sr', 'dou', 'meiro', 'kioku', 'kage'];
+  var HOME_ORDER = ['hira', 'kazu', 'tokei', 'iro', 'machi', 'kai', 'sr', 'dou', 'meiro', 'kioku', 'kage', 'ten'];
   var HOME_PER_PAGE = 6;
   var homePage = 0;
   C.chiikuHome = {
@@ -371,6 +372,7 @@
     playCard('めいろ', 'meiro', function () { C.meiro.start(p.id); });
     playCard('きおく', 'kioku', function () { C.kioku.start(p.id); });
     playCard('かげ​あわせ', 'kage', function () { C.kage.start(p.id); });
+    playCard('てん​つなぎ', 'ten', function () { C.tentsunagi.start(p.id); });
 
     // 2ページ：◀ カード ▶、下に ●○。横にさっと動かしても めくれる
     var H = C.chiikuHome, pages = H.pageCount();

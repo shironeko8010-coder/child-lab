@@ -1,7 +1,7 @@
 /* ぬりえ。Chiid.nurie
-   線の絵を えらんで、「ぬる」（タッチした所を 色で うめる）・「ふで」（指で 描く）・「スタンプ」（飾りつけ）で 仕上げる。
-   正解・不正解は ない。「できた！」で 作品を 端末の中に 保存し、「さくひん」で 見返せる（新しい 20まいまで）。
-   園児が見る文字は、ひらがなだけ。通信は行わない。設計書：docs/superpowers/specs/2026-11-27-chiiku-nurie-design.md
+   線の絵を えらんで、「ぬる」（タッチした所を 色で うめる）・「ふで」（指で 描く）・「スタンプ」（飾りつけ）・「けす」で 仕上げる。
+   2本指で 拡大・移動できる。正解・不正解は ない。「できた！」で 作品を 端末の中に 保存し、「さくひん」で 見返す・消す（新しい 20まいまで）。
+   園児が見る文字は、ひらがなと数字だけ。通信は行わない。設計書：docs/superpowers/specs/2026-11-27-chiiku-nurie-design.md
    線の絵と スタンプは nurie-data.js（Chiid.nurieData）に 文字で 埋めこんである（index.html を 直接 開いても 点を 調べられるように）。
    画面の部品は game.js が Chiid.chiikuUi として渡す（読み込み順：game.js のあと）。 */
 (function () {
@@ -15,30 +15,44 @@
   var BRUSH = 14;          // ふでの 太さ
   // スタンプの 大きさ（点の数）。はじめは ふつう
   var STAMP_SIZES = [{ id: 's', name: 'ちいさい', px: 64 }, { id: 'm', name: 'ふつう', px: 104 }, { id: 'l', name: 'おおきい', px: 168 }];
+  var STAMP_HIT = 0.45;    // スタンプの 当たり（大きさの 何わり の 半径）
   var EDGE = 2;            // 「ぬる」で 線の下まで ぬる はば（白い すき間を のこさない）
   var PER_PAGE = 8;
   var LINE_LEVEL = 200;    // これより こい点は 線
+  var MAX_ZOOM = 4;
+  var TAP_MOVE = 12;       // これより 動いたら タッチでは ない（2本指の 操作と まちがえない）
+  var HOLD_MS = 1000;      // 「けす」の 長押しで ぜんぶ けす までの 時間
 
+  // さいしょの 16まいは かんたんな 絵、あとの 16まいは こまかく ぬれる 絵
   var PICS = [
     { id: 'inu', name: 'いぬ' }, { id: 'neko', name: 'ねこ' }, { id: 'usagi', name: 'うさぎ' }, { id: 'zou', name: 'ぞう' },
     { id: 'sakana', name: 'さかな' }, { id: 'kuruma', name: 'くるま' }, { id: 'kisha', name: 'きしゃ' }, { id: 'hikouki', name: 'ひこうき' },
     { id: 'keeki', name: 'けーき' }, { id: 'aisu', name: 'あいす' }, { id: 'ringo', name: 'りんご' }, { id: 'ichigo', name: 'いちご' },
-    { id: 'ie', name: 'おうち' }, { id: 'yukidaruma', name: 'ゆきだるま' }, { id: 'hana', name: 'おはな' }, { id: 'roketto', name: 'ろけっと' }
+    { id: 'ie', name: 'おうち' }, { id: 'yukidaruma', name: 'ゆきだるま' }, { id: 'hana', name: 'おはな' }, { id: 'roketto', name: 'ろけっと' },
+    { id: 'oshiro', name: 'おしろ' }, { id: 'kyouryuu', name: 'きょうりゅう' }, { id: 'fukurou', name: 'ふくろう' }, { id: 'kujira', name: 'くじら' },
+    { id: 'chouchou', name: 'ちょうちょ' }, { id: 'kame', name: 'かめ' }, { id: 'robotto', name: 'ろぼっと' }, { id: 'shoubousha', name: 'しょうぼうしゃ' },
+    { id: 'kanransha', name: 'かんらんしゃ' }, { id: 'hokakebune', name: 'ふね' }, { id: 'pengin', name: 'ぺんぎん' }, { id: 'panda', name: 'ぱんだ' },
+    { id: 'raion', name: 'らいおん' }, { id: 'yunikoon', name: 'ゆにこーん' }, { id: 'hanakago', name: 'はなかご' }, { id: 'okashi', name: 'おかしのいえ' }
   ];
   var STAMPS = [
-    { id: 'hoshi', name: 'ほし' }, { id: 'heart', name: 'はーと' }, { id: 'hana', name: 'おはな' },
-    { id: 'onpu', name: 'おんぷ' }, { id: 'ribon', name: 'りぼん' }, { id: 'niji', name: 'にじ' },
-    { id: 'kira', name: 'きらきら' }, { id: 'kumo', name: 'くも' }, { id: 'taiyou', name: 'おひさま' }
+    { id: 'hoshi', name: 'ほし' }, { id: 'heart', name: 'はーと' }, { id: 'hana', name: 'おはな' }, { id: 'onpu', name: 'おんぷ' },
+    { id: 'ribon', name: 'りぼん' }, { id: 'niji', name: 'にじ' }, { id: 'kira', name: 'きらきら' }, { id: 'kumo', name: 'くも' },
+    { id: 'taiyou', name: 'おひさま' }, { id: 'chou', name: 'ちょうちょ' }, { id: 'tentou', name: 'てんとうむし' }, { id: 'ichigo', name: 'いちご' },
+    { id: 'daiya', name: 'だいや' }, { id: 'tsuki', name: 'つき' }, { id: 'yuki', name: 'ゆきのけっしょう' }, { id: 'fuusen', name: 'ふうせん' },
+    { id: 'kuroobaa', name: 'くろーばー' }, { id: 'kyandi', name: 'きゃんでぃ' }, { id: 'tsurii', name: 'くりすますつりー' }, { id: 'purezento', name: 'ぷれぜんと' }
   ];
+  // 20色。まどに 5れつ×4だんで ならぶ じゅん
   var COLORS = [
-    { name: 'あか', hex: '#e2483d' }, { name: 'ももいろ', hex: '#f48fb1' }, { name: 'だいだい', hex: '#f28c28' }, { name: 'きいろ', hex: '#f9d531' },
-    { name: 'きみどり', hex: '#a5d65a' }, { name: 'みどり', hex: '#3aa05a' }, { name: 'みずいろ', hex: '#7ccdf0' }, { name: 'あお', hex: '#2f6fd6' },
-    { name: 'むらさき', hex: '#8e5bd0' }, { name: 'ちゃいろ', hex: '#9a6a42' }, { name: 'くろ', hex: '#3a3a3a' }, { name: 'しろ', hex: '#ffffff' }
+    { name: 'あか', hex: '#e2483d' }, { name: 'ももいろ', hex: '#f48fb1' }, { name: 'さくらいろ', hex: '#f9c9d6' }, { name: 'だいだい', hex: '#f28c28' }, { name: 'うすだいだい', hex: '#f8d2a9' },
+    { name: 'きいろ', hex: '#f9d531' }, { name: 'れもんいろ', hex: '#fff27a' }, { name: 'きみどり', hex: '#a5d65a' }, { name: 'みどり', hex: '#3aa05a' }, { name: 'ふかみどり', hex: '#1f6b3a' },
+    { name: 'そらいろ', hex: '#a9dcf7' }, { name: 'みずいろ', hex: '#7ccdf0' }, { name: 'あお', hex: '#2f6fd6' }, { name: 'こんいろ', hex: '#23376e' }, { name: 'むらさき', hex: '#8e5bd0' },
+    { name: 'ちゃいろ', hex: '#9a6a42' }, { name: 'おうどいろ', hex: '#c99a3b' }, { name: 'はいいろ', hex: '#9e9e9e' }, { name: 'くろ', hex: '#3a3a3a' }, { name: 'しろ', hex: '#ffffff' }
   ];
-  var TOOLS = [{ id: 'fill', name: 'ぬる' }, { id: 'brush', name: 'ふで' }, { id: 'stamp', name: 'すたんぷ' }];
+  var TOOLS = [{ id: 'fill', name: 'ぬる' }, { id: 'brush', name: 'ふで' }, { id: 'stamp', name: 'すたんぷ' }, { id: 'erase', name: 'けす' }];
   var TEXT = {
     choose: 'どれを ぬる？', start: 'すきな いろで ぬってね', done: 'すてきな えが できたね！',
-    works: 'さくひん', empty: 'まだ ないよ。ぬりえを してみよう'
+    works: 'さくひん', empty: 'まだ ないよ。ぬりえを してみよう', color: 'いろ', size: 'おおきさ',
+    cleared: 'ぜんぶ けしたよ', askDelete: 'けしても いい？', zoomReset: 'もとに もどす'
   };
 
   /* ---------- 計算（画面に さわらない） ---------- */
@@ -103,20 +117,39 @@
   function loadImage(src) {
     return new Promise(function (ok, ng) { var im = new Image(); im.onload = function () { ok(im); }; im.onerror = ng; im.src = src; });
   }
+  function pageCount() { return Math.ceil(PICS.length / PER_PAGE); }
+  // 矢印で ページを かえる。さいごの つぎは さいしょ、さいしょの まえは さいご
+  function turnPage(page, d, pages) { return (((page + d) % pages) + pages) % pages; }
+  // (x, y) に ある スタンプの 番号（かさなって いたら 上＝あとから 押した もの）。なければ -1
+  function hitStamp(list, x, y) {
+    for (var i = list.length - 1; i >= 0; i--) {
+      var s = list[i];
+      if (Math.hypot(x - s.x, y - s.y) <= s.px * STAMP_HIT) return i;
+    }
+    return -1;
+  }
+  // 拡大の ようす { scale, x, y }（x・y は 画面の 点で ずらす量）。1〜4ばい、絵の そとが 見えない ように おさえる
+  function clampView(v, size) {
+    var s = Math.max(1, Math.min(MAX_ZOOM, v.scale || 1));
+    var min = size - size * s;
+    return { scale: s, x: s === 1 ? 0 : Math.max(min, Math.min(0, v.x)), y: s === 1 ? 0 : Math.max(min, Math.min(0, v.y)) };
+  }
+  function dateText(ts) { var d = new Date(ts); return (d.getMonth() + 1) + 'がつ' + d.getDate() + 'にち'; }
 
   /* ---------- 作品（端末の中だけ） ---------- */
   function worksKey(pid) { return 'chiid-nurie-' + pid; }
   function loadWorks(pid) {
     try { var a = JSON.parse(localStorage.getItem(worksKey(pid)) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
   }
-  // 新しい作品を 先頭に。20まいを こえたら 古いものから 消す。いっぱいで 保存できないときも 古いものを 消して やりなおす
-  function saveWork(pid, work) {
-    var list = [work].concat(loadWorks(pid)).slice(0, MAX_WORKS);
-    while (list.length) {
-      try { localStorage.setItem(worksKey(pid), JSON.stringify(list)); return true; } catch (e) { list.pop(); }
+  function storeWorks(pid, list) {
+    while (true) {
+      try { localStorage.setItem(worksKey(pid), JSON.stringify(list)); return true; } catch (e) { if (!list.length) return false; list.pop(); }
     }
-    return false;
   }
+  // 新しい作品を 先頭に。20まいを こえたら 古いものから 消す。いっぱいで 保存できないときも 古いものを 消して やりなおす
+  function saveWork(pid, work) { return storeWorks(pid, [work].concat(loadWorks(pid)).slice(0, MAX_WORKS)); }
+  // 作品を 1まい 消す（at：作った 時刻で 見分ける）
+  function deleteWork(pid, at) { return storeWorks(pid, loadWorks(pid).filter(function (w) { return !w || w.at !== at; })); }
 
   /* ==================== 画面 ==================== */
   var st = null;
@@ -126,6 +159,7 @@
   function play(n) { try { if (hasApp()) U().play(n); } catch (e) {} }
   function isOver() { try { return C.timer.isOver(st.profileId); } catch (e) { return false; } }
   function picName(id) { for (var i = 0; i < PICS.length; i++) if (PICS[i].id === id) return PICS[i].name; return ''; }
+  function stampById(id) { for (var i = 0; i < STAMPS.length; i++) if (STAMPS[i].id === id) return STAMPS[i]; return null; }
 
   function start(profileId) {
     st = { profileId: profileId, phase: 'select', page: 0, pic: null };
@@ -158,8 +192,10 @@
     next.appendChild(ui.svg(ui.ICO.next));
     row.appendChild(prev); row.appendChild(gridEl); row.appendChild(next);
     body.appendChild(row);
+    var dots = ui.el('div', 'nu-dots');
+    body.appendChild(dots);
     app.appendChild(body);
-    var pages = Math.ceil(PICS.length / PER_PAGE);
+    var pages = pageCount();
     function draw() {
       gridEl.innerHTML = '';
       PICS.slice(st.page * PER_PAGE, (st.page + 1) * PER_PAGE).forEach(function (p) {
@@ -170,16 +206,18 @@
         b.appendChild(im);
         gridEl.appendChild(b);
       });
-      prev.disabled = st.page === 0; next.disabled = st.page >= pages - 1;
+      dots.innerHTML = '';
+      for (var i = 0; i < pages; i++) dots.appendChild(ui.el('span', 'nu-dot' + (i === st.page ? ' on' : '')));
     }
-    function turn(d) { var np = Math.max(0, Math.min(pages - 1, st.page + d)); if (np === st.page) return; ui.play('tap'); st.page = np; draw(); }
+    function turn(d) { ui.play('tap'); st.page = turnPage(st.page, d, pages); draw(); }
     draw();
     ui.speak(TEXT.choose);
   }
 
   function pick(id) {
     if (!st || st.phase !== 'select') return;
-    st.pic = id; st.phase = 'paint'; st.tool = 'fill'; st.color = COLORS[0].hex; st.stamp = STAMPS[0].id; st.stampSize = 'm'; st.undo = []; st.mask = null;
+    st.pic = id; st.phase = 'paint'; st.tool = 'fill'; st.color = COLORS[0].hex; st.stamp = STAMPS[0].id; st.stampSize = 'm';
+    st.undo = []; st.mask = null; st.stamps = []; st.view = { scale: 1, x: 0, y: 0 };
     renderPaint();
     speak(TEXT.start);
   }
@@ -192,23 +230,30 @@
     var sid = ui.screenId ? ui.screenId() : null;
     var body = ui.el('div', 'nu-body');
     var stage = ui.el('div', 'nu-stage');
+    var zoomer = ui.el('div', 'nu-zoomer');   // 拡大は この中を 大きくする
     var paint = document.createElement('canvas'), stamp = document.createElement('canvas');
     paint.width = paint.height = stamp.width = stamp.height = SIZE;
     paint.className = 'nu-layer nu-paint'; stamp.className = 'nu-layer nu-stampl';
     var line = document.createElement('img');
     line.className = 'nu-layer nu-line'; line.alt = ''; line.draggable = false;
     line.src = C.nurieData.pics[st.pic];
-    stage.appendChild(paint); stage.appendChild(line); stage.appendChild(stamp);
+    zoomer.appendChild(paint); zoomer.appendChild(line); zoomer.appendChild(stamp);
+    stage.appendChild(zoomer);
+    var zoomReset = ui.button('nu-zoom-reset', function () { ui.play('tap'); setView({ scale: 1, x: 0, y: 0 }); });
+    zoomReset.setAttribute('aria-label', TEXT.zoomReset);
+    zoomReset.appendChild(ui.el('span', 'nu-zoom-ico'));
+    zoomReset.appendChild(ui.el('span', null, TEXT.zoomReset));
+    stage.appendChild(zoomReset);
     var pg = paint.getContext('2d'), sg = stamp.getContext('2d');
     pg.fillStyle = '#ffffff'; pg.fillRect(0, 0, SIZE, SIZE);
     body.appendChild(stage);
 
-    // 道具の列：ぬる・ふで／いろ・すたんぷ（押すと えらぶ まどが 開く）／もどす・けす／できた
-    // 絵を できるだけ 大きく するため、横向きでは 上の帯を 使わず、おうち・おんがくを 右の列の 上に 置く
-    var side = ui.el('div', 'nu-side');
-    var bar = ui.topBar({ home: true });   // おうち・おんがく（ぬりえの ボタンとは 離して 置く）
+    // おうち・おんがく（ぬりえの ボタンとは 離して 置く）
+    var bar = ui.topBar({ home: true });
     bar.classList.add('nu-bar');
     body.appendChild(bar);
+    // 道具：ぬる・ふで／いろ・すたんぷ（押すと えらぶ まどが 開く）／けす（長押しで ぜんぶ）・もどす／できた（少し 離す）
+    var side = ui.el('div', 'nu-side');
     function toolBtn(cls, label, fn) {
       var b = ui.button('nu-tool ' + cls, fn);
       b.setAttribute('aria-label', label);
@@ -219,16 +264,35 @@
     }
     var fillB = toolBtn('t-fill', 'ぬる', function () { ui.play('tap'); setTool('fill'); ui.speak('ぬる'); paintSide(); });
     var brushB = toolBtn('t-brush', 'ふで', function () { ui.play('tap'); setTool('brush'); ui.speak('ふで'); paintSide(); });
-    var colorB = toolBtn('t-color', 'いろ', function () { ui.play('tap'); ui.speak('いろ'); openPop('color'); });
+    var colorB = toolBtn('t-color', TEXT.color, function () { ui.play('tap'); ui.speak(TEXT.color); openPop('color'); });
     var stampB = toolBtn('t-stamp', 'すたんぷ', function () { ui.play('tap'); ui.speak('すたんぷ'); openPop('stamp'); });
-    function actBtn(cls, label, text, fn) {
-      var b = ui.button('nu-act ' + cls, fn);
-      b.setAttribute('aria-label', label); b.appendChild(ui.el('span', null, text));
-      side.appendChild(b);
-    }
-    actBtn('a-undo', 'ひとつ もどす', 'もどす', function () { ui.play('tap'); undo(); });
-    actBtn('a-clear', 'ぜんぶ けす', 'けす', function () { ui.play('tap'); clearAll(); });
-    actBtn('a-done', 'できた', 'できた！', function () { done(); });
+    // けす：タッチで えらぶ、長押し（1びょう）で ぜんぶ けす
+    var eraseB = toolBtn('t-erase', 'けす', function () {});
+    eraseB.classList.add('hold');
+    var holdTimer = null, held = false;
+    function holdCancel() { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } eraseB.classList.remove('holding'); }
+    eraseB.addEventListener('pointerdown', function () {
+      held = false; holdCancel();
+      eraseB.classList.add('holding');
+      holdTimer = setTimeout(function () {
+        holdTimer = null; held = true; eraseB.classList.remove('holding');
+        if (!st || st.phase !== 'paint') return;
+        clearAll(); ui.play('tap'); ui.speak(TEXT.cleared);
+      }, HOLD_MS);
+    });
+    eraseB.addEventListener('pointerup', function () {
+      var wasHolding = !!holdTimer;
+      holdCancel();
+      if (wasHolding && !held) { ui.play('tap'); setTool('erase'); ui.speak('けす'); paintSide(); }
+    });
+    eraseB.addEventListener('pointerleave', holdCancel);
+    eraseB.addEventListener('pointercancel', holdCancel);
+    var undoB = ui.button('nu-act a-undo', function () { ui.play('tap'); undo(); });
+    undoB.setAttribute('aria-label', 'ひとつ もどす'); undoB.appendChild(ui.el('span', null, 'もどす'));
+    side.appendChild(undoB);
+    var doneB = ui.button('nu-act a-done', function () { done(); });
+    doneB.setAttribute('aria-label', 'できた'); doneB.appendChild(ui.el('span', null, 'できた！'));
+    side.appendChild(doneB);
     body.appendChild(side);
     app.appendChild(body);
 
@@ -263,7 +327,9 @@
           b.appendChild(im);
           grid.appendChild(b);
         });
+        // 大きさは 水色の わくで 分ける
         var sizes = ui.el('div', 'nu-pop-sizes');
+        sizes.appendChild(ui.el('span', 'nu-pop-sizes-title', TEXT.size));
         var szBtns = STAMP_SIZES.map(function (z) {
           var b = ui.button('nu-sw sz sz-' + z.id + (z.id === st.stampSize ? ' on' : ''), function () {
             ui.play('tap'); setStampSize(z.id); ui.speak(z.name);
@@ -283,7 +349,7 @@
 
     var stampImgs = {};
     STAMPS.forEach(function (s) { var im = new Image(); im.src = C.nurieData.stamps[s.id]; stampImgs[s.id] = im; });
-    st.dom = { sid: sid, stage: stage, paint: paint, stamp: stamp, line: line, pg: pg, sg: sg, stampImgs: stampImgs };
+    st.dom = { sid: sid, stage: stage, zoomer: zoomer, zoomReset: zoomReset, paint: paint, stamp: stamp, line: line, pg: pg, sg: sg, stampImgs: stampImgs };
 
     // 線の絵から「線か すき間か」を 調べる
     loadImage(C.nurieData.pics[st.pic]).then(function (im) {
@@ -298,67 +364,126 @@
       fillB.classList.toggle('on', st.tool === 'fill');
       brushB.classList.toggle('on', st.tool === 'brush');
       stampB.classList.toggle('on', st.tool === 'stamp');
+      eraseB.classList.toggle('on', st.tool === 'erase');
       colorB.style.setProperty('--sw', st.color);
       stampB.style.setProperty('--st', 'url("' + C.nurieData.stamps[st.stamp] + '")');
-      stampB.dataset.size = st.stampSize;
     }
     paintSide();
 
-    // 絵の上の 指
-    var drawing = false, last = null;
-    function at(ev) { var r = stage.getBoundingClientRect(); return { x: (ev.clientX - r.left) / r.width * SIZE, y: (ev.clientY - r.top) / r.height * SIZE }; }
+    // 拡大の ようすを 画面に
+    function setView(v) {
+      st.view = clampView(v, stage.getBoundingClientRect().width || 1);
+      zoomer.style.transform = 'translate(' + st.view.x + 'px,' + st.view.y + 'px) scale(' + st.view.scale + ')';
+      zoomReset.classList.toggle('show', st.view.scale > 1.01);
+    }
+
+    // 絵の上の 指。1本指：道具を つかう（ぬる・けす・スタンプは 指を はなしたとき）。2本指：拡大・移動
+    var ptrs = {}, g = null;
+    function count() { return Object.keys(ptrs).length; }
+    function at(cx, cy) { var r = zoomer.getBoundingClientRect(); return { x: (cx - r.left) / r.width * SIZE, y: (cy - r.top) / r.height * SIZE }; }
+    function two() { var k = Object.keys(ptrs); return [ptrs[k[0]], ptrs[k[1]]]; }
     stage.addEventListener('pointerdown', function (ev) {
-      if (!st || st.phase !== 'paint') return;
+      if (!st || st.phase !== 'paint' || ev.target === zoomReset || zoomReset.contains(ev.target)) return;
       ev.preventDefault();
-      var p = at(ev);
-      if (st.tool === 'fill') {
+      try { stage.setPointerCapture(ev.pointerId); } catch (e) {}
+      ptrs[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
+      if (count() === 1) {
+        g = { mode: 'one', sx: ev.clientX, sy: ev.clientY, moved: false, drawing: false, last: null };
+        if (st.tool === 'brush') {
+          pushUndo();
+          g.drawing = true; g.last = at(ev.clientX, ev.clientY);
+          pg.fillStyle = st.color;
+          pg.beginPath(); pg.arc(g.last.x, g.last.y, BRUSH / 2, 0, Math.PI * 2); pg.fill();
+        }
+      } else if (count() === 2) {
+        // 2本目の 指：ふでの 線は 取り消して、拡大に かえる
+        if (g && g.drawing) undo();
+        var pr = two(), r = stage.getBoundingClientRect();
+        g = { mode: 'pinch', d0: Math.hypot(pr[0].x - pr[1].x, pr[0].y - pr[1].y) || 1,
+          mx: (pr[0].x + pr[1].x) / 2 - r.left, my: (pr[0].y + pr[1].y) / 2 - r.top, v0: { scale: st.view.scale, x: st.view.x, y: st.view.y } };
+      }
+    });
+    stage.addEventListener('pointermove', function (ev) {
+      if (!ptrs[ev.pointerId] || !g) return;
+      ptrs[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
+      if (g.mode === 'pinch' && count() >= 2) {
+        var pr = two(), r = stage.getBoundingClientRect();
+        var d = Math.hypot(pr[0].x - pr[1].x, pr[0].y - pr[1].y) || 1;
+        var mx = (pr[0].x + pr[1].x) / 2 - r.left, my = (pr[0].y + pr[1].y) / 2 - r.top;
+        var s = g.v0.scale * d / g.d0;
+        var cx = (g.mx - g.v0.x) / g.v0.scale, cy = (g.my - g.v0.y) / g.v0.scale;   // 指の まん中に ある 絵の 点
+        setView({ scale: s, x: mx - cx * Math.max(1, Math.min(MAX_ZOOM, s)), y: my - cy * Math.max(1, Math.min(MAX_ZOOM, s)) });
+        return;
+      }
+      if (g.mode !== 'one') return;
+      if (Math.hypot(ev.clientX - g.sx, ev.clientY - g.sy) > TAP_MOVE) g.moved = true;
+      if (g.drawing) {
+        var p = at(ev.clientX, ev.clientY);
+        pg.strokeStyle = st.color; pg.lineWidth = BRUSH; pg.lineCap = 'round'; pg.lineJoin = 'round';
+        pg.beginPath(); pg.moveTo(g.last.x, g.last.y); pg.lineTo(p.x, p.y); pg.stroke();
+        g.last = p;
+      }
+    });
+    function up(ev) {
+      if (!ptrs[ev.pointerId]) return;
+      delete ptrs[ev.pointerId];
+      if (!g) return;
+      if (g.mode === 'one' && count() === 0) {
+        if (!g.moved && ev.type === 'pointerup') useTool(at(g.sx, g.sy));
+        g = null;
+      } else if (g.mode === 'pinch' && count() === 0) {
+        g = null;   // 2本指の あとは、指が ぜんぶ はなれるまで ぬらない
+      }
+    }
+    stage.addEventListener('pointerup', up);
+    stage.addEventListener('pointercancel', up);
+
+    // ぬる・けす・スタンプ（タッチ）
+    function useTool(p) {
+      if (!st || st.phase !== 'paint') return;
+      if (st.tool === 'fill' || st.tool === 'erase') {
+        if (st.tool === 'erase') {
+          var i = hitStamp(st.stamps, p.x, p.y);
+          if (i >= 0) { pushUndo(); st.stamps.splice(i, 1); redrawStamps(); play('tap'); return; }
+        }
         if (!st.mask) return;
         var region = fillRegion(st.mask, SIZE, SIZE, p.x, p.y, EDGE);
         if (!region) return;
         pushUndo();
         var img = pg.getImageData(0, 0, SIZE, SIZE);
-        paintRegion(img.data, region, st.color);
+        paintRegion(img.data, region, st.tool === 'erase' ? '#ffffff' : st.color);
         pg.putImageData(img, 0, 0);
         play('tap');
-      } else if (st.tool === 'brush') {
-        pushUndo();
-        drawing = true; last = p;
-        try { stage.setPointerCapture(ev.pointerId); } catch (e) {}
-        pg.fillStyle = st.color;
-        pg.beginPath(); pg.arc(p.x, p.y, BRUSH / 2, 0, Math.PI * 2); pg.fill();
-      } else {
+      } else if (st.tool === 'stamp') {
         var im = stampImgs[st.stamp];
         if (!im || !im.complete) return;
         pushUndo();
-        var sz = stampPx(st.stampSize);
-        sg.drawImage(im, p.x - sz / 2, p.y - sz / 2, sz, sz);
+        st.stamps.push({ id: st.stamp, x: p.x, y: p.y, px: stampPx(st.stampSize) });
+        redrawStamps();
         play('tap');
       }
-    });
-    stage.addEventListener('pointermove', function (ev) {
-      if (!drawing) return;
-      var p = at(ev);
-      pg.strokeStyle = st.color; pg.lineWidth = BRUSH; pg.lineCap = 'round'; pg.lineJoin = 'round';
-      pg.beginPath(); pg.moveTo(last.x, last.y); pg.lineTo(p.x, p.y); pg.stroke();
-      last = p;
-    });
-    function up() { drawing = false; last = null; }
-    stage.addEventListener('pointerup', up);
-    stage.addEventListener('pointercancel', up);
+    }
   }
 
+  // おぼえている スタンプを スタンプ用の 絵に 描きなおす
+  function redrawStamps() {
+    var d = st.dom;
+    if (!d) return;
+    d.sg.clearRect(0, 0, SIZE, SIZE);
+    st.stamps.forEach(function (s) {
+      var im = d.stampImgs[s.id];
+      if (im && im.complete) d.sg.drawImage(im, s.x - s.px / 2, s.y - s.px / 2, s.px, s.px);
+    });
+  }
   function stampPx(id) { for (var i = 0; i < STAMP_SIZES.length; i++) if (STAMP_SIZES[i].id === id) return STAMP_SIZES[i].px; return STAMP_SIZES[1].px; }
-  function setTool(id) { if (st && (id === 'fill' || id === 'brush' || id === 'stamp')) st.tool = id; }
-  // 色を えらぶ。スタンプの ときは「ぬる」に もどす（色は ぬる・ふでで 使うため）
+  function setTool(id) { if (st && (id === 'fill' || id === 'brush' || id === 'stamp' || id === 'erase')) st.tool = id; }
+  // 色を えらぶ。スタンプ・けすの ときは「ぬる」に もどす（色は ぬる・ふでで 使うため）
   function chooseColor(hex) {
     if (!st) return;
-    for (var i = 0; i < COLORS.length; i++) if (COLORS[i].hex === hex) { st.color = hex; if (st.tool === 'stamp') st.tool = 'fill'; return; }
+    for (var i = 0; i < COLORS.length; i++) if (COLORS[i].hex === hex) { st.color = hex; if (st.tool === 'stamp' || st.tool === 'erase') st.tool = 'fill'; return; }
   }
   // スタンプを えらぶと スタンプの 道具に なる
-  function chooseStamp(id) {
-    if (!st) return;
-    for (var i = 0; i < STAMPS.length; i++) if (STAMPS[i].id === id) { st.stamp = id; st.tool = 'stamp'; return; }
-  }
+  function chooseStamp(id) { if (st && stampById(id)) { st.stamp = id; st.tool = 'stamp'; } }
   // ない 大きさは かえない
   function setStampSize(id) {
     if (!st) return;
@@ -368,13 +493,13 @@
   function pushUndo() {
     var d = st.dom;
     if (!d) return;
-    st.undo.push({ p: d.pg.getImageData(0, 0, SIZE, SIZE), s: d.sg.getImageData(0, 0, SIZE, SIZE) });
+    st.undo.push({ p: d.pg.getImageData(0, 0, SIZE, SIZE), s: st.stamps.slice() });
     if (st.undo.length > MAX_UNDO) st.undo.shift();
   }
   function undo() {
     var d = st.dom, u = st.undo.pop();
     if (!d || !u) return;
-    d.pg.putImageData(u.p, 0, 0); d.sg.putImageData(u.s, 0, 0);
+    d.pg.putImageData(u.p, 0, 0); st.stamps = u.s; redrawStamps();
   }
   // 「ひとつ もどす」で もどせるので、確認は しない
   function clearAll() {
@@ -382,7 +507,7 @@
     if (!d) return;
     pushUndo();
     d.pg.fillStyle = '#ffffff'; d.pg.fillRect(0, 0, SIZE, SIZE);
-    d.sg.clearRect(0, 0, SIZE, SIZE);
+    st.stamps = []; redrawStamps();
   }
   // 色・線・スタンプを 1まいに 重ねる
   function compose() {
@@ -437,14 +562,13 @@
     ui.speak(TEXT.done);
   }
 
-  // さくひん
+  // さくひん：作成日つきで ならべる。タッチで 大きく 見て、「けす」→「けしても いい？」で 消せる
   function showWorks() {
     st.phase = 'works';
     if (!hasApp()) return;
     var ui = U();
     var app = ui.newScreen('nurie-works');
-    var bar = ui.topBar({ home: true });
-    app.appendChild(bar);
+    app.appendChild(ui.topBar({ home: true }));
     var body = ui.el('div', 'nu-works-body');
     var head = ui.el('div', 'nu-sel-head');
     head.appendChild(ui.el('p', 'nu-sel-title', TEXT.works));
@@ -460,15 +584,44 @@
       return;
     }
     var gridEl = ui.el('div', 'nu-works');
+    // 大きく 見る まど
     var big = ui.el('div', 'nu-big');
+    var bigBox = ui.el('div', 'nu-big-box');
     var bigImg = document.createElement('img'); bigImg.alt = '';
-    big.appendChild(bigImg);
-    big.addEventListener('click', function () { big.classList.remove('show'); });
+    var bigDate = ui.el('p', 'nu-big-date');
+    var bigBtns = ui.el('div', 'nu-big-btns');
+    var cur = null;
+    var delB = ui.button('btn-big secondary nu-del', function () { ui.play('tap'); askDel.classList.add('show'); ui.speak(TEXT.askDelete); });
+    delB.setAttribute('aria-label', 'けす'); delB.appendChild(ui.el('span', null, 'けす'));
+    var closeB = ui.button('btn-big', function () { ui.play('tap'); big.classList.remove('show'); });
+    closeB.setAttribute('aria-label', 'とじる'); closeB.appendChild(ui.el('span', null, 'とじる'));
+    bigBtns.appendChild(delB); bigBtns.appendChild(closeB);
+    // 「けしても いい？」
+    var askDel = ui.el('div', 'nu-ask');
+    askDel.appendChild(ui.el('p', 'nu-ask-msg', TEXT.askDelete));
+    var askBtns = ui.el('div', 'nu-ask-btns');
+    var yes = ui.button('btn-big nu-yes', function () {
+      ui.play('tap');
+      if (cur) deleteWork(st.profileId, cur.at);
+      showWorks();
+    });
+    yes.setAttribute('aria-label', 'はい'); yes.appendChild(ui.el('span', null, 'はい'));
+    var no = ui.button('btn-big secondary', function () { ui.play('tap'); askDel.classList.remove('show'); });
+    no.setAttribute('aria-label', 'いいえ'); no.appendChild(ui.el('span', null, 'いいえ'));
+    askBtns.appendChild(yes); askBtns.appendChild(no);
+    askDel.appendChild(askBtns);
+    bigBox.appendChild(bigImg); bigBox.appendChild(bigDate); bigBox.appendChild(bigBtns); bigBox.appendChild(askDel);
+    big.appendChild(bigBox);
+    big.addEventListener('click', function (ev) { if (ev.target === big) big.classList.remove('show'); });
     works.forEach(function (w) {
-      var b = ui.button('nu-work', function () { ui.play('tap'); bigImg.src = w.img; big.classList.add('show'); ui.speak(picName(w.pic)); });
+      var b = ui.button('nu-work', function () {
+        ui.play('tap'); cur = w; bigImg.src = w.img; bigDate.textContent = w.at ? dateText(w.at) : '';
+        askDel.classList.remove('show'); big.classList.add('show'); ui.speak(picName(w.pic));
+      });
       b.setAttribute('aria-label', picName(w.pic));
       var im = document.createElement('img'); im.src = w.img; im.alt = ''; im.draggable = false;
       b.appendChild(im);
+      if (w.at) b.appendChild(ui.el('span', 'nu-work-date', dateText(w.at)));
       gridEl.appendChild(b);
     });
     body.appendChild(gridEl);
@@ -477,12 +630,16 @@
     ui.speak(TEXT.works);
   }
 
-  function state() { return st ? { phase: st.phase, pic: st.pic, tool: st.tool, color: st.color, stamp: st.stamp, stampSize: st.stampSize, undo: (st.undo || []).length } : null; }
+  function state() {
+    return st ? { phase: st.phase, pic: st.pic, tool: st.tool, color: st.color, stamp: st.stamp, stampSize: st.stampSize, undo: (st.undo || []).length, stamps: (st.stamps || []).slice(), view: st.view } : null;
+  }
 
   C.nurie = {
-    AREA: AREA, SIZE: SIZE, MAX_WORKS: MAX_WORKS, MAX_UNDO: MAX_UNDO, PICS: PICS, STAMPS: STAMPS, STAMP_SIZES: STAMP_SIZES, COLORS: COLORS, TOOLS: TOOLS, TEXT: TEXT,
+    AREA: AREA, SIZE: SIZE, MAX_WORKS: MAX_WORKS, MAX_UNDO: MAX_UNDO, MAX_ZOOM: MAX_ZOOM, PICS: PICS, STAMPS: STAMPS, STAMP_SIZES: STAMP_SIZES,
+    COLORS: COLORS, TOOLS: TOOLS, TEXT: TEXT,
     makeMask: makeMask, fillRegion: fillRegion, paintRegion: paintRegion, loadImage: loadImage,
-    worksKey: worksKey, loadWorks: loadWorks, saveWork: saveWork, start: start,
+    pageCount: pageCount, turnPage: turnPage, hitStamp: hitStamp, clampView: clampView, dateText: dateText,
+    worksKey: worksKey, loadWorks: loadWorks, saveWork: saveWork, deleteWork: deleteWork, start: start,
     // テスト用
     _state: state, _pick: pick, _done: done, _setStampSize: setStampSize, _setTool: setTool, _chooseColor: chooseColor, _chooseStamp: chooseStamp
   };

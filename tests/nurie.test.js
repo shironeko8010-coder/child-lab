@@ -15,9 +15,9 @@
   function grid(rows) { var m = []; rows.forEach(function (r) { for (var i = 0; i < r.length; i++) m.push(r[i] === '#' ? 1 : 0); }); return Uint8Array.from(m); }
   function count(region) { var n = 0; for (var i = 0; i < region.length; i++) n += region[i]; return n; }
 
-  C.test('nurie: 絵16まい・スタンプ9こ・色12（名前は ひらがな、絵は nurieData に ある）', function () {
+  C.test('nurie: 絵32まい・スタンプ20こ・色20（名前は ひらがな、絵は nurieData に ある）', function () {
     var n = N(), D = C.nurieData;
-    C.assertEq(n.PICS.length, 16); C.assertEq(n.STAMPS.length, 9); C.assertEq(n.COLORS.length, 12);
+    C.assertEq(n.PICS.length, 32); C.assertEq(n.STAMPS.length, 20); C.assertEq(n.COLORS.length, 20);
     var bad = [];
     n.PICS.forEach(function (p) { if (!/^[ぁ-ゖー]+$/.test(p.name)) bad.push(p.id + ' 名前'); if (!/^data:image\/png;base64,/.test(D.pics[p.id] || '')) bad.push(p.id + ' 絵'); });
     n.STAMPS.forEach(function (s) { if (!/^[ぁ-ゖー]+$/.test(s.name)) bad.push(s.id + ' 名前'); if (!/^data:image\/png;base64,/.test(D.stamps[s.id] || '')) bad.push(s.id + ' 絵'); });
@@ -59,6 +59,58 @@
         C.assertEq([n._state().tool, n._state().color], ['brush', '#e2483d']);   // ふでの ときは ふでの まま
         n._chooseStamp('nai');                                                   // ない スタンプは えらばない
         C.assertEq(n._state().stamp, 'niji');
+      });
+    });
+  });
+
+  C.test('nurie: えらぶ画面の 矢印は ループする', function () {
+    var n = N();
+    C.assertEq(n.turnPage(0, -1, 4), 3); C.assertEq(n.turnPage(3, 1, 4), 0); C.assertEq(n.turnPage(1, 1, 4), 2);
+    C.assertEq(n.pageCount(), 4);
+  });
+
+  C.test('nurie: スタンプは 1こずつ 覚え、タッチした スタンプ（上に あるもの）を 1こ 消せる', function () {
+    var n = N();
+    var list = [{ id: 'hoshi', x: 100, y: 100, px: 104 }, { id: 'heart', x: 130, y: 100, px: 104 }, { id: 'niji', x: 400, y: 400, px: 64 }];
+    C.assertEq(n.hitStamp(list, 130, 100), 1);   // かさなって いたら 上（あとから 押した ほう）
+    C.assertEq(n.hitStamp(list, 60, 100), 0);
+    C.assertEq(n.hitStamp(list, 430, 400), -1);  // 小さい スタンプの 外
+    C.assertEq(n.hitStamp(list, 250, 250), -1);
+  });
+
+  C.test('nurie: 拡大は 1〜4ばい、絵の そとが 見えない ように 動きを おさえる', function () {
+    var n = N(), v;
+    v = n.clampView({ scale: 6, x: 0, y: 0 }, 400); C.assertEq(v.scale, 4);
+    v = n.clampView({ scale: 0.5, x: -50, y: 30 }, 400); C.assertEq([v.scale, v.x, v.y], [1, 0, 0]);
+    v = n.clampView({ scale: 2, x: 100, y: -900 }, 400); C.assertEq([v.x, v.y], [0, -400]);
+    v = n.clampView({ scale: 2, x: -150, y: -50 }, 400); C.assertEq([v.x, v.y], [-150, -50]);
+  });
+
+  C.test('nurie: 作成日は「11がつ28にち」の形', function () {
+    C.assertEq(N().dateText(new Date(2026, 10, 28, 9, 0).getTime()), '11がつ28にち');
+    C.assertEq(N().dateText(new Date(2027, 0, 5).getTime()), '1がつ5にち');
+  });
+
+  C.test('nurie: 作品を 1まいだけ 消せる', function () {
+    var n = N();
+    clearWorks(PID);
+    [1, 2, 3].forEach(function (i) { n.saveWork(PID, { pic: 'inu', at: i, img: 'data:image/jpeg;base64,AA' }); });
+    n.deleteWork(PID, 2);
+    C.assertEq(n.loadWorks(PID).map(function (w) { return w.at; }), [3, 1]);
+    n.deleteWork(PID, 99);
+    C.assertEq(n.loadWorks(PID).length, 2);
+    clearWorks(PID);
+  });
+
+  C.test('nurie: けすを えらべる', function () {
+    var n = N();
+    return withLogs([], function () {
+      return n.start(PID).then(function () {
+        n._pick('inu');
+        n._setTool('erase');
+        C.assertEq(n._state().tool, 'erase');
+        n._chooseColor('#e2483d');
+        C.assertEq(n._state().tool, 'fill');    // けすの ときに 色を えらんだら ぬる に もどる
       });
     });
   });

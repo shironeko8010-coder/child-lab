@@ -10,6 +10,9 @@
 
   var AREA = 'nurie';
   var SIZE = 512;          // 絵の 大きさ（点の数）
+  // 紙は 絵の まわりに PAD ずつ 余白を もつ（CANVAS×CANVAS）。たて向きは 上下、横向きは 左右の 余白が 見える（スタンプを 押す 場所）
+  var PAD = 64;
+  var CANVAS = SIZE + PAD * 2;
   var MAX_WORKS = 20;
   var MAX_UNDO = 12;
   var BRUSH = 14;          // ふでの 太さ
@@ -52,7 +55,7 @@
   var TEXT = {
     choose: 'どれを ぬる？', start: 'すきな いろで ぬってね', done: 'すてきな えが できたね！',
     works: 'さくひん', empty: 'まだ ないよ。ぬりえを してみよう', color: 'いろ', size: 'おおきさ',
-    cleared: 'ぜんぶ けしたよ', askDelete: 'けしても いい？', zoomReset: 'もとに もどす'
+    cleared: 'ぜんぶ けしたよ', askDelete: 'けしても いい？', zoomReset: 'もとに もどす', askDone: 'これで できあがり？'
   };
 
   /* ---------- 計算（画面に さわらない） ---------- */
@@ -128,11 +131,22 @@
     }
     return -1;
   }
-  // 拡大の ようす { scale, x, y }（x・y は 画面の 点で ずらす量）。1〜4ばい、絵の そとが 見えない ように おさえる
-  function clampView(v, size) {
+  // 拡大の ようす { scale, x, y }（x・y は 画面の 点で ずらす量）。1〜4ばい、紙の そとが 見えない ように おさえる。
+  // w・h：見える 大きさ。len：紙（正方形）の 大きさ。紙は まん中に 置き、はみ出す ぶん（余白）は かくれる
+  function clampView(v, w, h, len) {
     var s = Math.max(1, Math.min(MAX_ZOOM, v.scale || 1));
-    var min = size - size * s;
-    return { scale: s, x: s === 1 ? 0 : Math.max(min, Math.min(0, v.x)), y: s === 1 ? 0 : Math.max(min, Math.min(0, v.y)) };
+    if (s === 1) return { scale: 1, x: 0, y: 0 };
+    function axis(val, view) { var base = (view - len) / 2; return Math.max(view - len * s - base, Math.min(-base, val)); }
+    return { scale: s, x: axis(v.x, w), y: axis(v.y, h) };
+  }
+  // 拡大して いない ときに 見えている 紙の 範囲（紙 CANVAS の 中の 位置と 大きさ）。作品は ここだけを 保存する
+  function visibleRect(w, h, len) {
+    function axis(view) {
+      var size = Math.min(CANVAS, Math.round(view / len * CANVAS));
+      return { at: Math.round((CANVAS - size) / 2), size: size };
+    }
+    var ax = axis(w), ay = axis(h);
+    return { x: ax.at, y: ay.at, w: ax.size, h: ay.size };
   }
   function dateText(ts) { var d = new Date(ts); return (d.getMonth() + 1) + 'がつ' + d.getDate() + 'にち'; }
 
@@ -217,7 +231,7 @@
   function pick(id) {
     if (!st || st.phase !== 'select') return;
     st.pic = id; st.phase = 'paint'; st.tool = 'fill'; st.color = COLORS[0].hex; st.stamp = STAMPS[0].id; st.stampSize = 'm';
-    st.undo = []; st.mask = null; st.stamps = []; st.view = { scale: 1, x: 0, y: 0 };
+    st.undo = []; st.mask = null; st.stamps = []; st.view = { scale: 1, x: 0, y: 0 }; st.confirming = false;
     renderPaint();
     speak(TEXT.start);
   }
@@ -232,7 +246,7 @@
     var stage = ui.el('div', 'nu-stage');
     var zoomer = ui.el('div', 'nu-zoomer');   // 拡大は この中を 大きくする
     var paint = document.createElement('canvas'), stamp = document.createElement('canvas');
-    paint.width = paint.height = stamp.width = stamp.height = SIZE;
+    paint.width = paint.height = stamp.width = stamp.height = CANVAS;
     paint.className = 'nu-layer nu-paint'; stamp.className = 'nu-layer nu-stampl';
     var line = document.createElement('img');
     line.className = 'nu-layer nu-line'; line.alt = ''; line.draggable = false;
@@ -245,13 +259,16 @@
     zoomReset.appendChild(ui.el('span', null, TEXT.zoomReset));
     stage.appendChild(zoomReset);
     var pg = paint.getContext('2d'), sg = stamp.getContext('2d');
-    pg.fillStyle = '#ffffff'; pg.fillRect(0, 0, SIZE, SIZE);
+    pg.fillStyle = '#ffffff'; pg.fillRect(0, 0, CANVAS, CANVAS);
     body.appendChild(stage);
 
     // おうち・おんがく（ぬりえの ボタンとは 離して 置く）
     var bar = ui.topBar({ home: true });
     bar.classList.add('nu-bar');
-    body.appendChild(bar);
+    // 右の列（横向き）：上に おうち・おんがく、下に 道具。たて向きでは この まとまりを ほどいて 上と 下に 分ける
+    var right = ui.el('div', 'nu-right');
+    right.appendChild(bar);
+    body.appendChild(right);
     // 道具：ぬる・ふで／いろ・すたんぷ（押すと えらぶ まどが 開く）／けす（長押しで ぜんぶ）・もどす／できた（少し 離す）
     var side = ui.el('div', 'nu-side');
     function toolBtn(cls, label, fn) {
@@ -290,10 +307,10 @@
     var undoB = ui.button('nu-act a-undo', function () { ui.play('tap'); undo(); });
     undoB.setAttribute('aria-label', 'ひとつ もどす'); undoB.appendChild(ui.el('span', null, 'もどす'));
     side.appendChild(undoB);
-    var doneB = ui.button('nu-act a-done', function () { done(); });
+    var doneB = ui.button('nu-act a-done', function () { ui.play('tap'); askDone(); });
     doneB.setAttribute('aria-label', 'できた'); doneB.appendChild(ui.el('span', null, 'できた！'));
     side.appendChild(doneB);
-    body.appendChild(side);
+    right.appendChild(side);
     app.appendChild(body);
 
     // えらぶ まど（色・スタンプ）。まわりを さわると とじる
@@ -347,16 +364,31 @@
       pop.classList.add('show');
     }
 
+    // 「これで できあがり？」（はい：保存して できた画面へ／まだ：ぬる画面に もどる）
+    var ask = ui.el('div', 'nu-pop nu-done-ask');
+    var askBox = ui.el('div', 'nu-pop-panel nu-ask-box');
+    askBox.appendChild(ui.el('p', 'nu-ask-msg', TEXT.askDone));
+    var askBtns = ui.el('div', 'nu-ask-btns');
+    var yesB = ui.button('btn-big nu-yes-done', function () { ui.play('tap'); confirmDone(); });
+    yesB.setAttribute('aria-label', 'はい'); yesB.appendChild(ui.el('span', null, 'はい'));
+    var notB = ui.button('btn-big secondary', function () { ui.play('tap'); cancelDone(); });
+    notB.setAttribute('aria-label', 'まだ'); notB.appendChild(ui.el('span', null, 'まだ'));
+    askBtns.appendChild(yesB); askBtns.appendChild(notB);
+    askBox.appendChild(askBtns);
+    ask.appendChild(askBox);
+    ask.addEventListener('click', function (ev) { if (ev.target === ask) { ui.play('tap'); cancelDone(); } });
+    app.appendChild(ask);
+
     var stampImgs = {};
     STAMPS.forEach(function (s) { var im = new Image(); im.src = C.nurieData.stamps[s.id]; stampImgs[s.id] = im; });
-    st.dom = { sid: sid, stage: stage, zoomer: zoomer, zoomReset: zoomReset, paint: paint, stamp: stamp, line: line, pg: pg, sg: sg, stampImgs: stampImgs };
+    st.dom = { sid: sid, stage: stage, zoomer: zoomer, zoomReset: zoomReset, paint: paint, stamp: stamp, line: line, pg: pg, sg: sg, stampImgs: stampImgs, ask: ask };
 
     // 線の絵から「線か すき間か」を 調べる
     loadImage(C.nurieData.pics[st.pic]).then(function (im) {
-      var cv = document.createElement('canvas'); cv.width = cv.height = SIZE;
+      var cv = document.createElement('canvas'); cv.width = cv.height = CANVAS;
       var g = cv.getContext('2d');
-      g.drawImage(im, 0, 0, SIZE, SIZE);
-      if (st && st.dom && st.dom.sid === sid) { st.mask = makeMask(g.getImageData(0, 0, SIZE, SIZE)); st.lineImg = im; }
+      g.fillStyle = '#ffffff'; g.fillRect(0, 0, CANVAS, CANVAS); g.drawImage(im, PAD, PAD, SIZE, SIZE);
+      if (st && st.dom && st.dom.sid === sid) { st.mask = makeMask(g.getImageData(0, 0, CANVAS, CANVAS)); st.lineImg = im; }
     });
 
     // 道具の ボタンに いまの 道具・色・スタンプを 出す
@@ -371,16 +403,32 @@
     paintSide();
 
     // 拡大の ようすを 画面に
+    // 紙の 置き方：見える 大きさ（stage）の 短いほうを 絵（512）に 合わせ、紙（640）を まん中に 置く。
+    // たて向きは 上下、横向きは 左右の 余白が 見え、反対の 向きの 余白は かくれる
+    var lay = { w: 1, h: 1, len: 1, bx: 0, by: 0 };
+    function layout() {
+      var r = stage.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      var len = Math.min(r.width, r.height) * CANVAS / SIZE;
+      lay = { w: r.width, h: r.height, len: len, bx: (r.width - len) / 2, by: (r.height - len) / 2 };
+      if (st.dom) st.dom.lay = lay;   // 作品を 保存する とき、見えていた 範囲を 知るため
+      zoomer.style.width = zoomer.style.height = len + 'px';
+      zoomer.style.left = lay.bx + 'px'; zoomer.style.top = lay.by + 'px';
+      setView(st.view || { scale: 1, x: 0, y: 0 });
+    }
     function setView(v) {
-      st.view = clampView(v, stage.getBoundingClientRect().width || 1);
+      st.view = clampView(v, lay.w, lay.h, lay.len);
       zoomer.style.transform = 'translate(' + st.view.x + 'px,' + st.view.y + 'px) scale(' + st.view.scale + ')';
       zoomReset.classList.toggle('show', st.view.scale > 1.01);
     }
+    layout();
+    if (window.ResizeObserver) new ResizeObserver(function () { if (st && st.dom && st.dom.sid === sid) layout(); }).observe(stage);
+    else window.addEventListener('resize', function () { if (st && st.dom && st.dom.sid === sid) layout(); });
 
     // 絵の上の 指。1本指：道具を つかう（ぬる・けす・スタンプは 指を はなしたとき）。2本指：拡大・移動
     var ptrs = {}, g = null;
     function count() { return Object.keys(ptrs).length; }
-    function at(cx, cy) { var r = zoomer.getBoundingClientRect(); return { x: (cx - r.left) / r.width * SIZE, y: (cy - r.top) / r.height * SIZE }; }
+    function at(cx, cy) { var r = zoomer.getBoundingClientRect(); return { x: (cx - r.left) / r.width * CANVAS, y: (cy - r.top) / r.height * CANVAS }; }
     function two() { var k = Object.keys(ptrs); return [ptrs[k[0]], ptrs[k[1]]]; }
     stage.addEventListener('pointerdown', function (ev) {
       if (!st || st.phase !== 'paint' || ev.target === zoomReset || zoomReset.contains(ev.target)) return;
@@ -411,8 +459,10 @@
         var d = Math.hypot(pr[0].x - pr[1].x, pr[0].y - pr[1].y) || 1;
         var mx = (pr[0].x + pr[1].x) / 2 - r.left, my = (pr[0].y + pr[1].y) / 2 - r.top;
         var s = g.v0.scale * d / g.d0;
-        var cx = (g.mx - g.v0.x) / g.v0.scale, cy = (g.my - g.v0.y) / g.v0.scale;   // 指の まん中に ある 絵の 点
-        setView({ scale: s, x: mx - cx * Math.max(1, Math.min(MAX_ZOOM, s)), y: my - cy * Math.max(1, Math.min(MAX_ZOOM, s)) });
+        // 指の まん中に ある 紙の 点（拡大前の 大きさで）が、動いた 指の まん中に くるように
+        var cx = (g.mx - lay.bx - g.v0.x) / g.v0.scale, cy = (g.my - lay.by - g.v0.y) / g.v0.scale;
+        var sc = Math.max(1, Math.min(MAX_ZOOM, s));
+        setView({ scale: s, x: mx - lay.bx - cx * sc, y: my - lay.by - cy * sc });
         return;
       }
       if (g.mode !== 'one') return;
@@ -447,10 +497,10 @@
           if (i >= 0) { pushUndo(); st.stamps.splice(i, 1); redrawStamps(); play('tap'); return; }
         }
         if (!st.mask) return;
-        var region = fillRegion(st.mask, SIZE, SIZE, p.x, p.y, EDGE);
+        var region = fillRegion(st.mask, CANVAS, CANVAS, p.x, p.y, EDGE);
         if (!region) return;
         pushUndo();
-        var img = pg.getImageData(0, 0, SIZE, SIZE);
+        var img = pg.getImageData(0, 0, CANVAS, CANVAS);
         paintRegion(img.data, region, st.tool === 'erase' ? '#ffffff' : st.color);
         pg.putImageData(img, 0, 0);
         play('tap');
@@ -469,7 +519,7 @@
   function redrawStamps() {
     var d = st.dom;
     if (!d) return;
-    d.sg.clearRect(0, 0, SIZE, SIZE);
+    d.sg.clearRect(0, 0, CANVAS, CANVAS);
     st.stamps.forEach(function (s) {
       var im = d.stampImgs[s.id];
       if (im && im.complete) d.sg.drawImage(im, s.x - s.px / 2, s.y - s.px / 2, s.px, s.px);
@@ -493,7 +543,7 @@
   function pushUndo() {
     var d = st.dom;
     if (!d) return;
-    st.undo.push({ p: d.pg.getImageData(0, 0, SIZE, SIZE), s: st.stamps.slice() });
+    st.undo.push({ p: d.pg.getImageData(0, 0, CANVAS, CANVAS), s: st.stamps.slice() });
     if (st.undo.length > MAX_UNDO) st.undo.shift();
   }
   function undo() {
@@ -506,21 +556,46 @@
     var d = st.dom;
     if (!d) return;
     pushUndo();
-    d.pg.fillStyle = '#ffffff'; d.pg.fillRect(0, 0, SIZE, SIZE);
+    d.pg.fillStyle = '#ffffff'; d.pg.fillRect(0, 0, CANVAS, CANVAS);
     st.stamps = []; redrawStamps();
   }
   // 色・線・スタンプを 1まいに 重ねる
   function compose() {
     var d = st.dom;
     if (!d || !st.lineImg) return '';
-    var cv = document.createElement('canvas'); cv.width = cv.height = SIZE;
+    var cv = document.createElement('canvas'); cv.width = cv.height = CANVAS;
     var g = cv.getContext('2d');
     g.drawImage(d.paint, 0, 0);
     g.globalCompositeOperation = 'multiply';
-    g.drawImage(st.lineImg, 0, 0, SIZE, SIZE);
+    g.drawImage(st.lineImg, PAD, PAD, SIZE, SIZE);
     g.globalCompositeOperation = 'source-over';
     g.drawImage(d.stamp, 0, 0);
-    try { return cv.toDataURL('image/jpeg', 0.85); } catch (e) { return ''; }
+    // 見えていた 範囲だけを 切りだす（たて向きなら たて長、横向きなら 横長）
+    var lay = d.lay, out = cv;
+    if (lay && lay.len) {
+      var v = visibleRect(lay.w, lay.h, lay.len);
+      out = document.createElement('canvas'); out.width = v.w; out.height = v.h;
+      out.getContext('2d').drawImage(cv, v.x, v.y, v.w, v.h, 0, 0, v.w, v.h);
+    }
+    try { return out.toDataURL('image/jpeg', 0.85); } catch (e) { return ''; }
+  }
+
+  // 「できた！」：まず 聞く（まちがえて 押しても すぐに 終わらない）
+  function askDone() {
+    if (!st || st.phase !== 'paint') return;
+    st.confirming = true;
+    if (st.dom && st.dom.ask) st.dom.ask.classList.add('show');
+    speak(TEXT.askDone);
+  }
+  function cancelDone() {
+    if (!st) return;
+    st.confirming = false;
+    if (st.dom && st.dom.ask) st.dom.ask.classList.remove('show');
+  }
+  function confirmDone() {
+    if (!st || !st.confirming) return;
+    st.confirming = false;
+    done();
   }
 
   function done() {
@@ -631,16 +706,17 @@
   }
 
   function state() {
-    return st ? { phase: st.phase, pic: st.pic, tool: st.tool, color: st.color, stamp: st.stamp, stampSize: st.stampSize, undo: (st.undo || []).length, stamps: (st.stamps || []).slice(), view: st.view } : null;
+    return st ? { phase: st.phase, confirming: !!st.confirming, pic: st.pic, tool: st.tool, color: st.color, stamp: st.stamp, stampSize: st.stampSize, undo: (st.undo || []).length, stamps: (st.stamps || []).slice(), view: st.view } : null;
   }
 
   C.nurie = {
-    AREA: AREA, SIZE: SIZE, MAX_WORKS: MAX_WORKS, MAX_UNDO: MAX_UNDO, MAX_ZOOM: MAX_ZOOM, PICS: PICS, STAMPS: STAMPS, STAMP_SIZES: STAMP_SIZES,
+    AREA: AREA, SIZE: SIZE, PAD: PAD, CANVAS: CANVAS, MAX_WORKS: MAX_WORKS, MAX_UNDO: MAX_UNDO, MAX_ZOOM: MAX_ZOOM, PICS: PICS, STAMPS: STAMPS, STAMP_SIZES: STAMP_SIZES,
     COLORS: COLORS, TOOLS: TOOLS, TEXT: TEXT,
     makeMask: makeMask, fillRegion: fillRegion, paintRegion: paintRegion, loadImage: loadImage,
-    pageCount: pageCount, turnPage: turnPage, hitStamp: hitStamp, clampView: clampView, dateText: dateText,
+    pageCount: pageCount, turnPage: turnPage, hitStamp: hitStamp, clampView: clampView, visibleRect: visibleRect, dateText: dateText,
     worksKey: worksKey, loadWorks: loadWorks, saveWork: saveWork, deleteWork: deleteWork, start: start,
     // テスト用
-    _state: state, _pick: pick, _done: done, _setStampSize: setStampSize, _setTool: setTool, _chooseColor: chooseColor, _chooseStamp: chooseStamp
+    _state: state, _pick: pick, _done: done, _setStampSize: setStampSize, _setTool: setTool, _chooseColor: chooseColor, _chooseStamp: chooseStamp,
+    _askDone: askDone, _cancelDone: cancelDone, _confirmDone: confirmDone
   };
 })();

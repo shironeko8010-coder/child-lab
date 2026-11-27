@@ -80,10 +80,40 @@
 
   C.test('nurie: 拡大は 1〜4ばい、絵の そとが 見えない ように 動きを おさえる', function () {
     var n = N(), v;
-    v = n.clampView({ scale: 6, x: 0, y: 0 }, 400); C.assertEq(v.scale, 4);
-    v = n.clampView({ scale: 0.5, x: -50, y: 30 }, 400); C.assertEq([v.scale, v.x, v.y], [1, 0, 0]);
-    v = n.clampView({ scale: 2, x: 100, y: -900 }, 400); C.assertEq([v.x, v.y], [0, -400]);
-    v = n.clampView({ scale: 2, x: -150, y: -50 }, 400); C.assertEq([v.x, v.y], [-150, -50]);
+    v = n.clampView({ scale: 6, x: 0, y: 0 }, 400, 400, 400); C.assertEq(v.scale, 4);
+    v = n.clampView({ scale: 0.5, x: -50, y: 30 }, 400, 400, 400); C.assertEq([v.scale, v.x, v.y], [1, 0, 0]);
+    v = n.clampView({ scale: 2, x: 100, y: -900 }, 400, 400, 400); C.assertEq([v.x, v.y], [0, -400]);
+    v = n.clampView({ scale: 2, x: -150, y: -50 }, 400, 400, 400); C.assertEq([v.x, v.y], [-150, -50]);
+    // 横向き（見える はば 500・高さ 400、紙 500×500 の 上下は かくれている）
+    v = n.clampView({ scale: 2, x: 100, y: 100 }, 500, 400, 500); C.assertEq([v.x, v.y], [0, 50]);
+    v = n.clampView({ scale: 2, x: -900, y: -900 }, 500, 400, 500); C.assertEq([v.x, v.y], [-500, -550]);
+  });
+
+  C.test('nurie: 紙は 絵（512）の まわりに 64ずつ 余白（640）。たては 上下、横は 左右の 余白が 見える', function () {
+    var n = N();
+    C.assertEq([n.SIZE, n.PAD, n.CANVAS], [512, 64, 640]);
+    // 作品は 見えていた 範囲だけ（紙 640 の 中の 位置と 大きさ）
+    C.assertEq(n.visibleRect(500, 400, 500), { x: 0, y: 64, w: 640, h: 512 });   // 横向き：左右の 余白
+    C.assertEq(n.visibleRect(400, 500, 500), { x: 64, y: 0, w: 512, h: 640 });   // たて向き：上下の 余白
+    C.assertEq(n.visibleRect(400, 400, 500), { x: 64, y: 64, w: 512, h: 512 });  // 余白が 見えない とき
+    C.assertEq(n.visibleRect(450, 400, 500), { x: 32, y: 64, w: 576, h: 512 });  // 少しだけ 見える とき
+  });
+
+  C.test('nurie: できた！は 一度 聞く（はい で 保存、まだ で もどる）', function () {
+    var n = N();
+    clearWorks(PID);
+    return withLogs([], function (saved) {
+      return n.start(PID).then(function () {
+        n._pick('inu');
+        n._askDone();
+        C.assertEq([n._state().phase, n._state().confirming], ['paint', true]);
+        n._cancelDone();
+        C.assertEq([n._state().phase, n._state().confirming, n.loadWorks(PID).length], ['paint', false, 0]);
+        n._askDone(); n._confirmDone();
+        C.assertEq([n._state().phase, n.loadWorks(PID).length, saved.length], ['done', 1, 1]);
+        clearWorks(PID);
+      });
+    });
   });
 
   C.test('nurie: 作成日は「11がつ28にち」の形', function () {

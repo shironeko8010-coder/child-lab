@@ -255,9 +255,10 @@
   C.test('home: 並びとページ', function () {
     var H = C.chiikuHome;
     C.assertEq(H.PER_PAGE, 6);
-    C.assertEq(H.pageCount(), 2);
+    C.assertEq(H.pageCount(), 3);
     C.assertEq(H.kinds(0).join(','), 'hira,kazu,tokei,iro,machi,kai');
     C.assertEq(H.kinds(1).join(','), 'sr,dou,meiro,kioku,kage,ten');
+    C.assertEq(H.kinds(2).join(','), 'nakama');
   });
 
   C.test('home: 遊びのあるページを返す', function () {

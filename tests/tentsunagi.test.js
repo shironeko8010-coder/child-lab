@@ -142,7 +142,7 @@
   });
 
   C.test('tentsunagi: ホーム・親画面・カードの色・PRECACHE', function () {
-    C.assertEq(C.chiikuHome.ORDER[C.chiikuHome.ORDER.length - 1], 'ten');
+    C.assertEq(C.chiikuHome.ORDER.indexOf('ten') >= 0, true);
     return fetch('../shared/parent.js').then(function (r) { return r.text(); }).then(function (t) {
       C.assertEq(/tentsunagi: 'てんつなぎ'/.test(t), true);
       return fetch('../app-chiiku/app.css');

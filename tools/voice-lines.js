@@ -109,6 +109,19 @@
     range(1, 14).forEach(function (n) { add(TN.numYomi(n)); add(TN.nextText(n)); });
     TN.PICS.forEach(function (p) { add(TN.doneText(p)); });
 
+    where = 'ちいく なかまわけ';
+    var NK = C.nakama;
+    Object.keys(NK.TEXT).forEach(function (k) { add(NK.TEXT[k]); });
+    NK.RULE_TYPES.forEach(function (rt) {
+      var R = NK.RULES[rt];
+      add(NK.ruleText(rt));
+      R.values.forEach(function (v) {
+        var lb = NK.label(rt, v);
+        add(lb);
+        NK.ITEMS.forEach(function (it) { if (it[R.key] === v) add(NK.placeText(it, { label: lb })); });
+      });
+    });
+
     where = 'ちいく どうとく';
     var D = C.chiikuDoutoku;
     D.SCENES.concat(D.OPEN).forEach(function (sc) {

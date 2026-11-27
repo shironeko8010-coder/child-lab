@@ -1,6 +1,6 @@
 /* Service Worker：ネットワーク優先＋オフライン用の保存。外部への通信はしない。 */
 'use strict';
-var CACHE_NAME = 'chiid-v57'; // ファイルを変えたら番号を上げる
+var CACHE_NAME = 'chiid-v58'; // ファイルを変えたら番号を上げる
 // 読み上げの音声ファイル（VOICEVOX:ずんだもん）の対応表。音声ファイルも保存して、オフラインで鳴らす
 try { importScripts('shared/voice-clips.js'); } catch (e) { /* なくても動く */ }
 function voiceFiles() {
@@ -51,6 +51,12 @@ var PRECACHE = [
   'app-chiiku/tokei.js',
   'app-chiiku/iro.js',
   'app-chiiku/machigai.js',
+  'app-chiiku/img/machigai/park.jpg',
+  'app-chiiku/img/machigai/beach.jpg',
+  'app-chiiku/img/machigai/forest.jpg',
+  'app-chiiku/img/machigai/snow.jpg',
+  'app-chiiku/img/machigai/flower.jpg',
+  'app-chiiku/img/machigai/sunset.jpg',
   'app-chiiku/doutoku.js',
   'app-chiiku/okaimono.js',
   'app-chiiku/shiritori.js',

@@ -16,6 +16,8 @@
   var TAP_BOTH = true;           // true: 左右どちらの絵を押してもよい／false: 右の絵だけ
   var W = 400, H = 300;
   var KINDS = ['iro', 'nai', 'ookisa'];   // いろが ちがう／ない／おおきさが ちがう
+  // 背景の絵（FigmaのAIで作った水彩画。app-chiiku/img/machigai/○○.jpg）。問題ごとに1まい えらぶ
+  var BGS = ['park', 'beach', 'forest', 'snow', 'flower', 'sunset'];
   var KAZU_YOMI = ['', 'ひとつ', 'ふたつ', 'みっつ'];
 
   // 色（草の みどりと まぎれないよう、みどりは使わない）
@@ -31,7 +33,7 @@
      h: 絵の中心が、置き場所の点から どれだけ上か。r: だいたいの半径（当たり判定に使う）
      color: 色を変えられる部品だけ true。draw(c) は原点を置き場所の点として描く */
   function circ(x, y, r, fill, extra) { return '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="' + fill + '"' + (extra || '') + '/>'; }
-  var LINE = ' stroke="#5a4632" stroke-width="3" stroke-linejoin="round"';
+  var LINE = ' stroke="#6b5640" stroke-width="2.5" stroke-linejoin="round"';   // 水彩の背景に なじむよう、少し細く やわらかい色
   var PARTS = {
     sun: { zone: 'sky', size: 'big', h: 0, r: 36, color: false, draw: function () {
       var s = '';
@@ -42,9 +44,14 @@
       }
       return s + circ(0, 0, 22, '#ffd23f', ' stroke="#f0a800" stroke-width="3"');
     } },
-    cloud: { zone: 'sky', size: 'big', h: 0, r: 42, color: false, draw: function () {
-      return '<g fill="#ffffff" stroke="#c9dbe8" stroke-width="2">' + circ(-22, 4, 17, '#fff') + circ(22, 4, 17, '#fff') + circ(0, -8, 24, '#fff') +
-        '<rect x="-22" y="0" width="44" height="21" stroke="none"/></g>';
+    // くもは 背景の絵の くもと まぎれるので、ひこうきに かえた
+    hikouki: { zone: 'sky', size: 'big', h: 0, r: 42, color: true, draw: function (c) {
+      return '<path d="M-2 -6 L-12 -22 L-2 -22 L12 -7 Z" fill="' + c + '"' + LINE + '/>' +
+        '<path d="M-28 -6 L-38 -24 L-27 -24 L-14 -8 Z" fill="' + c + '"' + LINE + '/>' +
+        '<path d="M-36 0 Q-36 -9 -22 -9 L26 -9 Q40 -9 42 0 Q40 9 26 9 L-22 9 Q-36 9 -36 0 Z" fill="#ffffff"' + LINE + '/>' +
+        '<path d="M-36 2 L42 2 Q40 9 26 9 L-22 9 Q-36 9 -36 2 Z" fill="' + c + '"/>' +
+        circ(-10, -2, 3.5, '#bfe6f5') + circ(0, -2, 3.5, '#bfe6f5') + circ(10, -2, 3.5, '#bfe6f5') + '<path d="M28 -6 Q36 -5 38 -1 L28 -1 Z" fill="#bfe6f5"/>' +
+        '<path d="M-4 4 L-14 24 L-3 24 L14 5 Z" fill="' + c + '"' + LINE + '/>';
     } },
     bird: { zone: 'sky', size: 'small', h: 0, r: 20, color: true, draw: function (c) {
       return '<ellipse cx="0" cy="0" rx="17" ry="12" fill="' + c + '"' + LINE + '/>' + circ(9, -4, 2.5, '#3a3a3a') +
@@ -164,7 +171,9 @@
       // 当たり判定は「もとの大きさ」の位置で（小さく なった絵の まわりを押しても当たる）
       diffs.push({ slot: idx, kind: kind, x: p.x, y: p.y - def.h, r: Math.max(MIN_HIT_R, Math.round(def.r * 1.15)) });
     }
-    return { level: level, left: left, right: right, diffs: diffs, itemId: diffs.map(function (d) { return d.kind; }).join('+') };
+    // 背景は 最後に えらぶ（それまでの 乱数の 使い方を かえない）
+    var bg = pickOne(BGS, rng);
+    return { level: level, left: left, right: right, diffs: diffs, bg: bg, itemId: diffs.map(function (d) { return d.kind; }).join('+') };
   }
 
   // 絵の中の座標 (x, y) が当たった違いの番号。なければ -1。
@@ -181,13 +190,18 @@
     return best;
   }
 
-  function sceneSvg(parts) {
+  // bg（BGS の名前）を わたすと 背景の絵を しく。わたさないときは 空の色と 山なりの地面
+  function sceneSvg(parts, bg) {
     var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">';
     s += '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#d9f1fb"/>';
-    s += '<path d="M0 178 Q100 160 200 176 T400 172 L400 300 L0 300 Z" fill="#a6dd8a"/>';
+    if (bg) s += '<image href="img/machigai/' + bg + '.jpg" x="0" y="0" width="' + W + '" height="' + H + '" preserveAspectRatio="xMidYMid slice"/>';
+    else s += '<path d="M0 178 Q100 160 200 176 T400 172 L400 300 L0 300 Z" fill="#a6dd8a"/>';
     (parts || []).forEach(function (p) {
       if (p.hidden) return;
-      s += '<g transform="translate(' + p.x + ' ' + p.y + ') scale(' + p.s + ')">' + PARTS[p.type].draw(p.color) + '</g>';
+      var def = PARTS[p.type];
+      // 地面に 立つ部品は、足もとに うすい かげ（絵から うかないように）
+      var shadow = def.zone === 'sky' ? '' : '<ellipse class="mg-shadow" cx="0" cy="0" rx="' + Math.round(def.r * 0.8) + '" ry="7" fill="#3a2a1a" opacity=".18"/>';
+      s += '<g transform="translate(' + p.x + ' ' + p.y + ') scale(' + p.s + ')">' + shadow + def.draw(p.color) + '</g>';
     });
     return s + '</svg>';
   }
@@ -290,7 +304,7 @@
       var box = ui.el('div', 'mg-pic' + (side === 1 || TAP_BOTH ? ' tappable' : ''));
       box.setAttribute('role', 'img');
       box.setAttribute('aria-label', side === 0 ? 'ひだりの え' : 'みぎの え');
-      box.innerHTML = sceneSvg(parts);
+      box.innerHTML = sceneSvg(parts, prob.bg);
       var s = box.firstChild;
       svgs.push(s);
       if (side === 1 || TAP_BOTH) box.addEventListener('pointerdown', function (ev) { onTap(ev, s); });
@@ -431,7 +445,7 @@
   }
 
   C.machigai = {
-    AREA: AREA, MAX_LEVEL: MAX_LEVEL, ROUND_SIZE: ROUND_SIZE, KINDS: KINDS, PARTS: PARTS, SLOTS: SLOTS,
+    AREA: AREA, MAX_LEVEL: MAX_LEVEL, ROUND_SIZE: ROUND_SIZE, KINDS: KINDS, PARTS: PARTS, SLOTS: SLOTS, BGS: BGS,
     W: W, H: H, MIN_HIT_R: MIN_HIT_R,
     levelConfig: levelConfig, makeProblem: makeProblem, hitTest: hitTest, sceneSvg: sceneSvg,
     progressFromLogs: progressFromLogs, askText: askText, start: start

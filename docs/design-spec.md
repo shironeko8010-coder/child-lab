@@ -13,7 +13,7 @@
 | 保存 | localStorage（設定）＋IndexedDB（学習ログ） |
 | 音声読み上げ | VOICEVOX:ずんだもん の音声ファイル（`voice/z/`）。ファイルがない文は Web Speech API（端末の日本語音声）。詳しくは `docs/superpowers/specs/2026-11-11-voice-zundamon-design.md` |
 | 効果音・BGM | WebAudio で合成 |
-| イラスト | SVG + CSSアニメーション |
+| イラスト | SVG + CSSアニメーション。例外：知育「まちがいさがし」の背景だけは画像（FigmaのAIで作った水彩画6まい、`app-chiiku/img/machigai/*.jpg`、960×720）。まちがいの部品はSVGのまま |
 | オフライン | Service Worker + manifest.json |
 | なぞり書き判定 | 薄い文字に重なる割合で判定（書き順は判定しない） |
 

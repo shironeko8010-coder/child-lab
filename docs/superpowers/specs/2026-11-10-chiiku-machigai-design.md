@@ -59,3 +59,10 @@
   - `progressFromLogs(logs)`：記録からレベルと苦手を出す
 - 画面部品は `Chiid.chiikuUi`（game.js）を使う。足りなければ最小限で足す。
 - `sw.js` の PRECACHE に追加し CACHE_NAME を上げる。テスト `tests/machigai.test.js`。
+
+## 追記（2026-11-27）絵の作り替え
+- 背景を、FigmaのAIで作った水彩画にした（公園・海辺・森・雪・花畑・夕やけの6まい）。問題ごとに1まい えらぶ（`makeProblem` の戻り値 `bg`）。
+  - ファイルは `app-chiiku/img/machigai/<名前>.jpg`（960×720）。元の画像（1280×960のPNG）は `archive/proto-src/` に置いた。
+  - Figmaの規約では、AIで作った画像は作った人のもの（ただし独占ではない）。https://www.figma.com/legal/ai-terms/
+- まちがいの部品はSVGのまま。背景になじむよう、線を少し細く・やわらかい色にし、地面の部品の足もとに うすい かげを つけた。
+- 「くも」の部品は、背景の くもと まぎれるので「ひこうき」（色が かわる部品）に かえた。

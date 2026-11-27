@@ -108,6 +108,43 @@
     Object.keys(M.PARTS).forEach(function (k) { M.sceneSvg([{ type: k, x: 0, y: 0, s: 1, color: '#2f7fd6' }]); });
   });
 
+  C.test('machigai: 背景は6まいの絵から えらぶ（問題ごとに かわる）', function () {
+    C.assertEq(M.BGS, ['park', 'beach', 'forest', 'snow', 'flower', 'sunset']);
+    var seen = {};
+    for (var r = 0; r < 200; r++) {
+      var p = M.makeProblem({ level: 1 + (r % 3) }, seeded(7000 + r));
+      if (M.BGS.indexOf(p.bg) < 0) throw new Error('bg ' + p.bg);
+      seen[p.bg] = true;
+    }
+    C.assertEq(Object.keys(seen).length, M.BGS.length);
+  });
+
+  C.test('machigai: sceneSvg は 背景の絵を しき、地面の部品に かげを つける', function () {
+    var parts = [{ type: 'house', x: 75, y: 205, s: 1, color: '#e2483d', hidden: false },
+                 { type: 'sun', x: 70, y: 55, s: 1, color: null, hidden: false }];
+    var s = M.sceneSvg(parts, 'snow');
+    C.assertEq(s.indexOf('href="img/machigai/snow.jpg"') >= 0, true);
+    C.assertEq(s.indexOf('M0 178 Q100 160') < 0, true);          // 前の 山なりの地面は 描かない
+    C.assertEq((s.match(/class="mg-shadow"/g) || []).length, 1); // かげは 地面の部品（家）だけ
+    // 背景を わたさないときは 前のまま（空の色と 地面）
+    C.assertEq(M.sceneSvg(parts).indexOf('M0 178 Q100 160') >= 0, true);
+  });
+
+  C.test('machigai: くもの部品は つかわない（背景の くもと まぎれるため）。かわりに ひこうき', function () {
+    C.assertEq(M.PARTS.cloud, undefined);
+    C.assertEq(M.PARTS.hikouki.zone, 'sky');
+    C.assertEq(M.PARTS.hikouki.size, 'big');
+    C.assertEq(M.PARTS.hikouki.color, true);
+  });
+
+  C.test('machigai: 背景の絵は すべて PRECACHE に入っている', function () {
+    return fetch('../sw.js').then(function (r) { return r.text(); }).then(function (t) {
+      M.BGS.forEach(function (b) {
+        if (t.indexOf("'app-chiiku/img/machigai/" + b + ".jpg'") < 0) throw new Error(b + ' が PRECACHE にない');
+      });
+    });
+  });
+
   C.test('machigai: 声のことばは ひらがなだけ', function () {
     [1, 2, 3].forEach(function (n) { C.assertEq(/^[ぁ-ゖ ]+$/.test(M.askText(n)), true); });
   });

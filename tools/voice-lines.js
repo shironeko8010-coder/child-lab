@@ -122,6 +122,12 @@
       });
     });
 
+    where = 'ちいく ぬりえ';
+    var NU = C.nurie;
+    Object.keys(NU.TEXT).forEach(function (k) { add(NU.TEXT[k]); });
+    NU.TOOLS.concat(NU.COLORS, NU.STAMPS, NU.STAMP_SIZES, NU.PICS).forEach(function (x) { add(x.name); });
+    add('いろ');
+
     where = 'ちいく どうとく';
     var D = C.chiikuDoutoku;
     D.SCENES.concat(D.OPEN).forEach(function (sc) {

@@ -1345,3 +1345,104 @@
   .nk-baskets.k3 .nk-label { font-size: 16px; padding: 0 6px; }
 }
 @media (prefers-reduced-motion: reduce) { .nk-card, .nk-card.shake, .nk-basket.pop, .nk-basket.happy, .nk-card.hint { animation: none; transition: none; } }
+
+/* ===== ぬりえ（nurie.js）。設計書：docs/superpowers/specs/2026-11-27-chiiku-nurie-design.md ===== */
+.hc-nurie { background: #d9668f; }
+/* えらぶ・さくひん */
+.nu-sel-body, .nu-works-body { flex: 1 1 auto; min-height: 0; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.nu-sel-head { display: flex; align-items: center; justify-content: center; gap: 18px; }
+.nu-sel-title { margin: 0; font-size: clamp(20px, 3vw, 32px); font-weight: 700; }
+.nu-works-btn, .nu-sel-head .btn-big { min-height: 56px; padding: 6px 20px; font-size: 20px; }
+.nu-sel-row { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
+.nu-prev svg { transform: scaleX(-1); }
+.nu-grid { display: grid; grid-template-columns: repeat(4, auto); gap: 12px; }
+.nu-pic, .nu-work { width: min(18vw, calc((var(--vh) * 100 - 190px) / 2), 180px); height: min(18vw, calc((var(--vh) * 100 - 190px) / 2), 180px); min-width: 56px; min-height: 56px; padding: 6px; border: 0; border-radius: 18px; background: #fff; box-shadow: 0 5px 0 #e2d6c2; cursor: pointer; }
+.nu-pic img, .nu-work img { width: 100%; height: 100%; object-fit: contain; border-radius: 10px; pointer-events: none; }
+.nu-pic:active, .nu-work:active { transform: translateY(3px); box-shadow: 0 2px 0 #e2d6c2; }
+.nu-works { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-wrap: wrap; align-content: flex-start; justify-content: center; gap: 12px; width: 100%; padding-bottom: 8px; }
+.nu-empty { font-size: 22px; margin-top: 30px; }
+.nu-big { position: fixed; inset: 0; z-index: 50; background: rgba(40, 30, 20, .55); display: none; align-items: center; justify-content: center; }
+.nu-big.show { display: flex; }
+.nu-big img { width: min(90vw, calc(var(--vh) * 90)); height: auto; border-radius: 20px; background: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+/* ぬる：絵を できるだけ 大きく。横向きは 左に 絵、右の列の 上に おうち・おんがく、下に ぬりえの ボタン（間を あけて 押しまちがいを ふせぐ）。
+   たて向きは 上に おうち・おんがく、まん中に 絵、下に ぬりえの ボタン */
+.nu-body { flex: 1 1 auto; min-height: 0; width: 100%; display: grid; grid-template-columns: auto auto; grid-template-rows: auto 1fr; grid-template-areas: "stage bar" "stage side"; column-gap: 22px; row-gap: 16px; justify-content: center; align-content: center; }
+.nu-stage { grid-area: stage; position: relative; width: min(calc(var(--vh) * 100 - 36px), calc(100vw - 310px), 960px); aspect-ratio: 1; border-radius: 18px; overflow: hidden; background: #fff; box-shadow: 0 5px 0 #e2d6c2; touch-action: none; cursor: crosshair; }
+.nu-layer { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.nu-line { mix-blend-mode: multiply; pointer-events: none; }
+.nu-stampl { pointer-events: none; }
+.nu-bar { grid-area: bar; min-height: 0 !important; justify-content: space-between; align-self: start; }
+.nu-side { grid-area: side; align-self: end; display: grid; grid-template-columns: repeat(2, 120px); gap: 12px; }
+.nu-tool, .nu-act { min-width: 56px; min-height: 86px; padding: 6px 8px; border: 0; border-radius: 18px; background: #fff; box-shadow: 0 5px 0 #e2d6c2; font: inherit; font-size: 21px; font-weight: 700; color: #3a3a3a; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; line-height: 1.1; white-space: nowrap; }
+.nu-tool.on { background: #ff9f43; color: #fff; box-shadow: 0 5px 0 #d9792b; }
+.nu-tool-ico { width: 38px; height: 32px; background: center / contain no-repeat; }
+.nu-tool.t-fill .nu-tool-ico { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 11 L12 4 L19 11 L12 18 Z' fill='%23ffd23f' stroke='%233a3a3a' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M20 14 q2 3 0 5 q-2 -2 0 -5z' fill='%232f6fd6'/%3E%3C/svg%3E"); }
+.nu-tool.t-brush .nu-tool-ico { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 20 L16 6' stroke='%23e2483d' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M16 6 L20 2' stroke='%239a6a42' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"); }
+.nu-tool.t-color .nu-tool-ico { width: 34px; height: 34px; border-radius: 50%; background: var(--sw, #e2483d); box-shadow: inset 0 0 0 2px rgba(0,0,0,.25); }
+.nu-tool.t-stamp .nu-tool-ico { width: 38px; height: 34px; background-image: var(--st); }
+.nu-act.a-done { grid-column: span 2; background: #ff9f43; color: #fff; box-shadow: 0 5px 0 #d9792b; font-size: 24px; }
+@media (orientation: landscape) and (max-height: 520px) {
+  .nu-body { column-gap: 14px; row-gap: 8px; }
+  .nu-stage { width: min(calc(var(--vh) * 100 - 36px), calc(100vw - 230px)); }
+  .nu-side { grid-template-columns: repeat(2, 90px); gap: 8px; }
+  .nu-tool, .nu-act { min-height: 56px; font-size: 17px; padding: 2px 6px; gap: 2px; }
+  .nu-tool-ico { width: 28px; height: 22px; }
+  .nu-tool.t-color .nu-tool-ico { width: 24px; height: 24px; }
+  .nu-tool.t-stamp .nu-tool-ico { width: 28px; height: 24px; }
+  .nu-act.a-done { font-size: 19px; }
+  .scr-nurie .nu-bar .icon-btn { width: 56px; height: 56px; }
+}
+@media (orientation: portrait) {
+  .nu-body { grid-template-columns: auto; grid-template-rows: auto auto auto; grid-template-areas: "bar" "stage" "side"; row-gap: 12px; justify-items: center; }
+  .nu-bar { width: 100%; }
+  .nu-stage { width: min(94vw, calc(var(--vh) * 100 - 300px), 760px); }
+  .nu-side { align-self: start; width: min(94vw, 560px); grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .nu-tool, .nu-act { min-height: 70px; font-size: 18px; padding: 4px 2px; }
+  .nu-tool-ico { width: 32px; height: 26px; }
+  .nu-tool.t-color .nu-tool-ico { width: 28px; height: 28px; }
+  .nu-tool.t-stamp .nu-tool-ico { width: 32px; height: 28px; }
+  .nu-act.a-done { font-size: 20px; }
+}
+/* えらぶ まど（色・スタンプ） */
+.nu-pop { position: fixed; inset: 0; z-index: 40; background: rgba(40, 30, 20, .35); display: none; align-items: center; justify-content: center; }
+.nu-pop.show { display: flex; }
+.nu-pop-panel { background: #fff; border-radius: 24px; padding: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+.nu-pop-panel.color { display: grid; grid-template-columns: repeat(4, 64px); gap: 12px; }
+.nu-pop-panel.stamp { display: flex; flex-direction: column; gap: 12px; }
+.nu-pop-stamps, .nu-pop-sizes { display: grid; grid-template-columns: repeat(3, 64px); gap: 10px; justify-content: center; }
+.nu-pop-sizes { padding-top: 10px; border-top: 3px dashed #eadfcd; }
+.nu-sw { width: 64px; height: 64px; border: 0; border-radius: 50%; cursor: pointer; padding: 0; box-shadow: 0 3px 0 rgba(0,0,0,.18); }
+.nu-sw.col { background: var(--sw); }
+.nu-sw.col.white { box-shadow: inset 0 0 0 2px #cfc4b2, 0 3px 0 rgba(0,0,0,.18); }
+.nu-sw.st { border-radius: 14px; background: #fff7ea; }
+.nu-sw.st img { width: 82%; height: 82%; object-fit: contain; pointer-events: none; }
+.nu-sw.sz { border-radius: 14px; background: #fff3dc; display: flex; align-items: center; justify-content: center; }
+.nu-sz-dot { display: block; border-radius: 50%; background: #f9d531; border: 2px solid #3a3a3a; box-sizing: border-box; }
+.nu-sw.sz-s .nu-sz-dot { width: 14px; height: 14px; }
+.nu-sw.sz-m .nu-sz-dot { width: 26px; height: 26px; }
+.nu-sw.sz-l .nu-sz-dot { width: 42px; height: 42px; }
+.nu-sw.on { box-shadow: 0 0 0 4px #fff, 0 0 0 7px #ff9f43; transform: scale(1.06); }
+/* できた */
+.nu-done-body { flex: 1 1 auto; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; gap: 24px; }
+.nu-done-pic { position: relative; width: min(56vw, calc(var(--vh) * 100 - 110px), 600px); aspect-ratio: 1; border-radius: 20px; background: #fff; box-shadow: 0 6px 0 #e2d6c2; overflow: visible; }
+.nu-done-pic img { width: 100%; height: 100%; border-radius: 20px; display: block; }
+.nu-done-info { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.nu-done-info .chara { width: min(20vw, calc(var(--vh) * 22), 160px); height: auto; }
+.nu-done-msg { margin: 0; font-size: clamp(24px, 4vw, 40px); font-weight: 700; }
+@media (orientation: landscape) and (max-height: 400px) {
+  .nu-pop-panel { padding: 10px; }
+  .nu-pop-panel.stamp { gap: 8px; }
+  .nu-pop-stamps, .nu-pop-sizes { grid-template-columns: repeat(3, 56px); gap: 8px; }
+  .nu-pop-sizes { padding-top: 8px; }
+  .nu-pop-panel .nu-sw { width: 56px; height: 56px; }
+}
+@media (orientation: portrait) {
+  .nu-grid { grid-template-columns: repeat(2, auto); }
+  .nu-pic, .nu-work { width: min(calc((100vw - 160px) / 2), calc((var(--vh) * 100 - 230px) / 4), 180px); height: min(calc((100vw - 160px) / 2), calc((var(--vh) * 100 - 230px) / 4), 180px); }
+  .nu-sel-row { gap: 4px; }
+  .nu-done-body { flex-direction: column; gap: 12px; }
+  .nu-done-pic { width: min(84vw, calc(var(--vh) * 100 - 330px)); }
+  .nu-done-info { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+  .nu-done-info .chara { width: 80px; }
+}
+@media (prefers-reduced-motion: reduce) { .nu-sw.on { transform: none; } }

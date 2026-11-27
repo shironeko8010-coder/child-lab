@@ -318,10 +318,11 @@
     kioku: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="10" width="22" height="30" rx="5" fill="#6fa8f0"/><rect x="10" y="14" width="14" height="22" rx="3" fill="none" stroke="#fff" stroke-width="2.5"/><rect x="36" y="24" width="22" height="30" rx="5" fill="#fff" stroke="#ff8a5b" stroke-width="3"/><circle cx="47" cy="39" r="7" fill="#ffd84d"/><circle cx="44.5" cy="37.5" r="1.3" fill="#3a3a3a"/><circle cx="49.5" cy="37.5" r="1.3" fill="#3a3a3a"/><path d="M45.5 41h3l-1.5 2z" fill="#ff8a3d"/><path d="M30 20q4-6 8 0" fill="none" stroke="#3a3a3a" stroke-width="2.5" stroke-linecap="round"/></svg>',
     kage: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="21" cy="30" r="15" fill="#2b2b33"/><circle cx="11" cy="16" r="6" fill="#2b2b33"/><circle cx="31" cy="16" r="6" fill="#2b2b33"/><circle cx="45" cy="38" r="13" fill="#ffd84d"/><circle cx="36" cy="27" r="5" fill="#ffd84d"/><circle cx="54" cy="27" r="5" fill="#ffd84d"/><circle cx="41" cy="36" r="1.8" fill="#3a3a3a"/><circle cx="49" cy="36" r="1.8" fill="#3a3a3a"/><path d="M43 42q2 2 4 0" stroke="#3a3a3a" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>',
     ten: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="6" width="52" height="52" rx="10" fill="#fff6dc"/><path d="M32 12 L52 28 L52 52 L12 52 L12 28" fill="none" stroke="#ff8a5b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 28 L32 12" stroke="#ff8a5b" stroke-width="4" stroke-dasharray="4 5" stroke-linecap="round"/><circle cx="32" cy="12" r="5" fill="#fff" stroke="#3a3a3a" stroke-width="2.5"/><circle cx="52" cy="28" r="5" fill="#fff" stroke="#3a3a3a" stroke-width="2.5"/><circle cx="52" cy="52" r="5" fill="#fff" stroke="#3a3a3a" stroke-width="2.5"/><circle cx="12" cy="52" r="5" fill="#fff" stroke="#3a3a3a" stroke-width="2.5"/><circle cx="12" cy="28" r="5" fill="#ffd84d" stroke="#3a3a3a" stroke-width="2.5"/></svg>',
-    nakama: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 34 H56 L50 56 H14 Z" fill="#e9b45a" stroke="#a8743a" stroke-width="3" stroke-linejoin="round"/><path d="M12 42 H52 M14 49 H50" stroke="#c48a3e" stroke-width="2.5"/><circle cx="22" cy="26" r="9" fill="#e2483d"/><path d="M22 17 q2 -6 7 -6" stroke="#4caf50" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="34" y="14" width="18" height="18" rx="4" fill="#2f7fd6"/><circle cx="43" cy="23" r="3" fill="#fff"/></svg>'
+    nakama: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 34 H56 L50 56 H14 Z" fill="#e9b45a" stroke="#a8743a" stroke-width="3" stroke-linejoin="round"/><path d="M12 42 H52 M14 49 H50" stroke="#c48a3e" stroke-width="2.5"/><circle cx="22" cy="26" r="9" fill="#e2483d"/><path d="M22 17 q2 -6 7 -6" stroke="#4caf50" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="34" y="14" width="18" height="18" rx="4" fill="#2f7fd6"/><circle cx="43" cy="23" r="3" fill="#fff"/></svg>',
+    nurie: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="8" width="40" height="48" rx="6" fill="#fff" stroke="#3a3a3a" stroke-width="3"/><path d="M16 40 q8 -16 16 0 q4 6 8 0" fill="none" stroke="#3a3a3a" stroke-width="3" stroke-linecap="round"/><circle cx="22" cy="22" r="6" fill="#f9d531"/><path d="M44 50 L58 18" stroke="#e2483d" stroke-width="8" stroke-linecap="round"/><path d="M44 50 l-2 8 6 -5z" fill="#3a3a3a"/></svg>'
   };
   // ホームの並び（設計書7章）。1ページ6まい。いまのページは画面の中だけで覚える（保存しない）
-  var HOME_ORDER = ['hira', 'kazu', 'tokei', 'iro', 'machi', 'kai', 'sr', 'dou', 'meiro', 'kioku', 'kage', 'ten', 'nakama'];
+  var HOME_ORDER = ['hira', 'kazu', 'tokei', 'iro', 'machi', 'kai', 'sr', 'dou', 'meiro', 'kioku', 'kage', 'ten', 'nakama', 'nurie'];
   var HOME_PER_PAGE = 6;
   var homePage = 0;
   C.chiikuHome = {
@@ -375,6 +376,7 @@
     playCard('かげ​あわせ', 'kage', function () { C.kage.start(p.id); });
     playCard('てん​つなぎ', 'ten', function () { C.tentsunagi.start(p.id); });
     playCard('なかま​わけ', 'nakama', function () { C.nakama.start(p.id); });
+    playCard('ぬりえ', 'nurie', function () { C.nurie.start(p.id); });
 
     // 2ページ：◀ カード ▶、下に ●○。横にさっと動かしても めくれる
     var H = C.chiikuHome, pages = H.pageCount();
